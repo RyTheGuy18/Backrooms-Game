@@ -53,6 +53,7 @@ v0.32.0: the Mall rebuilt with 3 floors you can ride escalators and take stairs 
 v0.33.0: moving mannequins in the mall. They only move when nobody is looking at them, and they're fast. Listen for the plastic clacking and keep looking around.
 v0.34.0: new Level 9, the Suburbs (after the mall). An endless neighbourhood at midnight: dark houses you can go into, dead street lamps, fog, faces in the windows. Find the car keys in a house and gas in a backyard shed, then start the station wagon and drive out.
 v0.35.0: Level 9 (Suburbs) removed. New last level after the mall: Level 2 "Pipe Dreams". Tight maintenance tunnels full of pipes and machines, buzzing white/orange lights that cut out in blocks, mostly locked steel doors, thin steam puffs (atmosphere only). Turn the 4 red pressure valves, find bolt cutters in a storage room, cut the chain on the EXIT door.
+v0.35.1: Level 2 uses real photo textures (brick and concrete walls, worn and cracked concrete floors, rusty pipes); fixed a dark plane that glitched through the floor
 v0.35.2: phone ring fades out with distance — full volume within 10 m, silent past 22 m
 v0.36.0: Parking garage is bright all the way down once every generator is on. The hotel now has full power outages: every light on every floor goes out for ~20 s, pitch black, the courtyard windows barely visible.
 v0.37.0: In the hotel, the monster's blackout now cuts the power to the whole hotel. In the dark (blackouts, outages, dead lights in Pipe Dreams), the Lurker creeps toward you and the computer monster knows where you are. Both are deadlier on harder difficulties.
@@ -77,6 +78,7 @@ v0.48.0: The menu TV is now turned in 3D with the menu on its screen, one subtle
 v0.49.0: menu is a dark 3D room with the TV on a table; menu, level select, join, lobby and settings all play on the TV under a VHS video overlay
 v0.49.1: settings on the TV has a BACK button at the top; you can scroll screens on the TV by touch
 v0.49.2: menu camera zoomed out, the TV is smaller in the room
+v0.49.3: menu camera shifted right so the TV sits a bit left of centre
 v0.49.4: TV moved a bit to the left; no more play button over the TV on iPhone
 v0.50.0: clicking PLAY zooms the camera almost all the way into the TV for the level select
 v0.50.1: zooming into the TV now turns the camera to face the screen straight on
@@ -89,3 +91,13 @@ v0.50.7: app icon is now the ASYNC logo
 v0.50.8: ASYNC app icon now has the menu TV's VHS look
 v0.50.9: heavier VHS glitch look on the ASYNC app icon, no PLAY/SP/timecode text
 v0.50.10: ASYNC logo centred better on the app icon
+v0.50.11: new VHS noise video on the menu TV (also fixed the offline cache file, which had been empty)
+v0.50.12: menu TV VHS video without the PLAY/SP/timecode text
+v0.51.0: the menu TV loses signal now and then (static bursts with sound); a TV remote on the table
+v0.51.1: VHS tapes on the menu table
+v0.51.2: smaller TV moved right so the tapes don't cut into it; level select is sharper when zoomed in
+v0.51.3: TV smaller and further right, camera closer
+v0.51.4: camera zooms into the TV in the lobby too
+v0.51.5: the menu TV always shows Level 0, from out in the Backrooms maze instead of the ASYNC lab spawn
+v0.51.6: no Level 0 sounds on the menu or in the lobby, only VHS static
+v0.51.7: the menu and lobby play a quiet ceiling fan hum instead of the VHS static
