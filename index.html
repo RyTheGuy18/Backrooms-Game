@@ -322,7 +322,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.51.4</div>
+<div class="osd" id="ver">v0.51.5</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -7897,6 +7897,29 @@ const gctx = $('grain').getContext('2d');
 const gimg = gctx.createImageData(160,100);
 function grain(){ const d = gimg.data; for (let i=0;i<d.length;i+=4){ const v = Math.random()*255; d[i]=d[i+1]=d[i+2]=v; d[i+3]=255; } gctx.putImageData(gimg,0,0); }
 
+// v0.51.5: where the menu TV camera stands on Level 0: the middle of an open hall (out in the maze, away from the lab)
+function menuSpot(){
+  if (!level) return [cc(1), cc(1), 2];
+  if (level.menuSpot) return level.menuSpot;
+  let sp = null;
+  if (LK === 0){
+    for (const h of level.halls || []){
+      const x = (h.i0 + h.i1 + 1)*CS/2, z = (h.j0 + h.j1 + 1)*CS/2;
+      if (!inLab(x, z) && !inPit(x, z) && zoneOf(h.i0, h.j0) !== 2){ sp = [x, z, 1.1]; break; }
+    }
+    if (!sp){   // fallback: the open cell furthest from the lab with no walls round it
+      let best = -1;
+      for (let i=1;i<N-1;i++) for (let j=1;j<N-1;j++){
+        if (inLabCell(i, j) || zoneOf(i, j) === 2) continue;
+        const x = cc(i), z = cc(j); if (inPit(x, z)) continue;
+        const open = !walls[vIdx(i,j)] && !walls[vIdx(i+1,j)] && !walls[hIdx(i,j)] && !walls[hIdx(i,j+1)];
+        const d = Math.hypot(x - LAB_GX, z - LAB_GZ) + (open ? 100 : 0);
+        if (d > best){ best = d; sp = [x, z, open ? 0.8 : 0.3]; }
+      }
+    }
+  }
+  return level.menuSpot = sp || [cc(1), cc(1), 2];
+}
 buildLevel(hashStr('menu-level'));
 let menuT = 0, tvT = 0; const pageT0 = nowS();
 let last = performance.now();
@@ -7915,8 +7938,10 @@ function frame(now){
   tvT -= dt; if (tvT <= 0){ tvT = 0.06; updateTV(); }
   if (mode==='menu' || mode==='lobby' || mode==='end'){
     menuT += dt;
-    const path = 0.12*menuT;
-    camera.position.set(cc(1) + Math.sin(path)*2, EYE, cc(1) + Math.cos(path*0.7)*2);
+    // v0.51.5 (Ryan): the TV always shows Level 0 from inside the Backrooms maze, never the Async lab
+    if (tvRoomOn() && LK !== 0){ buildLevel(baseSeed, 0); sfx.bindLevel(); }
+    const path = 0.12*menuT, ms = menuSpot();
+    camera.position.set(ms[0] + Math.sin(path)*ms[2], EYE, ms[1] + Math.cos(path*0.7)*ms[2]);
     camera.rotation.set(0, menuT*0.04, 0);
     MON.g.visible = false; PHANTOM.g.visible = false; VM.visible = false; if (LRK){ LRK.g.visible = false; if (LRK.run) LRK.run.g.visible = false; }
     if (curRH !== RH){ curRH = RH; lowK = 0; resize(); }
