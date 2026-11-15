@@ -312,7 +312,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.49.1</div>
+<div class="osd" id="ver">v0.49.2</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -7073,8 +7073,8 @@ function renderTVRoom(dt){
   if (!TVR) buildTVRoom();
   if (!tvWasOn){ tvWasOn = true; document.body.classList.add('tvroom'); }
   const R = TVR, cam = R.cam, W = innerWidth, H = innerHeight; R.t += dt; const t = R.t;
-  cam.aspect = W/H; const th = Math.tan(cam.fov*Math.PI/360), fh = H < 520 ? 0.74 : 0.5;
-  const d = Math.max(0.3225/(2*th*fh), 0.43*0.92/(2*th*cam.aspect*0.94));
+  cam.aspect = W/H; const th = Math.tan(cam.fov*Math.PI/360), fh = H < 520 ? 0.6 : 0.4;
+  const d = Math.max(0.3225/(2*th*fh), 0.43*0.92/(2*th*cam.aspect*0.8));
   R.tv.updateMatrixWorld(); const c = R.vt.set(-0.05, 0.27, 0.171); R.tv.localToWorld(c);
   cam.position.set(c.x + 0.05*d + Math.sin(t*0.23)*0.012, c.y + 0.1*d + Math.sin(t*0.31 + 1)*0.008, c.z + d);
   cam.lookAt(c.x + Math.sin(t*0.19)*0.004, c.y - 0.012*d, c.z); cam.updateProjectionMatrix(); cam.updateMatrixWorld();
