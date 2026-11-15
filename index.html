@@ -235,52 +235,66 @@
   @media (max-aspect-ratio:1/1){ #menu .mm{flex-direction:column;justify-content:center} .mmR{width:100%;flex:0 0 auto} .lvgrid{grid-template-columns:repeat(2,minmax(0,1fr))} }
   @media (max-height:500px){ .tile .th{aspect-ratio:2.6} .tile .tt{padding:4px 6px 6px} .mtitle .sub{margin-bottom:4px} .mhead{margin-bottom:8px} }
 
-  /* ---------- v0.47 main menu: the menu is ON a CRT TV (Ryan's model), FNAF-dark room around it ---------- */
-  #menu{background:radial-gradient(ellipse at 30% 50%,rgba(6,6,8,.78),rgba(2,2,3,.96) 70%)!important}
-  #menu::before{display:none}
-  #menu .mm{gap:3vw;padding:2vh 4vw;justify-content:flex-start}
-  .crt{position:relative;height:min(94vh,calc(80vw*636/604));aspect-ratio:604/636;flex:0 0 auto;filter:drop-shadow(0 0 40px rgba(110,150,255,.12))}
-  .crtimg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;user-select:none}
-  .crtscr{position:absolute;left:0;top:0;width:300px;height:240px;transform-origin:0 0;border-radius:3% / 4%;overflow:hidden;background:#000;container-type:size;box-shadow:0 0 30px rgba(140,180,255,.18)}
-  .crtscr #tvc{position:absolute;inset:0;width:100%;height:100%;filter:contrast(1.15) saturate(.8) brightness(.9) blur(.5px);image-rendering:pixelated}
-  .crtlogo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;pointer-events:none;filter:blur(.6px) contrast(1.1)}
+  /* ---------- v0.49 menu room: a pitch-dark room, the TV on a table, every pre-game screen ON the TV ---------- */
+  #tvroom{position:fixed;inset:0;z-index:20;pointer-events:none;display:none}
+  body.tvroom #tvroom{display:block}
+  #tvroom .crtscr{position:absolute;left:0;top:0;width:600px;height:450px;transform-origin:0 0;border-radius:5% / 6%;overflow:hidden;background:#000;pointer-events:auto}
+  #tvroom #tvc{position:absolute;inset:0;width:100%;height:100%;filter:contrast(1.15) saturate(.7) brightness(.8) blur(1.2px);image-rendering:pixelated}
+  .crtlogo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;pointer-events:none;filter:blur(1px) contrast(1.1);z-index:2}
   .crtlogo.on{opacity:1;animation:logoJit .12s steps(2) infinite}
   @keyframes logoJit{50%{transform:translateX(.6%)}}
-  .vhsov{position:absolute;inset:-4% 0;width:100%;height:108%;object-fit:cover;mix-blend-mode:screen;opacity:.6;pointer-events:none;animation:vhsJit .36s steps(3) infinite}
-  @keyframes vhsJit{0%{transform:translateY(0)}33%{transform:translateY(-2.5%)}66%{transform:translateY(1.5%) scaleX(1.02)}}
-  .crtscr .tvscan{position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.32) 0 1px,transparent 1px 3px),radial-gradient(ellipse at center,transparent 50%,rgba(0,0,0,.8) 100%)}
-  .crtscr .tvosd{position:absolute;left:5%;right:5%;top:5%;display:flex;justify-content:space-between;font:bold 5cqh monospace;color:#f4eed6;text-shadow:2px 0 rgba(255,40,40,.5),-2px 0 rgba(40,200,255,.45);pointer-events:none}
-  .crtui{position:absolute;left:7%;top:15%;bottom:6%;display:flex;flex-direction:column;align-items:flex-start;gap:2.2cqh;z-index:2;transition:opacity .2s}
-  .crtscr.logo .crtui,.crtscr.logo .tvosd{opacity:0}
-  .crtui .mtitle h1{font-size:13cqh;letter-spacing:.05em}
-  .crtui .mtitle .sub{font-size:3.6cqh;margin:0 0 2.5cqh}
-  .crtui .vbtn{font-size:7.2cqh;min-width:42cqw;padding:.6cqh 2cqw .6cqh 5cqw;border:1px solid rgba(200,220,255,.4);background:rgba(10,18,40,.45);box-shadow:0 0 1.4cqh rgba(140,180,255,.2)}
-  .crtui .vbtn::before{left:1.4cqw}
-  .crtui .vbtn:hover,.crtui .vbtn:focus-visible{background:rgba(233,210,124,.16);border-color:#e9d27c}
-  .mside{display:flex;flex-direction:column;gap:10px;align-self:flex-end;margin-bottom:4vh;opacity:.75}
-  @media (max-aspect-ratio:1/1){ #menu .mm{flex-direction:column;justify-content:center} .crt{height:auto;width:92vw} .mside{align-self:center} }
-
-  /* ---------- v0.48: every other screen in the same VHS / CRT style ---------- */
-  .screen:not(#menu){background:radial-gradient(ellipse at 50% 35%,rgba(12,18,34,.88),rgba(2,2,4,.97) 75%)}
-  .screen:not(#menu) .title h1{font-family:monospace;font-weight:bold;font-size:clamp(34px,7vw,62px);color:#e9d27c;text-shadow:3px 0 rgba(255,40,40,.45),-3px 0 rgba(40,200,255,.4),0 0 18px rgba(233,210,124,.3)}
-  .screen:not(#menu) .title .sub,.screen:not(#menu) .title .tag{font-family:monospace;color:#9aa6c8}
-  .card{background:rgba(10,18,40,.42);border:1px solid rgba(200,220,255,.28);box-shadow:inset 0 0 22px rgba(140,180,255,.07)}
-  .lbl{font-family:monospace;font-size:14px;letter-spacing:.28em;color:#9aa6c8}
-  .btn{font-family:monospace;font-weight:bold;font-size:clamp(16px,2.3vw,21px);letter-spacing:.12em;color:#f4eed6;border:1px solid rgba(200,220,255,.32);background:rgba(10,18,40,.38);text-shadow:2px 0 rgba(255,40,40,.35),-2px 0 rgba(40,200,255,.3)}
-  .btn::after{color:#e9d27c}
-  .btn:hover,.btn:active{border-color:#e9d27c;color:#e9d27c;background:rgba(233,210,124,.1)}
-  .btn.primary{background:rgba(233,210,124,.9);color:#100c04;border-color:#e9d27c;text-shadow:none}
-  .btn.ghost{font-size:clamp(14px,2vw,18px)}
-  .btn.monb{color:#ff9c86;border-color:rgba(255,120,100,.4)}
-  .screen input:not([type=range]){font-family:monospace;font-size:20px;background:rgba(0,0,0,.45);border-color:rgba(200,220,255,.35)}
-  #code{font-family:monospace!important;color:#e9d27c;text-shadow:3px 0 rgba(255,40,40,.45),-3px 0 rgba(40,200,255,.4)}
-  .srow{font-family:monospace;font-size:16px;color:#cfc8b0}
-  #lvPick{z-index:41}#lvPick .lvwrap{width:min(96vw,1100px);margin:0 auto}
-  @media (min-width:760px){ #lobby .col{width:min(94vw,860px);display:grid;grid-template-columns:minmax(0,320px) minmax(0,1fr);gap:12px;align-content:start} #lobby .col > *{grid-column:1} #lobby .col > .title{grid-column:1 / span 2} #lroom{grid-column:2!important;grid-row:2 / span 6} }
+  .crtscr.logo #tvpages{opacity:0}
+  #tvpages{position:absolute;inset:0;z-index:1;filter:blur(1px) contrast(1.1) saturate(.85);animation:tvWob 6.3s steps(1) infinite}
+  @keyframes tvWob{0%,90%,100%{transform:none}91%{transform:translateX(4px) skewX(-1.5deg)}92%{transform:translateX(-2px)}96%{transform:translateY(1px)}}
+  #vhsVid{position:absolute;inset:-3% 0;width:100%;height:106%;object-fit:cover;mix-blend-mode:screen;opacity:.95;pointer-events:none;z-index:4}
+  #tvroom .tvscan{z-index:5;background:repeating-linear-gradient(0deg,rgba(0,0,0,.4) 0 2px,transparent 2px 4px),radial-gradient(ellipse at center,transparent 45%,rgba(0,0,0,.85) 100%)}
+  #tvpages .screen{position:absolute;inset:0;z-index:1;padding:34px 38px 26px;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;background:rgba(1,2,6,.86);font-family:monospace;color:#e6e1cc;text-shadow:2px 0 rgba(255,40,40,.55),-2px 0 rgba(40,200,255,.5);box-sizing:border-box;align-items:flex-start}
+  #tvpages .screen::-webkit-scrollbar{display:none}
+  #tvpages .screen::after,#tvpages #menu::before,#tvpages #menu::after{display:none}
+  #tvpages #menu{background:linear-gradient(90deg,rgba(0,0,0,.7),rgba(0,0,0,.3) 65%,rgba(0,0,0,.1))!important;padding:0;overflow:hidden}
+  #tvpages #menu.sub{background:rgba(1,2,6,.9)!important}
+  #tvpages #settings,#tvpages #lvPick{z-index:3;background:rgba(1,2,6,.96)}
+  #tvpages #menu .mm{flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:8px;padding:40px 44px 26px;height:100%}
+  #tvpages .mtitle h1{font-size:64px;line-height:1}
+  #tvpages .mtitle .sub{font-size:15px;margin:2px 0 14px}
+  #tvpages .mm .vbtn:not(.sm){font-size:27px;min-width:250px;border:1px solid rgba(220,225,240,.45);background:rgba(0,0,0,.35);padding:3px 10px 3px 34px}
+  #tvpages .mm .vbtn:not(.sm):hover,#tvpages .mm .vbtn:not(.sm):focus-visible{background:rgba(233,210,124,.16);border-color:#e9d27c}
+  #tvpages .vbtn::before{left:10px}
+  #tvpages .mside{margin-top:auto;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+  #tvpages .mname{margin:0;font-size:14px}#tvpages .mname input{width:140px;font-size:17px;padding:4px 6px}
+  #tvpages .vlink{font-size:13px;color:#a9a28a}
+  #tvpages #netnote{font-size:13px;flex-basis:100%}
+  #tvpages .msub{padding:30px 34px 24px;scrollbar-width:none}#tvpages .msub::-webkit-scrollbar{display:none}
+  #tvpages .mhead h2{font-size:22px}#tvpages .vbtn.back{font-size:16px}
+  #tvpages .lvgrid{gap:10px}#tvpages .tile b{font-size:14px}#tvpages .tile em{font-size:10px}#tvpages .tile p{font-size:11.5px}
+  #tvpages .tile .th{aspect-ratio:2.2}
+  #tvpages .vbtn.sm{font-size:14px}
+  #tvpages .infobox{font-size:14px}#tvpages .infobox .foot{font-size:12px!important}
+  #tvpages .jbox input{font-size:30px}
+  #tvpages .col{width:100%;margin:0;gap:8px}
+  #tvpages .title{margin:0 0 2px;text-align:left}
+  #tvpages .title h1{font:bold 34px monospace!important;color:#e9d27c;letter-spacing:.12em;animation:none}
+  #tvpages .title .sub,#tvpages .title .tag{font-size:12px;letter-spacing:.3em;margin:0;color:#a9a28a}
+  #tvpages .card{background:rgba(0,0,0,.35);border:1px solid rgba(220,225,240,.35);padding:9px 10px;gap:7px;backdrop-filter:none;-webkit-backdrop-filter:none;box-shadow:none}
+  #tvpages .lbl{font:13px monospace;letter-spacing:.25em;color:#a9a28a}
+  #tvpages .btn{font:bold 17px monospace;letter-spacing:.1em;padding:6px 10px;color:#f4eed6;border:1px solid rgba(220,225,240,.4);background:rgba(0,0,0,.3);text-shadow:inherit}
+  #tvpages .btn:hover,#tvpages .btn:focus-visible{border-color:#e9d27c;color:#e9d27c;outline:none}
+  #tvpages .btn.primary{background:#e9d27c;color:#100c04;text-shadow:none;border-color:#e9d27c}
+  #tvpages .btn.monb{color:#ff9c86;border-color:rgba(255,120,100,.45)}
+  #tvpages .btn.ghost{font-size:15px}
+  #tvpages #code{font:bold 52px monospace!important;letter-spacing:.3em;color:#e9d27c}
+  #tvpages .foot,#tvpages #monText,#tvpages #lwait,#tvpages .devnote{font-size:12px!important}
+  #tvpages .picker .pv{font-size:17px}#tvpages .picker .pv small{font-size:11px}
+  #tvpages #lplayers{font-size:14px;min-height:0}
+  #tvpages .srow{font:14px monospace;color:#cfc8b0}
+  #tvpages input:not([type=range]),#tvpages select{font:15px monospace;background:rgba(0,0,0,.45);color:#f4eed6;border:1px solid rgba(220,225,240,.35)}
+  #tvpages #lobby .col{display:grid;grid-template-columns:200px minmax(0,1fr);gap:8px;align-content:start}
+  #tvpages #lobby .col > *{grid-column:1}#tvpages #lobby .col > .title{grid-column:1 / span 2}#tvpages #lroom{grid-column:2!important;grid-row:2 / span 7}
+  #tvpages #lvPick .lvwrap{width:100%}
 </style>
 <script type="importmap">{"imports":{"three":"./three.module.min.js"}}</script>
 </head>
-<body>
+<body class="tvroom">
 <canvas id="game"></canvas>
 <canvas id="grain" width="160" height="100"></canvas>
 <div id="vig"></div>
@@ -294,7 +308,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.48.0</div>
+<div class="osd" id="ver">v0.49.0</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -328,22 +342,19 @@
 <canvas id="mmap" width="344" height="364"></canvas>
 <div id="elev"><div class="et">ELEVATOR</div><div class="eb"><button data-f="1">1</button><button data-f="2">2</button><button data-f="3">3</button><button data-f="4">4</button><button data-f="5">5</button></div><div class="eh">PRESS 2 · 3 · 4</div></div>
 
+<div id="tvroom"><div class="crtscr"><canvas id="tvc" width="320" height="240"></canvas><img class="crtlogo" id="crtLogo" src="menu/async.jpg" alt="">
+  <div id="tvpages"></div>
+  <video id="vhsVid" src="menu/vhs.mp4" muted loop playsinline autoplay preload="auto"></video><div class="tvscan"></div>
+  <span id="tvtime" hidden></span>
+</div></div>
 <div class="screen show" id="menu">
 <div class="mm" id="mMain">
-  <div class="crt"><img class="crtimg" src="menu/crt.png" alt="" draggable="false">
-    <div class="crtscr"><canvas id="tvc" width="320" height="240"></canvas><img class="crtlogo" id="crtLogo" src="menu/async.jpg" alt="">
-      <div class="crtui">
-        <div class="mtitle"><h1>LEVEL 0</h1><div class="sub">THE BACKROOMS</div></div>
-        <button class="vbtn" id="mPlay">PLAY</button>
-        <button class="vbtn" id="bHost">HOST</button>
-        <button class="vbtn" id="mJoin">JOIN</button>
-        <button class="vbtn" id="bSet1">SETTINGS</button>
-      </div>
-      <img class="vhsov" id="vhsOv" src="menu/vhs.jpg" alt=""><div class="tvscan"></div>
-      <div class="tvosd"><span>PLAY ▶</span><span id="tvtime">0:00:00</span></div>
-    </div>
-  </div>
-  <div class="mside"><div class="mname"><span>NAME</span><input id="name" maxlength="12" placeholder="WANDERER" autocomplete="off"></div><div id="netnote"></div><button class="vlink" id="mInfo">HOW TO PLAY · CREDITS</button></div>
+  <div class="mtitle"><h1>LEVEL 0</h1><div class="sub">THE BACKROOMS</div></div>
+  <button class="vbtn" id="mPlay">PLAY</button>
+  <button class="vbtn" id="bHost">HOST</button>
+  <button class="vbtn" id="mJoin">JOIN</button>
+  <button class="vbtn" id="bSet1">SETTINGS</button>
+  <div class="mside"><div class="mname"><span>NAME</span><input id="name" maxlength="12" placeholder="WANDERER" autocomplete="off"></div><button class="vlink" id="mInfo">HOW TO PLAY · CREDITS</button><div id="netnote"></div></div>
 </div>
 <div class="msub" id="pLevels">
   <div class="mhead"><button class="vbtn back" data-back>◀ BACK</button><h2>SELECT A LEVEL</h2></div>
@@ -371,7 +382,7 @@
   </div>
   <div id="iosHint">iPhone: tap Share → <b>Add to Home Screen</b> and play from there. It runs fullscreen with no browser bars and the controls work much better.</div>
   <div class="foot">Headphones on. Listen to the hum.</div>
-  <div class="foot" style="font-size:15px;opacity:.7">Menu TV: <a href="https://sketchfab.com/3d-models/crt-tv-9ba4baa106e64319a0b540cf0af5aa9e" target="_blank" rel="noopener" style="color:inherit">"CRT TV" by Timothy Ahene</a> (Sketchfab) · VHS overlays: <a href="https://resourceboy.com/" target="_blank" rel="noopener" style="color:inherit">Resource Boy</a> · Cafeteria tables: <a href="https://sketchfab.com/3d-models/folding-table-dba1b4270fee431290c464742f5fd4f5" target="_blank" rel="noopener" style="color:inherit">"Folding Table" by AK STUDIO</a>, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:inherit">CC BY 4.0</a> (textures shrunk) · The Crawler: <a href="https://sketchfab.com/3d-models/goose-c0cf164370124d81b2737e864bf38205" target="_blank" rel="noopener" style="color:inherit">"Goose" by nodoxi</a>, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:inherit">CC BY 4.0</a> (re-textured smaller, rigged in code) · Phones: <a href="https://sketchfab.com/3d-models/telephone-be6af2677cea49f5bc2f65968df50460" target="_blank" rel="noopener" style="color:inherit">"Telephone" by sui</a>, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:inherit">CC BY 4.0</a> · Radio: <a href="https://sketchfab.com/3d-models/vintage-retro-radio-26fb0de1015d4570bac28cd8b1fb0a62" target="_blank" rel="noopener" style="color:inherit">"Vintage Retro Radio" by Pavlo_Holubov</a>, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:inherit">CC BY 4.0</a> · The Lurker: <a href="https://sketchfab.com/3d-models/a-terrifying-creature-monster-8d509a2a7e4d4fb7972fd7016c53a234" target="_blank" rel="noopener" style="color:inherit">"A Terrifying Creature (Monster)" by Dester</a>, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:inherit">CC BY 4.0</a> (textures shrunk, re-rigged for its run) · Flashlight: <a href="https://sketchfab.com/3d-models/pro-flashlight-4c421693ab9d4d24af19cf151f4569a0" target="_blank" rel="noopener" style="color:inherit">"Pro Flashlight" by Chancleto870</a>, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:inherit">CC BY 4.0</a> (simplified, smaller texture)</div>
+  <div class="foot" style="font-size:15px;opacity:.7">Menu table: <a href="https://sketchfab.com/3d-models/table-1132fa2850a24917892733566bd68e74" target="_blank" rel="noopener" style="color:inherit">"Table" by yryabchenko</a>, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:inherit">CC BY 4.0</a> (texture shrunk) · VHS noise: Pexels · Cafeteria tables: <a href="https://sketchfab.com/3d-models/folding-table-dba1b4270fee431290c464742f5fd4f5" target="_blank" rel="noopener" style="color:inherit">"Folding Table" by AK STUDIO</a>, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:inherit">CC BY 4.0</a> (textures shrunk) · The Crawler: <a href="https://sketchfab.com/3d-models/goose-c0cf164370124d81b2737e864bf38205" target="_blank" rel="noopener" style="color:inherit">"Goose" by nodoxi</a>, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:inherit">CC BY 4.0</a> (re-textured smaller, rigged in code) · Phones: <a href="https://sketchfab.com/3d-models/telephone-be6af2677cea49f5bc2f65968df50460" target="_blank" rel="noopener" style="color:inherit">"Telephone" by sui</a>, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:inherit">CC BY 4.0</a> · Radio: <a href="https://sketchfab.com/3d-models/vintage-retro-radio-26fb0de1015d4570bac28cd8b1fb0a62" target="_blank" rel="noopener" style="color:inherit">"Vintage Retro Radio" by Pavlo_Holubov</a>, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:inherit">CC BY 4.0</a> · The Lurker: <a href="https://sketchfab.com/3d-models/a-terrifying-creature-monster-8d509a2a7e4d4fb7972fd7016c53a234" target="_blank" rel="noopener" style="color:inherit">"A Terrifying Creature (Monster)" by Dester</a>, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:inherit">CC BY 4.0</a> (textures shrunk, re-rigged for its run) · Flashlight: <a href="https://sketchfab.com/3d-models/pro-flashlight-4c421693ab9d4d24af19cf151f4569a0" target="_blank" rel="noopener" style="color:inherit">"Pro Flashlight" by Chancleto870</a>, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:inherit">CC BY 4.0</a> (simplified, smaller texture)</div>
 </div>
 </div>
 <div style="display:none"><button id="bSolo"></button><button id="bLv1"></button><button id="bVoice"></button><button id="bSkinL"></button><div id="bSkin"></div><button id="bSkinR"></button></div>
@@ -5982,7 +5993,7 @@ function openSettings(){
   $('bResume').textContent = inGame ? 'RESUME' : 'BACK';
   $('bQuit').style.display = inGame || mode === 'lobby' ? '' : 'none'; $('bQuit').textContent = inGame ? 'LEAVE GAME' : 'LEAVE ROOM';
   keys.clear(); runHeld = false; stickV = [0,0]; stickRun = false;
-  $('settings').classList.add('show'); showVoice(); applySet(); fillDevices(); checkUpdate(); sndStatus();
+  (inGame ? document.body : $('tvpages')).appendChild($('settings')); $('settings').classList.add('show'); showVoice(); applySet(); fillDevices(); checkUpdate(); sndStatus();
   try { document.exitPointerLock && document.exitPointerLock(); } catch(e){}
 }
 function closeSettings(){
@@ -7002,23 +7013,82 @@ document.addEventListener('pointerover', e=>{ const b = e.target.closest && e.ta
 document.addEventListener('pointerdown', e=>{ if (e.pointerType !== 'mouse' && e.target.closest && e.target.closest('.vbtn,.tile,.vlink,.btn')) menuTick(); });
 const crtCtx = $('tvc').getContext('2d'); let crtT = 0;
 
-// v0.48: the menu screen is mapped onto the glass of the turned TV (corners measured from the render of Ryan's model)
-const CRT_Q = [[16.378, 6.03], [93.093, 11.119], [92.76, 70.133], [16.496, 75.122]];
-function fitCRT(){ const box = document.querySelector('.crt'), sc = document.querySelector('.crtscr'); if (!box || !box.clientWidth) return;
-  const W = box.clientWidth, H = box.clientHeight, p = CRT_Q.map(([x,y])=>[x/100*W, y/100*H]), L = (a,b)=>Math.hypot(a[0]-b[0], a[1]-b[1]);
-  const w = (L(p[0],p[1]) + L(p[3],p[2]))/2, h = (L(p[0],p[3]) + L(p[1],p[2]))/2; sc.style.width = w + 'px'; sc.style.height = h + 'px';
-  const [[x0,y0],[x1,y1],[x2,y2],[x3,y3]] = p, dx1 = x1-x2, dx2 = x3-x2, dy1 = y1-y2, dy2 = y3-y2, sx = x0-x1+x2-x3, sy = y0-y1+y2-y3, det = dx1*dy2 - dx2*dy1;
+// v0.49 (Ryan): the menu is a pitch-dark room with the TV on his table; the TV is the only thing showing the Backrooms and every pre-game screen is ON it
+for (const id of ['menu','lvPick','lobby']) $('tvpages').appendChild($(id));
+const TVW = 600, TVH = 450; let TVR = null, tvAcc = 1;
+const tvRoomOn = () => mode === 'menu' || mode === 'lobby';
+function buildTVRoom(){
+  const S = new THREE.Scene(), g = new THREE.Group(); S.add(g); S.background = new THREE.Color(0); S.fog = new THREE.Fog(0x000000, 1.4, 4.6);
+  const cam = new THREE.PerspectiveCamera(38, 1, 0.05, 20);
+  const box = (w,h,d,m,x,y,z,p=g,ry=0)=>{ const o = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), m); o.position.set(x,y,z); o.rotation.y = ry; p.add(o); return o; };
+  const plast = lam(0x24231f), dark = lam(0x121212), knob = lam(0x1c1b1a), metal = lam(0x8a8a8a), wood = lam(0x2a1c12);
+  const fT = rugTex.clone(); fT.repeat.set(4,4); fT.needsUpdate = true;
+  const fl = new THREE.Mesh(new THREE.PlaneGeometry(7,7), lam(0x5a4a3a, { map:fT })); fl.rotation.x = -Math.PI/2; g.add(fl);
+  const wT = paperTex.clone(); wT.repeat.set(6,1.2); wT.needsUpdate = true; const wM = lam(0x6e6450, { map:wT });
+  const back = new THREE.Mesh(new THREE.PlaneGeometry(7,2.6), wM); back.position.set(0,1.3,-0.75); g.add(back);
+  const side = new THREE.Mesh(new THREE.PlaneGeometry(7,2.6), wM); side.rotation.y = Math.PI/2; side.position.set(-1.55,1.3,0); g.add(side);
+  box(7,0.1,0.02,wood,0,0.05,-0.74); box(0.02,0.1,7,wood,-1.54,0.05,0);
+  // a window with blinds on the side wall, barely any moonlight
+  const win = new THREE.Mesh(new THREE.PlaneGeometry(1.0,1.05), new THREE.MeshBasicMaterial({ color:0x0b1322 })); win.rotation.y = Math.PI/2; win.position.set(-1.535,1.5,0.85); g.add(win);
+  for (let i = 0; i < 12; i++) box(0.015,0.04,1.0, dark, -1.52, 1.02 + i*0.088, 0.85);
+  box(0.05,0.05,1.12,wood,-1.52,0.96,0.85); box(0.05,0.05,1.12,wood,-1.52,2.04,0.85);
+  const moon = new THREE.DirectionalLight(0x6080c0, 0.14); moon.position.set(-3,2.4,1.2); moon.target.position.set(0,0.6,0); S.add(moon, moon.target);
+  S.add(new THREE.AmbientLight(0x202838, 0.05));
+  // a poster, a wall outlet + the TV's cord, a dresser in the dark
+  box(0.5,0.7,0.01, lam(0x2c2620), 0.95,1.45,-0.74); box(0.42,0.6,0.012, lam(0x4a2f2a), 0.95,1.45,-0.735);
+  box(0.07,0.11,0.01, lam(0x9a9484), 0.45,0.3,-0.74);
+  const cord = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3(0.1,0.78,-0.2), new THREE.Vector3(0.3,0.7,-0.45), new THREE.Vector3(0.38,0.02,-0.6), new THREE.Vector3(0.45,0.02,-0.7), new THREE.Vector3(0.45,0.28,-0.735)]), 24, 0.008, 5), dark); g.add(cord);
+  box(0.9,0.85,0.45, wood, 1.65,0.425,-0.5); box(0.86,0.02,0.01, dark, 1.65,0.55,-0.27); box(0.86,0.02,0.01, dark, 1.65,0.3,-0.27);
+  new GLTFLoader().load('models/table.glb', gl=>{ gl.scene.traverse(o=>{ if (o.isMesh){ const map = o.material.map || null; if (map){ map.magFilter = THREE.NearestFilter; map.minFilter = THREE.NearestFilter; map.colorSpace = THREE.SRGBColorSpace; } o.material = lam(0xffffff, { map }); } }); gl.scene.scale.setScalar(0.218); gl.scene.position.y = 0.0185; g.add(gl.scene); });
+  // the TV (built here; Ryan's CRT model is Sketchfab Standard, so it stays out of the repo)
+  const tv = new THREE.Group(); tv.position.set(0, 0.718, 0); tv.rotation.y = 0.42; g.add(tv);
+  box(0.6,0.48,0.34, plast, 0,0.24,0, tv); box(0.48,0.38,0.26, plast, 0,0.23,-0.28, tv); box(0.44,0.018,0.36, dark, 0,0.009,-0.03, tv);
+  const sx = -0.05, sy = 0.27, sw = 0.43, sh = 0.3225, fz = 0.171;
+  box(sw+0.05,0.025,0.02, dark, sx,sy+sh/2+0.012,fz, tv); box(sw+0.05,0.025,0.02, dark, sx,sy-sh/2-0.012,fz, tv);
+  box(0.025,sh,0.02, dark, sx-sw/2-0.012,sy,fz, tv); box(0.025,sh,0.02, dark, sx+sw/2+0.012,sy,fz, tv);
+  const scr = new THREE.Mesh(new THREE.PlaneGeometry(sw, sh), new THREE.MeshBasicMaterial({ color:0x05070a })); scr.position.set(sx, sy, fz-0.004); tv.add(scr);
+  for (const y of [0.37, 0.3]){ const k = new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.023,0.03,12), knob); k.rotation.x = Math.PI/2; k.position.set(0.235, y, fz+0.012); tv.add(k); }
+  for (let i = 0; i < 6; i++) box(0.07,0.006,0.004, dark, 0.235, 0.08 + i*0.02, fz+0.002, tv);
+  box(0.012,0.012,0.006, new THREE.MeshBasicMaterial({ color:0xff3010 }), 0.235, 0.21, fz+0.003, tv);
+  const dome = new THREE.Mesh(new THREE.SphereGeometry(0.05,10,6,0,Math.PI*2,0,Math.PI/2), dark); dome.position.set(0,0.42,-0.22); tv.add(dome);
+  for (const k of [-1,1]){ const r = new THREE.Mesh(new THREE.CylinderGeometry(0.004,0.004,0.62,5), metal); r.position.set(k*0.15,0.42+0.27,-0.22); r.rotation.z = -k*0.55; tv.add(r); }
+  // tapes and a remote on the table
+  const tape = lam(0x161616), lab = lam(0x5a564c);
+  for (let i = 0; i < 3; i++){ const t = box(0.19,0.025,0.105, tape, -0.33, 0.73 + i*0.026, 0.25, g, 0.3 + i*0.2); box(0.12,0.026,0.02, lab, 0, 0, 0.045, t); }
+  box(0.05,0.02,0.17, lam(0x222222), 0.28, 0.728, 0.3, g, -0.5);
+  const glow = new THREE.PointLight(0x9fb4ff, 1, 3.2, 2); glow.position.set(sx, sy, 0.5); tv.add(glow);
+  const corners = [[-1,1],[1,1],[1,-1],[-1,-1]].map(([a,b])=>new THREE.Vector3(sx + a*sw/2, sy + b*sh/2, fz + 0.002));
+  TVR = { S, cam, tv, glow, corners, t:0, col:new THREE.Color(0x9fb4ff), v:new THREE.Vector3(), vt:new THREE.Vector3(), sc:document.querySelector('#tvroom .crtscr'), smp:Object.assign(document.createElement('canvas'), { width:4, height:3 }), smpT:0 };
+  TVR.smx = TVR.smp.getContext('2d', { willReadFrequently:true });
+}
+function tvMap(sc, p){ const w = TVW, h = TVH, [[x0,y0],[x1,y1],[x2,y2],[x3,y3]] = p, dx1 = x1-x2, dx2 = x3-x2, dy1 = y1-y2, dy2 = y3-y2, sx = x0-x1+x2-x3, sy = y0-y1+y2-y3, det = dx1*dy2 - dx2*dy1;
   const g = (sx*dy2 - dx2*sy)/det, k = (dx1*sy - sx*dy1)/det, A = x1-x0+g*x1, B = x3-x0+k*x3, D = y1-y0+g*y1, E = y3-y0+k*y3;
   sc.style.transform = `matrix3d(${A/w},${D/w},0,${g/w},${B/h},${E/h},0,${k/h},0,0,1,0,${x0},${y0},0,1)`; }
-try { new ResizeObserver(fitCRT).observe(document.querySelector('.crt')); } catch(e){ addEventListener('resize', fitCRT); }
-document.querySelector('.crtimg').addEventListener('load', fitCRT); fitCRT();
+let tvWasOn = true;
+function renderTVRoom(dt){
+  if (!TVR) buildTVRoom();
+  if (!tvWasOn){ tvWasOn = true; document.body.classList.add('tvroom'); }
+  const R = TVR, cam = R.cam, W = innerWidth, H = innerHeight; R.t += dt; const t = R.t;
+  cam.aspect = W/H; const th = Math.tan(cam.fov*Math.PI/360), fh = H < 520 ? 0.74 : 0.5;
+  const d = Math.max(0.3225/(2*th*fh), 0.43*0.92/(2*th*cam.aspect*0.94));
+  R.tv.updateMatrixWorld(); const c = R.vt.set(-0.05, 0.27, 0.171); R.tv.localToWorld(c);
+  cam.position.set(c.x + 0.05*d + Math.sin(t*0.23)*0.012, c.y + 0.1*d + Math.sin(t*0.31 + 1)*0.008, c.z + d);
+  cam.lookAt(c.x + Math.sin(t*0.19)*0.004, c.y - 0.012*d, c.z); cam.updateProjectionMatrix(); cam.updateMatrixWorld();
+  if ((R.smpT -= dt) <= 0){ R.smpT = 0.2; try { R.smx.drawImage($('tvc'), 0, 0, 4, 3); const px = R.smx.getImageData(0,0,4,3).data; let r = 0, gg = 0, b = 0; for (let i = 0; i < px.length; i += 4){ r += px[i]; gg += px[i+1]; b += px[i+2]; } const n = px.length/4*255; R.col.setRGB(0.35 + r/n, 0.4 + gg/n, 0.55 + b/n); } catch(e){} }
+  R.glow.color.lerp(R.col, Math.min(1, dt*4)); R.glow.intensity = 0.75 * (0.85 + 0.1*Math.sin(t*37) + 0.08*Math.random()) * ($('crtLogo').classList.contains('on') ? 1.4 : 1);
+  tvMap(R.sc, R.corners.map(v=>{ R.v.copy(v); R.tv.localToWorld(R.v); R.v.project(cam); return [(R.v.x + 1)/2*W, (1 - R.v.y)/2*H]; }));
+  const vid = $('vhsVid'); if (vid.paused && !R.vTry){ R.vTry = 1; const pr = vid.play(); if (pr && pr.catch) pr.catch(()=>{}); setTimeout(()=>{ R.vTry = 0; }, 1500); }
+  renderer.render(R.S, cam);
+}
+function tvRoomOff(){ if (!tvWasOn) return; tvWasOn = false; document.body.classList.remove('tvroom'); try { $('vhsVid').pause(); } catch(e){} }
+addEventListener('pointerdown', ()=>{ const v = $('vhsVid'); if (tvRoomOn() && v.paused){ const pr = v.play(); if (pr && pr.catch) pr.catch(()=>{}); } });
 // sometimes Ryan's ASYNC logo takes over the set
 let logoT = 18 + Math.random()*10, logoOn = 0;
 function updateTVfx(dt){
   if (logoOn > 0){ logoOn -= dt; if (logoOn <= 0){ $('crtLogo').classList.remove('on'); $('crtLogo').parentElement.classList.remove('logo'); } }
   else if ((logoT -= dt) <= 0){ logoT = 22 + Math.random()*20; logoOn = 2.6 + Math.random()*1.5; $('crtLogo').classList.add('on'); $('crtLogo').parentElement.classList.add('logo'); }
 }
-function updateCRT(dt){ if (!$('tvc').offsetParent) return; updateTVfx(dt); if (mode !== 'menu' || !$('menu').classList.contains('show') || $('menu').classList.contains('sub')) return; crtT += dt; if (crtT < 0.07) return; crtT = 0;
+function updateCRT(dt){ updateTVfx(dt);
   const src = renderer.domElement, sw = src.width, sh = src.height, cw = Math.min(sw, sh*4/3), ch = cw*3/4;
   try { crtCtx.drawImage(src, (sw-cw)/2, (sh-ch)/2, cw, ch, 0, 0, 320, 240); } catch(e){}
   if (Math.random() < 0.04){ crtCtx.fillStyle = 'rgba(255,255,255,.08)'; crtCtx.fillRect(0, Math.random()*240, 320, 4 + Math.random()*14); }
@@ -7820,10 +7890,14 @@ function frame(now){
     updateItems();
   }
   updateVoice(dt);
-  if (LK === 3 || LK === 4 || LK === 6) visPass188();
-  renderer.render(scene, camera);
-  updateCRT(dt);
-  if (LK === 3 || LK === 4 || LK === 6) visRestore188();
+  const tvr = tvRoomOn(); if (tvr) tvAcc += dt;
+  if (!tvr || tvAcc >= 0.07){
+    if (LK === 3 || LK === 4 || LK === 6) visPass188();
+    renderer.render(scene, camera);
+    if (tvr){ updateCRT(tvAcc); tvAcc = 0; }
+    if (LK === 3 || LK === 4 || LK === 6) visRestore188();
+  }
+  if (tvr) renderTVRoom(dt); else tvRoomOff();
   grain();
 }
 requestAnimationFrame(frame);

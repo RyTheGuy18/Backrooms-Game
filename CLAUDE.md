@@ -6,7 +6,7 @@ First-person co-op Backrooms horror game for 1–4 players, played in the browse
 
 - Live: https://rytheguy18.github.io/Haunted-Pines/ (GitHub Pages, `main` branch, repo root)
 - Owner: Ryan (GitHub `rytheguy18` / `RyTheGuy18`). Plays it with friends and younger brothers, mostly on phones.
-- Current version: **v0.48.0** (shown bottom-right of the menu, `#ver`)
+- Current version: **v0.49.0** (shown bottom-right of the menu, `#ver`)
 
 ## Files
 
@@ -34,7 +34,8 @@ First-person co-op Backrooms horror game for 1–4 players, played in the browse
 | `sfx/power-out.mp3`, `sfx/light-flicker.mp3` | v0.42, Ryan's uploads. power-out: a 4.5 s power-down (`pout`, leading silence cut, loudnorm, mono 64 kbps) — plays for every blackout: the Occupant's Blackout (`sfx.powerDown`, positional), the hotel outage (`outage188`, not doubled), the lab power failure, a Pipe Dreams circuit going dead. light-flicker: from his screen recording (0.45–10.6 s, ×6 + limiter, 10.15 s): buzzing tube with clicks; `FLICK_CLICKS` = click onsets used by `sfx.flick` (0.3–0.5 s slices via `sfx.slice`, ≥0.12 s apart, when the nearest panel flickers), `FLICK_ON` = 7.0 s + 3.1 s stutter = `sfx.lightsOn` when the power comes back (lab, hotel, and where an Occupant blackout ends if you're within 22 m, `liveBo`) |
 | `models/folding-table.glb` | v0.45: Ryan's upload, "Folding Table" by AK STUDIO (Sketchfab, **CC BY 4.0** — credit in the menu footer, keep it). Normal/MR maps + tangents dropped, base colour 256 px JPEG (1.16 MB → 0.2 MB). Y up, 2 × 0.83 × 0.81 units, long side along x, centred → drawn ×0.9 at y 0.37. Level 52 cafeteria only, one InstancedMesh (`fillTables52`, `level.s52.tables` = [x, y, z, ry, rx, rz] drawn coords) |
 | `menu/lv0.jpg` … `lv6.jpg` | v0.46: level-select thumbnails (384×216 JPEG, headless screenshots from spawn-ish spots; index = game order 0,1,37,188,852,2,52). **Placeholders — Ryan will replace them** |
-| `menu/crt.png`, `menu/vhs.jpg`, `menu/async.jpg` | main menu TV (see Main menu, v0.47/v0.48) |
+| `menu/vhs.mp4`, `menu/async.jpg` | v0.49 menu TV: VHS noise loop (Ryan's Pexels clip, 20–30 s, 640×360, no audio, 0.35 MB, NOT in SW CORE; the SW skips Range requests) + Ryan's ASYNC logo |
+| `models/table.glb` | v0.49: "Table" by yryabchenko (Sketchfab, **CC BY 4.0** — credit in HOW TO PLAY · CREDITS, keep it): round pedestal table, normal map dropped, 256 px JPEG (2.3 MB → 0.26 MB). 4.5 wide × 3.3 tall → ×0.218 (top at 0.718 m). Menu room only |
 | `sw.js` | Service worker. **Bump `const V='level0-vX-Y'` every release** or phones keep the old version. CORE list must include every new asset |
 | `manifest.webmanifest`, icons | PWA |
 | `README.md` | Short description + one line per version (see Publishing) |
@@ -230,3 +231,5 @@ Controls (desktop): WASD, Shift sprint, C crouch, Left click / F flashlight, E h
 - Likes concise change summaries. When he says "don't add anything yet", plan only and wait for "add"/"go".
 - Asks to "publish to github" when done — that means push + the README-edit trick above.
 - **Every time you finish a change (Ryan, Nov 2026):** push it to `main` yourself, then end your reply with a code block holding the exact `vX.Y.Z: …` README line(s) for him to paste at the end of README.md and commit. That commit from his account triggers the Pages build. Don't do the README edit for him unless he asks.
+
+**v0.49 (Ryan: the TV sits on his table in a real 3D space, very very dark; everything pre-game goes INTO the TV; disliked the v0.48 restyle):** the menu/lobby is a live three.js room (`buildTVRoom`, `renderTVRoom`, `TVR`, shown while `tvRoomOn()` = mode menu/lobby; `body.tvroom`): dark bedroom (Level 0 wallpaper/carpet tinted dark, window with blinds + faint moonlight, poster, dresser, outlet + cord), the round table, a CRT **built in code** (the old Sketchfab-Standard CRT render `menu/crt.png` and `menu/vhs.jpg` are gone), tapes + remote, slow camera sway. Lit only by ambient 0.05, moonlight 0.14 and the TV glow (point light tinted by the average colour of `#tvc`, flickers). The main game scene is rendered only every 0.07 s while the room is up, copied into `#tvc` (`updateCRT`), then the room is rendered over it. The DOM screen `#tvroom .crtscr` is a fixed 600×450 px page (`TVW/TVH`) mapped onto the TV glass every frame with a `matrix3d` homography (`tvMap`, from the projected glass corners), so all sizes inside are plain px. `#tvpages` holds `#menu`, `#lvPick`, `#lobby` (moved in at startup) and `#settings` (moved in by `openSettings` unless in a round; in a round it goes back to body). Over everything: `#vhsVid` (mix-blend screen; it has PLAY/SP/timecode baked in) + scanlines; `#tvpages` blur(1px) + chroma text + a wobble. The end screen and in-round settings are unchanged (Ryan: "Neither"). Camera framing: screen = 50% of view height (74% when the window is < 520 px tall). The v0.47/0.48 CSS blocks are deleted.
