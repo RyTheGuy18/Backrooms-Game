@@ -81,3 +81,4 @@ v0.49.4: TV moved a bit to the left; no more play button over the TV on iPhone
 v0.50.0: clicking PLAY zooms the camera almost all the way into the TV for the level select
 v0.50.1: zooming into the TV now turns the camera to face the screen straight on
 v0.50.2: you can swipe to scroll the level select and other screens on the TV; the ASYNC logo only shows on the main menu and a tap gets rid of it
+v0.50.3: new app icon, a dark Level 0 hallway with the Occupant standing at the end
