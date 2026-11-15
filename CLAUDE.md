@@ -6,7 +6,7 @@ First-person co-op Backrooms horror game for 1–4 players, played in the browse
 
 - Live: https://rytheguy18.github.io/Haunted-Pines/ (GitHub Pages, `main` branch, repo root)
 - Owner: Ryan (GitHub `rytheguy18` / `RyTheGuy18`). Plays it with friends and younger brothers, mostly on phones.
-- Current version: **v0.50.3** (shown bottom-right of the menu, `#ver`)
+- Current version: **v0.50.4** (shown bottom-right of the menu, `#ver`)
 
 ## Files
 
@@ -243,3 +243,4 @@ Controls (desktop): WASD, Shift sprint, C crouch, Left click / F flashlight, E h
 **v0.50.2 (Ryan: level select must scroll on phones; the ASYNC logo mustn't block the menu):** touch scrolling on the TV is done in JS (`#tvpages` touchstart/move/end: finds the nearest scrollable box, scales the finger movement by `TVH / screen height on the page`, flings on release; > 8 px = scroll and the click is swallowed); the TV pages are `touch-action:none`. The logo only plays on the main menu page (not level select/join/lobby/settings) and any pointerdown on the TV ends it immediately (`logoEnd`), the tap still goes through.
 
 **v0.50.3 (Ryan: the app icon sucked):** new icons (`icon-192/512`, `icon-maskable-512`, `apple-touch-icon`, linked with `?v=2`): a one-point-perspective Level 0 hallway built in Python from the real wallpaper/carpet textures (perspective-warped), drop-ceiling with glowing panels, the Occupant as a black silhouette with two pale eye glints at the lit far end, bloom, chroma, scanlines, grain, rendered at 256 px and upscaled nearest (PSX), red REC dot top-left. Script lived in the session's work dir (not in the repo).
+**v0.50.4 (Ryan: icon "more like this" — his reference: a blue steel blast-door bulkhead opening onto a glowing yellow Backrooms hallway, VHS date stamp):** icon redrawn that way (PIL, `?v=3`): cyan-blue riveted bulkhead + open door leaves, girders, side pipes, bright yellow one-point corridor with ceiling lights in the doorway, a thin black figure standing in it, light pool + crack on the floor, `02/03/1990` chroma stamp, scanlines, 288 px → nearest.
