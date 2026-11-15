@@ -6,7 +6,7 @@ First-person co-op Backrooms horror game for 1–4 players, played in the browse
 
 - Live: https://rytheguy18.github.io/Haunted-Pines/ (GitHub Pages, `main` branch, repo root)
 - Owner: Ryan (GitHub `rytheguy18` / `RyTheGuy18`). Plays it with friends and younger brothers, mostly on phones.
-- Current version: **v0.50.11** (shown bottom-right of the menu, `#ver`)
+- Current version: **v0.50.12** (shown bottom-right of the menu, `#ver`)
 
 ## Files
 
@@ -34,7 +34,7 @@ First-person co-op Backrooms horror game for 1–4 players, played in the browse
 | `sfx/power-out.mp3`, `sfx/light-flicker.mp3` | v0.42, Ryan's uploads. power-out: a 4.5 s power-down (`pout`, leading silence cut, loudnorm, mono 64 kbps) — plays for every blackout: the Occupant's Blackout (`sfx.powerDown`, positional), the hotel outage (`outage188`, not doubled), the lab power failure, a Pipe Dreams circuit going dead. light-flicker: from his screen recording (0.45–10.6 s, ×6 + limiter, 10.15 s): buzzing tube with clicks; `FLICK_CLICKS` = click onsets used by `sfx.flick` (0.3–0.5 s slices via `sfx.slice`, ≥0.12 s apart, when the nearest panel flickers), `FLICK_ON` = 7.0 s + 3.1 s stutter = `sfx.lightsOn` when the power comes back (lab, hotel, and where an Occupant blackout ends if you're within 22 m, `liveBo`) |
 | `models/folding-table.glb` | v0.45: Ryan's upload, "Folding Table" by AK STUDIO (Sketchfab, **CC BY 4.0** — credit in the menu footer, keep it). Normal/MR maps + tangents dropped, base colour 256 px JPEG (1.16 MB → 0.2 MB). Y up, 2 × 0.83 × 0.81 units, long side along x, centred → drawn ×0.9 at y 0.37. Level 52 cafeteria only, one InstancedMesh (`fillTables52`, `level.s52.tables` = [x, y, z, ry, rx, rz] drawn coords) |
 | `menu/lv0.jpg` … `lv6.jpg` | v0.46: level-select thumbnails (384×216 JPEG, headless screenshots from spawn-ish spots; index = game order 0,1,37,188,852,2,52). **Placeholders — Ryan will replace them** |
-| `menu/vhs.mp4`, `menu/async.jpg` | v0.49 menu TV: VHS noise loop (v0.50.11: Ryan's new upload `13184940_1920_1080_25fps.mp4`, first 12 s, contrast ×1.3, 640×360 CRF 33, no audio, 0.31 MB; PLAY/SP/timecode baked in, NOT in SW CORE; the SW skips Range requests) + Ryan's ASYNC logo |
+| `menu/vhs.mp4`, `menu/async.jpg` | v0.49 menu TV: VHS noise loop (v0.50.11: Ryan's new upload `13184940_1920_1080_25fps.mp4`, first 12 s, v0.50.12: cropped to the text-free middle (crop=1138:640:391:210) so no PLAY/SP/timecode, contrast ×1.3, 640×360 CRF 33, no audio, 0.39 MB, NOT in SW CORE; the SW skips Range requests) + Ryan's ASYNC logo |
 | `models/table.glb` | v0.49: "Table" by yryabchenko (Sketchfab, **CC BY 4.0** — credit in HOW TO PLAY · CREDITS, keep it): round pedestal table, normal map dropped, 256 px JPEG (2.3 MB → 0.26 MB). 4.5 wide × 3.3 tall → ×0.218 (top at 0.718 m). Menu room only |
 | `sw.js` | Service worker. **Bump `const V='level0-vX-Y'` every release** or phones keep the old version. CORE list must include every new asset |
 | `manifest.webmanifest`, icons | PWA |
