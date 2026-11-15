@@ -101,3 +101,4 @@ v0.51.4: camera zooms into the TV in the lobby too
 v0.51.5: the menu TV always shows Level 0, from out in the Backrooms maze instead of the ASYNC lab spawn
 v0.51.6: no Level 0 sounds on the menu or in the lobby, only VHS static
 v0.51.7: the menu and lobby play a quiet ceiling fan hum instead of the VHS static
+v0.51.8: the camera zooms into the TV for settings too
