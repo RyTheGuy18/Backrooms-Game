@@ -82,3 +82,9 @@ v0.50.0: clicking PLAY zooms the camera almost all the way into the TV for the l
 v0.50.1: zooming into the TV now turns the camera to face the screen straight on
 v0.50.2: you can swipe to scroll the level select and other screens on the TV; the ASYNC logo only shows on the main menu and a tap gets rid of it
 v0.50.3: new app icon, a dark Level 0 hallway with the Occupant standing at the end
+v0.50.4: tried an app icon in the blue blast-door / yellow hallway style
+v0.50.5: app icon tried as a real screenshot of the lab portal from the game
+v0.50.6: app icon tried as a close-up looking through the lab portal
+v0.50.7: app icon is now the ASYNC logo
+v0.50.8: ASYNC app icon now has the menu TV's VHS look
+v0.50.9: heavier VHS glitch look on the ASYNC app icon, no PLAY/SP/timecode text
