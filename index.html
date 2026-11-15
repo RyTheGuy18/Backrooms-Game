@@ -314,7 +314,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.50.0</div>
+<div class="osd" id="ver">v0.50.1</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -7080,8 +7080,10 @@ function renderTVRoom(dt){
   cam.aspect = W/H; const th = Math.tan(cam.fov*Math.PI/360), fh = lerp(H < 520 ? 0.6 : 0.4, H < 520 ? 0.97 : 0.9, zk), fw = lerp(0.8, 0.98, zk);
   const d = Math.max(0.3225/(2*th*fh), 0.43*0.92/(2*th*cam.aspect*fw)), off = 1 - zk;
   R.tv.updateMatrixWorld(); const c = R.vt.set(-0.05, 0.27, 0.171); R.tv.localToWorld(c);
-  cam.position.set(c.x + (0.13*off + 0.05*zk)*d + Math.sin(t*0.23)*0.012, c.y + 0.1*d + Math.sin(t*0.31 + 1)*0.008, c.z + d);
-  cam.lookAt(c.x + 0.08*off*d + Math.sin(t*0.19)*0.004, c.y - 0.012*d, c.z); cam.updateProjectionMatrix(); cam.updateMatrixWorld();
+  // zoomed in: the camera swings round onto the screen's normal so you look straight at the glass
+  const ry = R.tv.rotation.y, sw = (1 - zk*0.7);
+  cam.position.set(c.x + lerp(0.13, Math.sin(ry), zk)*d + Math.sin(t*0.23)*0.012*sw, c.y + lerp(0.1, 0.02, zk)*d + Math.sin(t*0.31 + 1)*0.008*sw, c.z + lerp(1, Math.cos(ry), zk)*d);
+  cam.lookAt(c.x + 0.08*off*d + Math.sin(t*0.19)*0.004*sw, c.y - 0.012*off*d, c.z); cam.updateProjectionMatrix(); cam.updateMatrixWorld();
   if ((R.smpT -= dt) <= 0){ R.smpT = 0.2; try { R.smx.drawImage($('tvc'), 0, 0, 4, 3); const px = R.smx.getImageData(0,0,4,3).data; let r = 0, gg = 0, b = 0; for (let i = 0; i < px.length; i += 4){ r += px[i]; gg += px[i+1]; b += px[i+2]; } const n = px.length/4*255; R.col.setRGB(0.35 + r/n, 0.4 + gg/n, 0.55 + b/n); } catch(e){} }
   R.glow.color.lerp(R.col, Math.min(1, dt*4)); R.glow.intensity = 0.75 * (0.85 + 0.1*Math.sin(t*37) + 0.08*Math.random()) * ($('crtLogo').classList.contains('on') ? 1.4 : 1);
   tvMap(R.sc, R.corners.map(v=>{ R.v.copy(v); R.tv.localToWorld(R.v); R.v.project(cam); return [(R.v.x + 1)/2*W, (1 - R.v.y)/2*H]; }));
