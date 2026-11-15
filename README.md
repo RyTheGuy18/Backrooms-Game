@@ -77,3 +77,4 @@ v0.48.0: The menu TV is now turned in 3D with the menu on its screen, one subtle
 v0.49.0: menu is a dark 3D room with the TV on a table; menu, level select, join, lobby and settings all play on the TV under a VHS video overlay
 v0.49.1: settings on the TV has a BACK button at the top; you can scroll screens on the TV by touch
 v0.49.2: menu camera zoomed out, the TV is smaller in the room
+v0.49.4: TV moved a bit to the left; no more play button over the TV on iPhone
