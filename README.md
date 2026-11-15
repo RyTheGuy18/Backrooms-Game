@@ -75,3 +75,4 @@ v0.46.0: New CRT/VHS main menu (Play, Host, Join, Settings) and a level select w
 v0.47.0: Main menu is now on a CRT TV on the left, with a live Backrooms view, VHS static overlays and the ASYNC logo popping up on the screen.
 v0.48.0: The menu TV is now turned in 3D with the menu on its screen, one subtle VHS overlay, restyled lobby/settings/join screens, and a level picker with previews when hosting.
 v0.49.0: menu is a dark 3D room with the TV on a table; menu, level select, join, lobby and settings all play on the TV under a VHS video overlay
+v0.49.1: settings on the TV has a BACK button at the top; you can scroll screens on the TV by touch
