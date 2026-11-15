@@ -76,3 +76,4 @@ v0.47.0: Main menu is now on a CRT TV on the left, with a live Backrooms view, V
 v0.48.0: The menu TV is now turned in 3D with the menu on its screen, one subtle VHS overlay, restyled lobby/settings/join screens, and a level picker with previews when hosting.
 v0.49.0: menu is a dark 3D room with the TV on a table; menu, level select, join, lobby and settings all play on the TV under a VHS video overlay
 v0.49.1: settings on the TV has a BACK button at the top; you can scroll screens on the TV by touch
+v0.49.2: menu camera zoomed out, the TV is smaller in the room
