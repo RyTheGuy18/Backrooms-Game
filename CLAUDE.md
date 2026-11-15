@@ -6,7 +6,7 @@ First-person co-op Backrooms horror game for 1–4 players, played in the browse
 
 - Live: https://rytheguy18.github.io/Haunted-Pines/ (GitHub Pages, `main` branch, repo root)
 - Owner: Ryan (GitHub `rytheguy18` / `RyTheGuy18`). Plays it with friends and younger brothers, mostly on phones.
-- Current version: **v0.50.1** (shown bottom-right of the menu, `#ver`)
+- Current version: **v0.50.2** (shown bottom-right of the menu, `#ver`)
 
 ## Files
 
@@ -239,3 +239,5 @@ Controls (desktop): WASD, Shift sprint, C crouch, Left click / F flashlight, E h
 **v0.49.4 (Ryan: a ▶ play button in the middle of the TV on iPhone):** that was Safari's own start-playback overlay on the VHS `<video>` when autoplay is blocked (e.g. Low Power Mode). The video is now invisible until it actually plays (`.on` on `playing`), and the WebKit media-control pseudo-elements are hidden. If autoplay stays blocked, the TV just shows no VHS noise until a tap starts it.
 
 **v0.50 (Ryan: clicking PLAY zooms the camera almost all the way into the TV):** `renderTVRoom` eases `TVR.zm` 0→1 (smoothstep, ~1 s) while `#pLevels` is shown: screen height fraction 0.4/0.6 → 0.9/0.97, width limit 0.8 → 0.98, the left-of-centre offset fades out. BACK eases it out again. v0.50.1: while zooming the camera also swings onto the TV's screen normal (sin/cos of `tv.rotation.y`), so zoomed in you look straight at the glass; the sway is damped ×0.3.
+
+**v0.50.2 (Ryan: level select must scroll on phones; the ASYNC logo mustn't block the menu):** touch scrolling on the TV is done in JS (`#tvpages` touchstart/move/end: finds the nearest scrollable box, scales the finger movement by `TVH / screen height on the page`, flings on release; > 8 px = scroll and the click is swallowed); the TV pages are `touch-action:none`. The logo only plays on the main menu page (not level select/join/lobby/settings) and any pointerdown on the TV ends it immediately (`logoEnd`), the tap still goes through.
