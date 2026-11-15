@@ -73,3 +73,5 @@ v0.44.4: new wading sound for chest-deep water in the Poolrooms
 v0.45.0: NEW Level 52 – School Halls (after Pipe Dreams). Two floors around a courtyard. Follow the bell schedule: get to YOUR classroom before the tardy bell every period, or the hall monitor comes for you. After 4 periods the front doors open. Cafeteria has folding tables.
 v0.46.0: New CRT/VHS main menu (Play, Host, Join, Settings) and a level select with preview pictures and descriptions. Buttons click on hover.
 v0.47.0: Main menu is now on a CRT TV on the left, with a live Backrooms view, VHS static overlays and the ASYNC logo popping up on the screen.
+v0.48.0: The menu TV is now turned in 3D with the menu on its screen, one subtle VHS overlay, restyled lobby/settings/join screens, and a level picker with previews when hosting.
+v0.49.0: menu is a dark 3D room with the TV on a table; menu, level select, join, lobby and settings all play on the TV under a VHS video overlay
