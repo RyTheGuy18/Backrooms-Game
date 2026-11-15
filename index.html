@@ -322,7 +322,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.51.5</div>
+<div class="osd" id="ver">v0.51.6</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -5995,7 +5995,7 @@ try { Object.assign(SET, JSON.parse(localStorage.getItem('lvl0_set') || '{}')); 
 let settingsOpen = false;
 function saveSet(){ try { localStorage.setItem('lvl0_set', JSON.stringify(SET)); } catch(e){} }
 function applySet(){
-  if (sfx.master) sfx.master.gain.value = 0.9 * SET.vol/100;
+  if (sfx.outG) sfx.outG.gain.value = 0.9 * SET.vol/100;
   $('vVol').textContent = SET.vol + '%'; $('vVv').textContent = SET.vv + '%'; $('vMg').textContent = SET.mg + '%'; if (voice.chain) voice.chain.g.gain.value = SET.mg/100; $('vSens').textContent = (SET.sens/100).toFixed(2) + 'x'; $('vFov').textContent = SET.fov + '°';
   if (!dashT){ camera.fov = SET.fov; camera.updateProjectionMatrix(); }
 }
@@ -6020,7 +6020,7 @@ $('bGear').addEventListener('touchstart', e=>{ e.preventDefault(); e.stopPropaga
 $('bResume').onclick = $('bSetBack').onclick = closeSettings;
 // v0.31 (Ryan: no sound on desktop): a test beep + what state the audio engine is in, and it kicks the engine awake
 function sndStatus(){ const c = sfx.ctx; $('sndNote').textContent = !c ? 'Sound starts after your first click or tap.' : c.state === 'running' ? `Sound is on (${Math.round(SET.vol)}% volume${SET.spk ? ', custom speaker' : ''}).` : `Sound is ${c.state}. Click TEST SOUND to wake it.`; }
-$('bTestSnd').onclick = ()=>{ sfx.init(); const c = sfx.ctx; if (!c) return; const go = ()=>{ if (SET.vol < 5){ SET.vol = 80; saveSet(); applySet(); $('sVol').value = SET.vol; } sfx.tone(sfx.master, { f:660, dur:0.25, gain:0.4 }); sfx.tone(sfx.master, { f:880, dur:0.3, gain:0.35, at:0.28 }); setTimeout(sndStatus, 300); };
+$('bTestSnd').onclick = ()=>{ sfx.init(); const c = sfx.ctx; if (!c) return; const go = ()=>{ if (SET.vol < 5){ SET.vol = 80; saveSet(); applySet(); $('sVol').value = SET.vol; } sfx.tone(sfx.outG, { f:660, dur:0.25, gain:0.4 }); sfx.tone(sfx.outG, { f:880, dur:0.3, gain:0.35, at:0.28 }); setTimeout(sndStatus, 300); };
   if (c.state !== 'running') c.resume().then(go).catch(go); else go(); };
 /* v0.28.5 (Ryan): UPDATE GAME — mostly for the iPhone home-screen app, which hangs on to old versions.
    Asks the live site which version is newest, then drops the service worker + its caches and reloads fresh. */
@@ -6200,7 +6200,7 @@ function attachCall(call){
     c.el = new Audio(); c.el.srcObject = s; c.el.muted = true; c.el.setAttribute('playsinline', ''); c.el.play().catch(()=>{});   // Chrome only feeds WebAudio while an element plays the stream
     c.src = ctx.createMediaStreamSource(s); c.g = ctx.createGain(); c.g.gain.value = 0;
     c.pan = ctx.createPanner(); c.pan.panningModel = 'HRTF'; c.pan.distanceModel = 'linear'; c.pan.refDistance = 1; c.pan.maxDistance = 1000; c.pan.rolloffFactor = 0;   // volume is set by hand in updateVoice
-    c.dry = ctx.createGain(); c.src.connect(c.dry).connect(c.g); c.g.connect(c.pan).connect(sfx.master);
+    c.dry = ctx.createGain(); c.src.connect(c.dry).connect(c.g); c.g.connect(c.pan).connect(sfx.outG);
     c.an = ctx.createAnalyser(); c.an.fftSize = 256; c.abuf = new Float32Array(256); c.src.connect(c.an); });
   const end = ()=>{ if (voice.calls.get(id) === c) closeCall(id); };
   call.on('close', end); call.on('error', end);
@@ -6506,12 +6506,16 @@ const sfx = {
     const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
     let c; try { c = new AC({ latencyHint:'interactive' }); } catch(e){ c = new AC(); } this.ctx = c;
     if (canSink && SET.spk) c.setSinkId(SET.spk).catch(()=>{});
-    this.master = c.createGain(); this.master.gain.value = 0.9 * SET.vol/100;
-    const comp = c.createDynamicsCompressor(); this.master.connect(comp); comp.connect(c.destination);
+    // v0.51.6: outG = volume → speakers; master = the level's own sound (the "world"), muted while the menu/lobby TV room is up.
+    // Voice chat, menu ticks, the TV's static bursts and the VHS hiss go straight to outG.
+    this.outG = c.createGain(); this.outG.gain.value = 0.9 * SET.vol/100;
+    const comp = c.createDynamicsCompressor(); this.outG.connect(comp); comp.connect(c.destination);
+    this.master = c.createGain(); this.master.gain.value = tvRoomOn() ? 0 : 1; this.master.connect(this.outG);
+    this.vhsG = c.createGain(); this.vhsG.gain.value = 0; this.vhsG.connect(this.outG);
     // a big tiled echo, faded in on Level 37
     { const len = Math.floor(c.sampleRate*2.6), ir = c.createBuffer(2, len, c.sampleRate);
       for (let ch=0; ch<2; ch++){ const d = ir.getChannelData(ch); for (let i=0;i<len;i++){ const t = i/c.sampleRate; d[i] = (Math.random()*2-1) * Math.pow(1 - i/len, 2.2) * (t < 0.03 ? t/0.03 : 1); } }
-      this.verb = c.createConvolver(); this.verb.buffer = ir; this.verbG = c.createGain(); this.verbG.gain.value = 0; this.master.connect(this.verbG); this.verbG.connect(this.verb); this.verb.connect(comp); }
+      this.verb = c.createConvolver(); this.verb.buffer = ir; this.verbG = c.createGain(); this.verbG.gain.value = 0; this.master.connect(this.verbG); this.verbG.connect(this.verb); this.verb.connect(this.outG); }
     const len = c.sampleRate*2;
     this.white = c.createBuffer(1,len,c.sampleRate); let d = this.white.getChannelData(0); for (let i=0;i<len;i++) d[i]=Math.random()*2-1;
     this.brown = c.createBuffer(1,len*2,c.sampleRate); d = this.brown.getChannelData(0); let last=0; for (let i=0;i<len*2;i++){ const w=Math.random()*2-1; last=(last+0.02*w)/1.02; d[i]=last*3.5; }
@@ -6542,10 +6546,17 @@ const sfx = {
   },
   samples:{},
   loadSamples(){
-    const c = this.ctx, files = { pout:'sfx/power-out.mp3', flick:'sfx/light-flicker.mp3', lstep:'sfx/lurker-steps.mp3', phRing:'sfx/phone-ring.mp3', phPick:'sfx/phone-pickup.mp3', crawl:'sfx/crawler-steps.mp3', heavy:'sfx/heavy-steps.mp3', atk1:'sfx/spider-attack-1.mp3', atk2:'sfx/spider-attack-2.mp3', atk4:'sfx/spider-attack-4.mp3', roar:'sfx/monster-roar.mp3', growl:'sfx/monster-growl.mp3', groan:'sfx/monster-groans.mp3', wwalk:'sfx/water-walk.mp3', wdeep:'sfx/water-deep.mp3', genStart:'sfx/gen-start.mp3', genRun:'sfx/gen-run.mp3', wrun:'sfx/water-run.mp3', tvst:'sfx/tv-static.mp3', breathL:'sfx/breathing.mp3', stepC:'sfx/steps-carpet.mp3', stepK:'sfx/steps-concrete.mp3', stepT:'sfx/steps-tile.mp3', stepW:'sfx/steps-wood.mp3' };
-    for (const [k, url] of Object.entries(files)) fetch(url).then(r=>r.arrayBuffer()).then(ab=>new Promise((res, rej)=>c.decodeAudioData(ab, res, rej))).then(buf=>{ this.samples[k] = buf; if (k==='crawl' || k==='heavy' || k==='groan') this.startLoop(k); }).catch(e=>console.warn('sound failed', url, e));
+    const c = this.ctx, files = { vhs:'sfx/vhs-hiss.mp3', pout:'sfx/power-out.mp3', flick:'sfx/light-flicker.mp3', lstep:'sfx/lurker-steps.mp3', phRing:'sfx/phone-ring.mp3', phPick:'sfx/phone-pickup.mp3', crawl:'sfx/crawler-steps.mp3', heavy:'sfx/heavy-steps.mp3', atk1:'sfx/spider-attack-1.mp3', atk2:'sfx/spider-attack-2.mp3', atk4:'sfx/spider-attack-4.mp3', roar:'sfx/monster-roar.mp3', growl:'sfx/monster-growl.mp3', groan:'sfx/monster-groans.mp3', wwalk:'sfx/water-walk.mp3', wdeep:'sfx/water-deep.mp3', genStart:'sfx/gen-start.mp3', genRun:'sfx/gen-run.mp3', wrun:'sfx/water-run.mp3', tvst:'sfx/tv-static.mp3', breathL:'sfx/breathing.mp3', stepC:'sfx/steps-carpet.mp3', stepK:'sfx/steps-concrete.mp3', stepT:'sfx/steps-tile.mp3', stepW:'sfx/steps-wood.mp3' };
+    for (const [k, url] of Object.entries(files)) fetch(url).then(r=>r.arrayBuffer()).then(ab=>new Promise((res, rej)=>c.decodeAudioData(ab, res, rej))).then(buf=>{ this.samples[k] = buf; if (k==='vhs') this.startVhs(); if (k==='crawl' || k==='heavy' || k==='groan') this.startLoop(k); }).catch(e=>console.warn('sound failed', url, e));
   },
   loops:{},
+  // v0.51.6 (Ryan): the menu/lobby TV room plays only VHS hiss (his "real VHS" upload, 30.5 s seamless loop)
+  startVhs(){ const c = this.ctx, src = c.createBufferSource(); src.buffer = this.samples.vhs; src.loop = true; src.connect(this.vhsG); src.start(); },
+  roomMix(dt){
+    const on = tvRoomOn(), k = Math.min(1, dt*(on ? 10 : 4));
+    this.master.gain.value += ((on ? 0 : 1) - this.master.gain.value)*k; if (on && this.master.gain.value < 0.002) this.master.gain.value = 0;
+    this.vhsG.gain.value += ((on ? VHS_GAIN : 0) - this.vhsG.gain.value)*k;
+  },
   startLoop(k){
     const c = this.ctx, buf = this.samples[k], src = c.createBufferSource(); src.buffer = buf; src.loop = true;
     src.loopStart = Math.min(0.04, buf.duration/4); src.loopEnd = buf.duration - 0.04;   // skip the mp3 padding so it loops cleanly
@@ -7023,13 +7034,14 @@ $('mPlay').onclick = ()=>{ sfx.init(); menuSub('pLevels'); };
 $('mJoin').onclick = ()=>{ sfx.init(); menuSub('pJoin'); setTimeout(()=>$('joincode').focus(), 50); };
 $('mInfo').onclick = ()=>menuSub('pInfo');
 for (const b of document.querySelectorAll('#menu [data-back]')) b.onclick = ()=>menuSub('');
-function menuTick(){ const c = sfx.ctx; if (!c || c.state !== 'running') return; sfx.noise(sfx.master,{ dur:0.025, type:'bandpass', freq:3200, q:3, gain:0.14 }); sfx.tone(sfx.master,{ f:1900, type:'square', dur:0.012, gain:0.015 }); }
+function menuTick(){ const c = sfx.ctx; if (!c || c.state !== 'running') return; sfx.noise(sfx.outG,{ dur:0.025, type:'bandpass', freq:3200, q:3, gain:0.14 }); sfx.tone(sfx.outG,{ f:1900, type:'square', dur:0.012, gain:0.015 }); }
 document.addEventListener('pointerover', e=>{ const b = e.target.closest && e.target.closest('.vbtn,.tile,.vlink,.btn'); if (!b || b.contains(e.relatedTarget)) return; if (e.pointerType === 'mouse') menuTick(); });
 document.addEventListener('pointerdown', e=>{ if (e.pointerType !== 'mouse' && e.target.closest && e.target.closest('.vbtn,.tile,.vlink,.btn')) menuTick(); });
 const crtCtx = $('tvc').getContext('2d'); let crtT = 0;
 
 // v0.49 (Ryan): the menu is a pitch-dark room with the TV on his table; the TV is the only thing showing the Backrooms and every pre-game screen is ON it
 for (const id of ['menu','lvPick','lobby']) $('tvpages').appendChild($(id));
+const VHS_GAIN = 0.3;   // v0.51.6: VHS hiss level in the menu/lobby
 const TVW = 600, TVH = 450; let TVR = null, tvAcc = 1;
 const tvRoomOn = () => mode === 'menu' || mode === 'lobby';
 // v0.51.2 (Ryan): TV a bit smaller and a bit right so the tapes fit beside it
@@ -7139,7 +7151,7 @@ function staticBurst(len){
   stOn = len; v.classList.add('on');
   const c = sfx.ctx, b = sfx.samples && sfx.samples.tvst; if (!c || c.state !== 'running' || !b) return;
   const src = c.createBufferSource(), g = c.createGain(); src.buffer = b; g.gain.setValueAtTime(0, c.currentTime); g.gain.linearRampToValueAtTime(0.09, c.currentTime + 0.03);
-  src.connect(g).connect(sfx.master); src.start(0, Math.random()*Math.max(0, b.duration - len - 0.5)); stSrc = { src, g };
+  src.connect(g).connect(sfx.outG); src.start(0, Math.random()*Math.max(0, b.duration - len - 0.5)); stSrc = { src, g };
 }
 function updateTVfx(dt){
   if (stOn > 0){ stOn -= dt; if (stOn <= 0) staticEnd(); }
@@ -7976,6 +7988,7 @@ function frame(now){
     updateItems();
   }
   updateVoice(dt);
+  if (sfx.ctx) sfx.roomMix(dt);
   const tvr = tvRoomOn(); if (tvr) tvAcc += dt;
   if (!tvr || tvAcc >= 0.07){
     if (LK === 3 || LK === 4 || LK === 6) visPass188();
