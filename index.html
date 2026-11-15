@@ -322,7 +322,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.51.3</div>
+<div class="osd" id="ver">v0.51.4</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -7095,7 +7095,7 @@ function renderTVRoom(dt){
   if (!tvWasOn){ tvWasOn = true; document.body.classList.add('tvroom'); }
   const R = TVR, cam = R.cam, W = innerWidth, H = innerHeight; R.t += dt; const t = R.t;
   // v0.50 (Ryan): PLAY → the camera pushes in almost all the way to the TV for the level select
-  const zt = $('pLevels').classList.contains('show') ? 1 : 0; R.zm = (R.zm || 0) + (zt - (R.zm || 0))*Math.min(1, dt*2.2); const zk = R.zm*R.zm*(3 - 2*R.zm);
+  const zt = ($('pLevels').classList.contains('show') || mode === 'lobby') ? 1 : 0; /* v0.51.4: the lobby (HOST/JOIN) zooms in too */ R.zm = (R.zm || 0) + (zt - (R.zm || 0))*Math.min(1, dt*2.2); const zk = R.zm*R.zm*(3 - 2*R.zm);
   cam.aspect = W/H; const th = Math.tan(cam.fov*Math.PI/360), fh = lerp(H < 520 ? 0.68 : 0.48, H < 520 ? 0.97 : 0.9, zk), fw = lerp(0.8, 0.98, zk);
   const d = TV_S*Math.max(0.3225/(2*th*fh), 0.43*0.92/(2*th*cam.aspect*fw)), off = 1 - zk;
   R.sc.classList.toggle('zoomed', zk > 0.6);
