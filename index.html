@@ -291,6 +291,10 @@
   #tvpages #lobby .col{display:grid;grid-template-columns:200px minmax(0,1fr);gap:8px;align-content:start}
   #tvpages #lobby .col > *{grid-column:1}#tvpages #lobby .col > .title{grid-column:1 / span 2}#tvpages #lroom{grid-column:2!important;grid-row:2 / span 7}
   #tvpages #lvPick .lvwrap{width:100%}
+  #tvpages .screen,#tvpages .msub{touch-action:pan-y;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+  .setback{display:none}#tvpages .setback{display:block;order:2;margin-left:auto;font-size:20px!important;border:1px solid rgba(220,225,240,.5);padding:4px 12px!important;background:rgba(0,0,0,.4)}
+  #tvpages #settings .title{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  #tvpages #settings .title{position:sticky;top:-34px;z-index:2;background:rgba(1,2,6,.96);padding:6px 0 4px}
 </style>
 <script type="importmap">{"imports":{"three":"./three.module.min.js"}}</script>
 </head>
@@ -308,7 +312,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.49.0</div>
+<div class="osd" id="ver">v0.49.1</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -419,7 +423,7 @@
 </div></div>
 
 <div class="screen" id="settings"><div class="col">
-  <div class="title"><h1 style="font-size:clamp(40px,10vw,64px)">SETTINGS</h1><div class="tag" id="pausenote"></div></div>
+  <div class="title"><button class="vbtn back setback" id="bSetBack">◀ BACK</button><h1 style="font-size:clamp(40px,10vw,64px)">SETTINGS</h1><div class="tag" id="pausenote"></div></div>
   <div class="card">
     <div class="srow"><span class="lbl">VOLUME</span><span id="vVol"></span></div><input type="range" id="sVol" min="0" max="100">
     <div class="row"><button class="btn" id="bTestSnd">TEST SOUND</button></div><div class="devnote" id="sndNote"></div>
@@ -6002,7 +6006,7 @@ function closeSettings(){
 }
 $('bSet1').onclick = $('bSet2').onclick = openSettings;
 $('bGear').addEventListener('touchstart', e=>{ e.preventDefault(); e.stopPropagation(); openSettings(); }, { passive:false }); $('bGear').onclick = openSettings;
-$('bResume').onclick = closeSettings;
+$('bResume').onclick = $('bSetBack').onclick = closeSettings;
 // v0.31 (Ryan: no sound on desktop): a test beep + what state the audio engine is in, and it kicks the engine awake
 function sndStatus(){ const c = sfx.ctx; $('sndNote').textContent = !c ? 'Sound starts after your first click or tap.' : c.state === 'running' ? `Sound is on (${Math.round(SET.vol)}% volume${SET.spk ? ', custom speaker' : ''}).` : `Sound is ${c.state}. Click TEST SOUND to wake it.`; }
 $('bTestSnd').onclick = ()=>{ sfx.init(); const c = sfx.ctx; if (!c) return; const go = ()=>{ if (SET.vol < 5){ SET.vol = 80; saveSet(); applySet(); $('sVol').value = SET.vol; } sfx.tone(sfx.master, { f:660, dur:0.25, gain:0.4 }); sfx.tone(sfx.master, { f:880, dur:0.3, gain:0.35, at:0.28 }); setTimeout(sndStatus, 300); };

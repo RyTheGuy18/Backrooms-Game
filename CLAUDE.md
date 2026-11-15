@@ -6,7 +6,7 @@ First-person co-op Backrooms horror game for 1–4 players, played in the browse
 
 - Live: https://rytheguy18.github.io/Haunted-Pines/ (GitHub Pages, `main` branch, repo root)
 - Owner: Ryan (GitHub `rytheguy18` / `RyTheGuy18`). Plays it with friends and younger brothers, mostly on phones.
-- Current version: **v0.49.0** (shown bottom-right of the menu, `#ver`)
+- Current version: **v0.49.1** (shown bottom-right of the menu, `#ver`)
 
 ## Files
 
@@ -233,3 +233,5 @@ Controls (desktop): WASD, Shift sprint, C crouch, Left click / F flashlight, E h
 - **Every time you finish a change (Ryan, Nov 2026):** push it to `main` yourself, then end your reply with a code block holding the exact `vX.Y.Z: …` README line(s) for him to paste at the end of README.md and commit. That commit from his account triggers the Pages build. Don't do the README edit for him unless he asks.
 
 **v0.49 (Ryan: the TV sits on his table in a real 3D space, very very dark; everything pre-game goes INTO the TV; disliked the v0.48 restyle):** the menu/lobby is a live three.js room (`buildTVRoom`, `renderTVRoom`, `TVR`, shown while `tvRoomOn()` = mode menu/lobby; `body.tvroom`): dark bedroom (Level 0 wallpaper/carpet tinted dark, window with blinds + faint moonlight, poster, dresser, outlet + cord), the round table, a CRT **built in code** (the old Sketchfab-Standard CRT render `menu/crt.png` and `menu/vhs.jpg` are gone), tapes + remote, slow camera sway. Lit only by ambient 0.05, moonlight 0.14 and the TV glow (point light tinted by the average colour of `#tvc`, flickers). The main game scene is rendered only every 0.07 s while the room is up, copied into `#tvc` (`updateCRT`), then the room is rendered over it. The DOM screen `#tvroom .crtscr` is a fixed 600×450 px page (`TVW/TVH`) mapped onto the TV glass every frame with a `matrix3d` homography (`tvMap`, from the projected glass corners), so all sizes inside are plain px. `#tvpages` holds `#menu`, `#lvPick`, `#lobby` (moved in at startup) and `#settings` (moved in by `openSettings` unless in a round; in a round it goes back to body). Over everything: `#vhsVid` (mix-blend screen; it has PLAY/SP/timecode baked in) + scanlines; `#tvpages` blur(1px) + chroma text + a wobble. The end screen and in-round settings are unchanged (Ryan: "Neither"). Camera framing: screen = 50% of view height (74% when the window is < 520 px tall). The v0.47/0.48 CSS blocks are deleted.
+
+**v0.49.1 (Ryan: no back button on settings on mobile):** `html,body{touch-action:none}` meant nothing on the TV could be scrolled by touch, so BACK at the bottom of settings was unreachable. `#tvpages .screen/.msub` now have `touch-action:pan-y`, and settings on the TV has a sticky header with its own ◀ BACK (`bSetBack`, hidden outside the TV).
