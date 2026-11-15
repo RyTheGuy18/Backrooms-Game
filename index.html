@@ -247,6 +247,8 @@
   #tvpages{position:absolute;inset:0;z-index:1;filter:blur(1px) contrast(1.1) saturate(.85);animation:tvWob 6.3s steps(1) infinite}
   @keyframes tvWob{0%,90%,100%{transform:none}91%{transform:translateX(4px) skewX(-1.5deg)}92%{transform:translateX(-2px)}96%{transform:translateY(1px)}}
   #vhsVid{position:absolute;inset:-3% 0;width:100%;height:106%;object-fit:cover;mix-blend-mode:screen;opacity:.95;pointer-events:none;z-index:4}
+  #vhsVid:not(.on){opacity:0}
+  #vhsVid::-webkit-media-controls,#vhsVid::-webkit-media-controls-start-playback-button,#vhsVid::-webkit-media-controls-overlay-play-button{display:none!important;-webkit-appearance:none;opacity:0}
   #tvroom .tvscan{z-index:5;background:repeating-linear-gradient(0deg,rgba(0,0,0,.4) 0 2px,transparent 2px 4px),radial-gradient(ellipse at center,transparent 45%,rgba(0,0,0,.85) 100%)}
   #tvpages .screen{position:absolute;inset:0;z-index:1;padding:34px 38px 26px;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;background:rgba(1,2,6,.86);font-family:monospace;color:#e6e1cc;text-shadow:2px 0 rgba(255,40,40,.55),-2px 0 rgba(40,200,255,.5);box-sizing:border-box;align-items:flex-start}
   #tvpages .screen::-webkit-scrollbar{display:none}
@@ -312,7 +314,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.49.2</div>
+<div class="osd" id="ver">v0.49.4</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -348,7 +350,7 @@
 
 <div id="tvroom"><div class="crtscr"><canvas id="tvc" width="320" height="240"></canvas><img class="crtlogo" id="crtLogo" src="menu/async.jpg" alt="">
   <div id="tvpages"></div>
-  <video id="vhsVid" src="menu/vhs.mp4" muted loop playsinline autoplay preload="auto"></video><div class="tvscan"></div>
+  <video id="vhsVid" src="menu/vhs.mp4" muted loop playsinline webkit-playsinline autoplay preload="auto" disablepictureinpicture disableremoteplayback tabindex="-1" onplaying="this.classList.add('on')"></video><div class="tvscan"></div>
   <span id="tvtime" hidden></span>
 </div></div>
 <div class="screen show" id="menu">
@@ -7076,8 +7078,8 @@ function renderTVRoom(dt){
   cam.aspect = W/H; const th = Math.tan(cam.fov*Math.PI/360), fh = H < 520 ? 0.6 : 0.4;
   const d = Math.max(0.3225/(2*th*fh), 0.43*0.92/(2*th*cam.aspect*0.8));
   R.tv.updateMatrixWorld(); const c = R.vt.set(-0.05, 0.27, 0.171); R.tv.localToWorld(c);
-  cam.position.set(c.x + 0.05*d + Math.sin(t*0.23)*0.012, c.y + 0.1*d + Math.sin(t*0.31 + 1)*0.008, c.z + d);
-  cam.lookAt(c.x + Math.sin(t*0.19)*0.004, c.y - 0.012*d, c.z); cam.updateProjectionMatrix(); cam.updateMatrixWorld();
+  cam.position.set(c.x + 0.13*d + Math.sin(t*0.23)*0.012, c.y + 0.1*d + Math.sin(t*0.31 + 1)*0.008, c.z + d);
+  cam.lookAt(c.x + 0.08*d + Math.sin(t*0.19)*0.004, c.y - 0.012*d, c.z); cam.updateProjectionMatrix(); cam.updateMatrixWorld();
   if ((R.smpT -= dt) <= 0){ R.smpT = 0.2; try { R.smx.drawImage($('tvc'), 0, 0, 4, 3); const px = R.smx.getImageData(0,0,4,3).data; let r = 0, gg = 0, b = 0; for (let i = 0; i < px.length; i += 4){ r += px[i]; gg += px[i+1]; b += px[i+2]; } const n = px.length/4*255; R.col.setRGB(0.35 + r/n, 0.4 + gg/n, 0.55 + b/n); } catch(e){} }
   R.glow.color.lerp(R.col, Math.min(1, dt*4)); R.glow.intensity = 0.75 * (0.85 + 0.1*Math.sin(t*37) + 0.08*Math.random()) * ($('crtLogo').classList.contains('on') ? 1.4 : 1);
   tvMap(R.sc, R.corners.map(v=>{ R.v.copy(v); R.tv.localToWorld(R.v); R.v.project(cam); return [(R.v.x + 1)/2*W, (1 - R.v.y)/2*H]; }));
