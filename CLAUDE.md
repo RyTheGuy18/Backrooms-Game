@@ -6,7 +6,7 @@ First-person co-op Backrooms horror game for 1–4 players, played in the browse
 
 - Live: https://rytheguy18.github.io/Haunted-Pines/ (GitHub Pages, `main` branch, repo root)
 - Owner: Ryan (GitHub `rytheguy18` / `RyTheGuy18`). Plays it with friends and younger brothers, mostly on phones.
-- Current version: **v0.51.2** (shown bottom-right of the menu, `#ver`)
+- Current version: **v0.51.3** (shown bottom-right of the menu, `#ver`)
 
 ## Files
 
@@ -256,3 +256,4 @@ Controls (desktop): WASD, Shift sprint, C crouch, Left click / F flashlight, E h
 **v0.50.11 (Ryan: "use this for tv as well"):** `menu/vhs.mp4` re-made from his new VHS clip (see the file table). Note `tools/async_icon.py` takes its frames from `menu/vhs.mp4`, so re-running it now uses the new clip. Also: `sw.js` had been saved empty since v0.49.2 (no offline cache, no version bump) — restored from v0.49.1 with `V='level0-v50-11'`. Check `wc -c sw.js` after editing it.
 **v0.51.0 (Ryan):** TV static bursts on the menu TV + the remote model (see the file table). v0.51.1: his VHS tapes model on the table (see the file table).
 **v0.51.2 (Ryan: tapes cut into the TV; level select hard to read zoomed in):** the TV group is scaled `TV_S` 0.88 and moved `TV_DX` +0.05 m; the camera distance is ×`TV_S` and the resting screen fraction is 0.43 / 0.63 (was 0.4 / 0.6), so the screen is a bit bigger on screen than before. Zoomed in (zk > 0.6) `.crtscr.zoomed` drops the 1 px blur and wobble on `#tvpages`, thins the chroma text shadow, and lightens the VHS video (0.45) and scanlines (0.55).
+**v0.51.3 (Ryan: still clipping — make the TV smaller, move it over, zoom in more; NOT smaller tapes):** `TV_S` 0.8, `TV_DX` 0.09, resting screen fraction 0.48 / 0.68.
