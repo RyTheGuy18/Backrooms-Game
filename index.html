@@ -322,7 +322,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.51.8</div>
+<div class="osd" id="ver">v0.51.9</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -7159,7 +7159,7 @@ function updateTVfx(dt){
   const mainPage = mode === 'menu' && !$('menu').classList.contains('sub') && !settingsOpen;
   if (!mainPage && $('crtLogo').classList.contains('on')) logoEnd();
   if (logoOn > 0){ logoOn -= dt; if (logoOn <= 0) logoEnd(); }
-  else if (mainPage && (logoT -= dt) <= 0){ logoT = 22 + Math.random()*20; logoOn = 2.6 + Math.random()*1.5; $('crtLogo').classList.add('on'); $('crtLogo').parentElement.classList.add('logo'); }
+  // v0.51.9 (Ryan): the ASYNC logo no longer flashes on the TV (logoT/logoOn kept so it's easy to bring back)
 }
 function updateCRT(dt){ updateTVfx(dt);
   const src = renderer.domElement, sw = src.width, sh = src.height, cw = Math.min(sw, sh*4/3), ch = cw*3/4;
