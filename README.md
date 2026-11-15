@@ -70,3 +70,4 @@ v0.44.1: camcorder zoom (hold to creep in, it stays put, hold zoom-out to back o
 v0.44.2: chest-deep water in the Poolrooms has its own heavy wading sound (Ryan's recording)
 v0.44.3: Poolrooms: EXIT sign fixed, floors stay flat right up to the walls, new pool tile material
 v0.44.4: new wading sound for chest-deep water in the Poolrooms
+v0.47.0: Main menu is now on a CRT TV on the left, with a live Backrooms view, VHS static overlays and the ASYNC logo popping up on the screen.
