@@ -6,7 +6,7 @@ First-person co-op Backrooms horror game for 1–4 players, played in the browse
 
 - Live: https://rytheguy18.github.io/Haunted-Pines/ (GitHub Pages, `main` branch, repo root)
 - Owner: Ryan (GitHub `rytheguy18` / `RyTheGuy18`). Plays it with friends and younger brothers, mostly on phones.
-- Current version: **v0.51.0** (shown bottom-right of the menu, `#ver`)
+- Current version: **v0.51.1** (shown bottom-right of the menu, `#ver`)
 
 ## Files
 
@@ -37,6 +37,7 @@ First-person co-op Backrooms horror game for 1–4 players, played in the browse
 | `menu/vhs.mp4`, `menu/async.jpg` | v0.49 menu TV: VHS noise loop (v0.50.11: Ryan's new upload `13184940_1920_1080_25fps.mp4`, first 12 s, v0.50.12: cropped to the text-free middle (crop=1138:640:391:210) so no PLAY/SP/timecode, contrast ×1.3, 640×360 CRF 33, no audio, 0.39 MB, NOT in SW CORE; the SW skips Range requests) + Ryan's ASYNC logo |
 | `models/table.glb` | v0.49: "Table" by yryabchenko (Sketchfab, **CC BY 4.0** — credit in HOW TO PLAY · CREDITS, keep it): round pedestal table, normal map dropped, 256 px JPEG (2.3 MB → 0.26 MB). 4.5 wide × 3.3 tall → ×0.218 (top at 0.718 m). Menu room only |
 | `models/remote.glb` | v0.51: "Simple TV Remote" by Blender3D (Sketchfab, **CC BY 4.0** — credit in HOW TO PLAY · CREDITS, keep it): Ryan's upload; rig/animation + spec-gloss material dropped (r160 can't read KHR_materials_pbrSpecularGlossiness), plain mesh, diffuse 512 px JPEG (1.9 MB → 0.36 MB). 9.88 long along z, buttons up +y → ×(0.2/9.88), lifted 0.685·s. Menu room only (`rmt` in `buildTVRoom`, box until it loads) |
+| `models/tapes.glb` | v0.51.1: "VHS" by Dolgov (Sketchfab, **CC BY 4.0** — credit in HOW TO PLAY · CREDITS, keep it): Ryan's upload, two loose see-through tapes + one in a sleeve, already in metres (0.42 × 0.08 × 0.37). Optimised with gltf-transform (`opt.mjs`: normal/AO/MR maps + tangents dropped, weld, WebP 512 px, quantized; 13.3 MB → 0.8 MB). Drawn ×`TAPES_S` 0.85, turned `TAPES_RY`, at `TAPES_P` on the table, left of the TV (boxes until it loads). Menu room only |
 | `menu/static.mp4`, `sfx/tv-static.mp3` | v0.51: Ryan's uploads (Pixabay): TV static/signal-loss video (first 10 s, 320×180, 20 fps, CRF 36, 0.35 MB, NOT in SW CORE) + a static sound (first 10 s, loudnorm −20 LUFS, mono). `#tvStatic` loops hidden over the TV pages; `staticBurst` (every 16–44 s, 0.25–0.85 s, 25% 1.2–2.4 s; not while the ASYNC logo is up) shows it, brightens the TV glow and plays the sound at gain 0.09 from a random offset (Ryan: it's loud) |
 | `sw.js` | Service worker. **Bump `const V='level0-vX-Y'` every release** or phones keep the old version. CORE list must include every new asset |
 | `manifest.webmanifest`, icons | PWA |
@@ -253,4 +254,4 @@ Controls (desktop): WASD, Shift sprint, C crouch, Left click / F flashlight, E h
 **v0.50.9 (Ryan: VHS slightly more extreme, no PLAY/SP/numbers):** overlay now uses only the text-free middle of two `vhs.mp4` frames (crop 120,80–420,280), screen ×1.3; three tracking bands shift the logo sideways, a bright tracking line, a torn noisy head-switch strip at the bottom, white specks, stronger chroma (±9 px), scanlines 0.28, heavier vignette + grain, blur 1.6, 340 px soft upscale; `?v=8`.
 **v0.50.10 (Ryan: logo a bit too low):** logo moved up (`OFF` −14 px of 1024; spans y 221–774), the lowest tracking band moved off the SYNC text. The whole icon is now made by `tools/async_icon.py` (needs two frames of `menu/vhs.mp4` as `vf.png` (t 3 s) / `vf2.png` (t 6.4 s) in the cwd: `ffmpeg -ss 3 -i menu/vhs.mp4 -frames:v 1 vf.png`); `?v=9`.
 **v0.50.11 (Ryan: "use this for tv as well"):** `menu/vhs.mp4` re-made from his new VHS clip (see the file table). Note `tools/async_icon.py` takes its frames from `menu/vhs.mp4`, so re-running it now uses the new clip. Also: `sw.js` had been saved empty since v0.49.2 (no offline cache, no version bump) — restored from v0.49.1 with `V='level0-v50-11'`. Check `wc -c sw.js` after editing it.
-**v0.51.0 (Ryan):** TV static bursts on the menu TV + the remote model (see the file table). He also asked for a model for the VHS tapes on the table, but no tape file came through — the tapes are still the boxes in `buildTVRoom`.
+**v0.51.0 (Ryan):** TV static bursts on the menu TV + the remote model (see the file table). v0.51.1: his VHS tapes model on the table (see the file table).
