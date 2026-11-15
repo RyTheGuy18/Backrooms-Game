@@ -78,3 +78,4 @@ v0.49.0: menu is a dark 3D room with the TV on a table; menu, level select, join
 v0.49.1: settings on the TV has a BACK button at the top; you can scroll screens on the TV by touch
 v0.49.2: menu camera zoomed out, the TV is smaller in the room
 v0.49.4: TV moved a bit to the left; no more play button over the TV on iPhone
+v0.50.0: clicking PLAY zooms the camera almost all the way into the TV for the level select
