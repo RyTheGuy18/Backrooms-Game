@@ -245,6 +245,11 @@
   @keyframes logoJit{50%{transform:translateX(.6%)}}
   .crtscr.logo #tvpages{opacity:0}
   #tvpages{position:absolute;inset:0;z-index:1;filter:blur(1px) contrast(1.1) saturate(.85);animation:tvWob 6.3s steps(1) infinite}
+  /* v0.51.2 (Ryan: level select hard to read zoomed in): sharper when the camera is pushed into the TV */
+  .crtscr.zoomed #tvpages{filter:contrast(1.08);animation:none}
+  .crtscr.zoomed #tvpages .screen{text-shadow:1px 0 rgba(255,40,40,.4),-1px 0 rgba(40,200,255,.35)}
+  .crtscr.zoomed #vhsVid.on{opacity:.45}
+  #tvroom .crtscr.zoomed .tvscan{opacity:.55}
   @keyframes tvWob{0%,90%,100%{transform:none}91%{transform:translateX(4px) skewX(-1.5deg)}92%{transform:translateX(-2px)}96%{transform:translateY(1px)}}
   #vhsVid{position:absolute;inset:-3% 0;width:100%;height:106%;object-fit:cover;mix-blend-mode:screen;opacity:.95;pointer-events:none;z-index:4}
   #vhsVid:not(.on){opacity:0}
@@ -317,7 +322,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.51.1</div>
+<div class="osd" id="ver">v0.51.2</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -7027,7 +7032,9 @@ const crtCtx = $('tvc').getContext('2d'); let crtT = 0;
 for (const id of ['menu','lvPick','lobby']) $('tvpages').appendChild($(id));
 const TVW = 600, TVH = 450; let TVR = null, tvAcc = 1;
 const tvRoomOn = () => mode === 'menu' || mode === 'lobby';
-const TAPES_S = 0.85, TAPES_RY = 1.1, TAPES_P = [-0.27, 0.27];
+// v0.51.2 (Ryan): TV a bit smaller and a bit right so the tapes fit beside it
+const TV_S = 0.88, TV_DX = 0.05;
+const TAPES_S = 0.85, TAPES_RY = 1.1, TAPES_P = [-0.25, 0.28];
 function buildTVRoom(){
   const S = new THREE.Scene(), g = new THREE.Group(); S.add(g); S.background = new THREE.Color(0); S.fog = new THREE.Fog(0x000000, 1.4, 4.6);
   const cam = new THREE.PerspectiveCamera(38, 1, 0.05, 20);
@@ -7052,7 +7059,7 @@ function buildTVRoom(){
   box(0.9,0.85,0.45, wood, 1.65,0.425,-0.5); box(0.86,0.02,0.01, dark, 1.65,0.55,-0.27); box(0.86,0.02,0.01, dark, 1.65,0.3,-0.27);
   new GLTFLoader().load('models/table.glb', gl=>{ gl.scene.traverse(o=>{ if (o.isMesh){ const map = o.material.map || null; if (map){ map.magFilter = THREE.NearestFilter; map.minFilter = THREE.NearestFilter; map.colorSpace = THREE.SRGBColorSpace; } o.material = lam(0xffffff, { map }); } }); gl.scene.scale.setScalar(0.218); gl.scene.position.y = 0.0185; g.add(gl.scene); });
   // the TV (built here; Ryan's CRT model is Sketchfab Standard, so it stays out of the repo)
-  const tv = new THREE.Group(); tv.position.set(0, 0.718, 0); tv.rotation.y = 0.42; g.add(tv);
+  const tv = new THREE.Group(); tv.position.set(TV_DX, 0.718, 0); tv.rotation.y = 0.42; tv.scale.setScalar(TV_S); g.add(tv);
   box(0.6,0.48,0.34, plast, 0,0.24,0, tv); box(0.48,0.38,0.26, plast, 0,0.23,-0.28, tv); box(0.44,0.018,0.36, dark, 0,0.009,-0.03, tv);
   const sx = -0.05, sy = 0.27, sw = 0.43, sh = 0.3225, fz = 0.171;
   box(sw+0.05,0.025,0.02, dark, sx,sy+sh/2+0.012,fz, tv); box(sw+0.05,0.025,0.02, dark, sx,sy-sh/2-0.012,fz, tv);
@@ -7089,8 +7096,9 @@ function renderTVRoom(dt){
   const R = TVR, cam = R.cam, W = innerWidth, H = innerHeight; R.t += dt; const t = R.t;
   // v0.50 (Ryan): PLAY → the camera pushes in almost all the way to the TV for the level select
   const zt = $('pLevels').classList.contains('show') ? 1 : 0; R.zm = (R.zm || 0) + (zt - (R.zm || 0))*Math.min(1, dt*2.2); const zk = R.zm*R.zm*(3 - 2*R.zm);
-  cam.aspect = W/H; const th = Math.tan(cam.fov*Math.PI/360), fh = lerp(H < 520 ? 0.6 : 0.4, H < 520 ? 0.97 : 0.9, zk), fw = lerp(0.8, 0.98, zk);
-  const d = Math.max(0.3225/(2*th*fh), 0.43*0.92/(2*th*cam.aspect*fw)), off = 1 - zk;
+  cam.aspect = W/H; const th = Math.tan(cam.fov*Math.PI/360), fh = lerp(H < 520 ? 0.63 : 0.43, H < 520 ? 0.97 : 0.9, zk), fw = lerp(0.8, 0.98, zk);
+  const d = TV_S*Math.max(0.3225/(2*th*fh), 0.43*0.92/(2*th*cam.aspect*fw)), off = 1 - zk;
+  R.sc.classList.toggle('zoomed', zk > 0.6);
   R.tv.updateMatrixWorld(); const c = R.vt.set(-0.05, 0.27, 0.171); R.tv.localToWorld(c);
   // zoomed in: the camera swings round onto the screen's normal so you look straight at the glass
   const ry = R.tv.rotation.y, sw = (1 - zk*0.7);
