@@ -185,7 +185,8 @@
   #menu::before{content:'';position:absolute;inset:0;pointer-events:none;z-index:4;border-radius:4vmin;box-shadow:inset 0 0 12vmin 4vmin rgba(0,0,0,.95),inset 0 0 0 1.6vmin #000;background:radial-gradient(ellipse at center,rgba(120,170,255,.05),transparent 60%,rgba(0,0,0,.55) 100%)}
   #menu.sub{background:rgba(4,6,10,.82)}
   .mmR{display:none!important}
-  body:has(#menu.show) .osd:not(#ver){display:none!important}
+  body:has(#menu.show) .osd:not(#ver),body:has(#lobby.show) .osd:not(#ver){display:none!important}
+  #code{font-size:clamp(40px,8vw,84px)!important;letter-spacing:.25em}
   #menu::after{content:'';position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.035) 0 1px,transparent 1px 3px);z-index:3}
   #menu .mm{display:flex;width:100%;height:100%;align-items:center;gap:4vw;padding:max(16px,env(safe-area-inset-top)) max(4vw,env(safe-area-inset-right)) 16px max(5vw,env(safe-area-inset-left));box-sizing:border-box}
   #menu.sub .mm{display:none}
@@ -238,14 +239,15 @@
   #menu{background:radial-gradient(ellipse at 30% 50%,rgba(6,6,8,.78),rgba(2,2,3,.96) 70%)!important}
   #menu::before{display:none}
   #menu .mm{gap:3vw;padding:2vh 4vw;justify-content:flex-start}
-  .crt{position:relative;height:min(94vh,calc(92vw*688/708));aspect-ratio:708/688;flex:0 0 auto;filter:drop-shadow(0 0 40px rgba(110,150,255,.12))}
+  .crt{position:relative;height:min(94vh,calc(80vw*636/604));aspect-ratio:604/636;flex:0 0 auto;filter:drop-shadow(0 0 40px rgba(110,150,255,.12))}
   .crtimg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;user-select:none}
-  .crtscr{position:absolute;left:7.3%;top:5.6%;width:85.4%;height:68.8%;border-radius:4% / 5%;overflow:hidden;background:#000;container-type:size;box-shadow:0 0 30px rgba(140,180,255,.18)}
+  .crtscr{position:absolute;left:0;top:0;width:300px;height:240px;transform-origin:0 0;border-radius:3% / 4%;overflow:hidden;background:#000;container-type:size;box-shadow:0 0 30px rgba(140,180,255,.18)}
   .crtscr #tvc{position:absolute;inset:0;width:100%;height:100%;filter:contrast(1.15) saturate(.8) brightness(.9) blur(.5px);image-rendering:pixelated}
   .crtlogo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;pointer-events:none;filter:blur(.6px) contrast(1.1)}
   .crtlogo.on{opacity:1;animation:logoJit .12s steps(2) infinite}
   @keyframes logoJit{50%{transform:translateX(.6%)}}
-  .vhsov{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;mix-blend-mode:screen;opacity:.55;pointer-events:none}
+  .vhsov{position:absolute;inset:-4% 0;width:100%;height:108%;object-fit:cover;mix-blend-mode:screen;opacity:.6;pointer-events:none;animation:vhsJit .36s steps(3) infinite}
+  @keyframes vhsJit{0%{transform:translateY(0)}33%{transform:translateY(-2.5%)}66%{transform:translateY(1.5%) scaleX(1.02)}}
   .crtscr .tvscan{position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.32) 0 1px,transparent 1px 3px),radial-gradient(ellipse at center,transparent 50%,rgba(0,0,0,.8) 100%)}
   .crtscr .tvosd{position:absolute;left:5%;right:5%;top:5%;display:flex;justify-content:space-between;font:bold 5cqh monospace;color:#f4eed6;text-shadow:2px 0 rgba(255,40,40,.5),-2px 0 rgba(40,200,255,.45);pointer-events:none}
   .crtui{position:absolute;left:7%;top:15%;bottom:6%;display:flex;flex-direction:column;align-items:flex-start;gap:2.2cqh;z-index:2;transition:opacity .2s}
@@ -257,6 +259,24 @@
   .crtui .vbtn:hover,.crtui .vbtn:focus-visible{background:rgba(233,210,124,.16);border-color:#e9d27c}
   .mside{display:flex;flex-direction:column;gap:10px;align-self:flex-end;margin-bottom:4vh;opacity:.75}
   @media (max-aspect-ratio:1/1){ #menu .mm{flex-direction:column;justify-content:center} .crt{height:auto;width:92vw} .mside{align-self:center} }
+
+  /* ---------- v0.48: every other screen in the same VHS / CRT style ---------- */
+  .screen:not(#menu){background:radial-gradient(ellipse at 50% 35%,rgba(12,18,34,.88),rgba(2,2,4,.97) 75%)}
+  .screen:not(#menu) .title h1{font-family:monospace;font-weight:bold;font-size:clamp(34px,7vw,62px);color:#e9d27c;text-shadow:3px 0 rgba(255,40,40,.45),-3px 0 rgba(40,200,255,.4),0 0 18px rgba(233,210,124,.3)}
+  .screen:not(#menu) .title .sub,.screen:not(#menu) .title .tag{font-family:monospace;color:#9aa6c8}
+  .card{background:rgba(10,18,40,.42);border:1px solid rgba(200,220,255,.28);box-shadow:inset 0 0 22px rgba(140,180,255,.07)}
+  .lbl{font-family:monospace;font-size:14px;letter-spacing:.28em;color:#9aa6c8}
+  .btn{font-family:monospace;font-weight:bold;font-size:clamp(16px,2.3vw,21px);letter-spacing:.12em;color:#f4eed6;border:1px solid rgba(200,220,255,.32);background:rgba(10,18,40,.38);text-shadow:2px 0 rgba(255,40,40,.35),-2px 0 rgba(40,200,255,.3)}
+  .btn::after{color:#e9d27c}
+  .btn:hover,.btn:active{border-color:#e9d27c;color:#e9d27c;background:rgba(233,210,124,.1)}
+  .btn.primary{background:rgba(233,210,124,.9);color:#100c04;border-color:#e9d27c;text-shadow:none}
+  .btn.ghost{font-size:clamp(14px,2vw,18px)}
+  .btn.monb{color:#ff9c86;border-color:rgba(255,120,100,.4)}
+  .screen input:not([type=range]){font-family:monospace;font-size:20px;background:rgba(0,0,0,.45);border-color:rgba(200,220,255,.35)}
+  #code{font-family:monospace!important;color:#e9d27c;text-shadow:3px 0 rgba(255,40,40,.45),-3px 0 rgba(40,200,255,.4)}
+  .srow{font-family:monospace;font-size:16px;color:#cfc8b0}
+  #lvPick{z-index:41}#lvPick .lvwrap{width:min(96vw,1100px);margin:0 auto}
+  @media (min-width:760px){ #lobby .col{width:min(94vw,860px);display:grid;grid-template-columns:minmax(0,320px) minmax(0,1fr);gap:12px;align-content:start} #lobby .col > *{grid-column:1} #lobby .col > .title{grid-column:1 / span 2} #lroom{grid-column:2!important;grid-row:2 / span 6} }
 </style>
 <script type="importmap">{"imports":{"three":"./three.module.min.js"}}</script>
 </head>
@@ -274,7 +294,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.47.0</div>
+<div class="osd" id="ver">v0.48.0</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -319,7 +339,7 @@
         <button class="vbtn" id="mJoin">JOIN</button>
         <button class="vbtn" id="bSet1">SETTINGS</button>
       </div>
-      <img class="vhsov" id="vhsOv" src="menu/vhs/n0.jpg" alt=""><div class="tvscan"></div>
+      <img class="vhsov" id="vhsOv" src="menu/vhs.jpg" alt=""><div class="tvscan"></div>
       <div class="tvosd"><span>PLAY ▶</span><span id="tvtime">0:00:00</span></div>
     </div>
   </div>
@@ -357,13 +377,19 @@
 <div style="display:none"><button id="bSolo"></button><button id="bLv1"></button><button id="bVoice"></button><button id="bSkinL"></button><div id="bSkin"></div><button id="bSkinR"></button></div>
 </div>
 
+<div class="screen" id="lvPick"><div class="lvwrap">
+  <div class="mhead"><button class="vbtn back" id="lvPickBack">◀ BACK</button><h2>START AT WHICH LEVEL?</h2></div>
+  <div class="lvgrid" id="lvPickGrid"></div>
+</div></div>
+
 <div class="screen" id="lobby"><div class="col">
+  <div class="title"><h1>LOBBY</h1><div class="sub">HOST · PARTY</div></div>
   <div class="card">
     <div class="lbl" style="text-align:center">ROOM CODE</div>
     <div id="code">----</div>
     <div class="foot" style="margin-top:-4px">Friends open this page, tap JOIN, and enter the code.</div>
   </div>
-  <div class="card">
+  <div class="card" id="lroom">
     <div class="lbl">IN THE ROOM</div>
     <div id="lplayers"></div>
     <button class="btn" id="bVoice2">VOICE CHAT: OFF</button>
@@ -6441,7 +6467,7 @@ function showEnd(){
   $('bAgain').style.display = host ? '' : 'none'; $('bLobby').style.display = host && !net.solo ? '' : 'none'; $('ewait').style.display = host ? 'none' : '';
   showScreen('end');
 }
-function showScreen(id){ if (id === 'menu') menuSub(''); for (const s of ['menu','lobby','end']) $(s).classList.toggle('show', s===id); document.body.classList.toggle('showosd', !!id); }
+function showScreen(id){ if (id === 'menu') menuSub(''); $('lvPick').classList.remove('show'); for (const s of ['menu','lobby','end']) $(s).classList.toggle('show', s===id); document.body.classList.toggle('showosd', !!id); }
 document.body.classList.add('showosd');
 let msgTimer = 0;
 function msg(t, secs=3){ const m=$('msg'); m.textContent=t; m.style.opacity=1; msgTimer=secs; }
@@ -6976,11 +7002,20 @@ document.addEventListener('pointerover', e=>{ const b = e.target.closest && e.ta
 document.addEventListener('pointerdown', e=>{ if (e.pointerType !== 'mouse' && e.target.closest && e.target.closest('.vbtn,.tile,.vlink,.btn')) menuTick(); });
 const crtCtx = $('tvc').getContext('2d'); let crtT = 0;
 
-// v0.47: VHS overlay frames from Ryan's Resource Boy pack (screen blend), sometimes the ASYNC logo takes over the set
-const VHS_N = 10, VHS_G = 3; let vhsT = 0, logoT = 18 + Math.random()*10, logoOn = 0;
-function updateTVfx(dt){ if (!$('vhsOv').offsetParent) return;
-  vhsT -= dt; if (vhsT <= 0){ const g = Math.random() < 0.06; vhsT = g ? 0.18 : 0.09 + Math.random()*0.12; $('vhsOv').src = g ? `menu/vhs/g${Math.floor(Math.random()*VHS_G)}.jpg` : `menu/vhs/n${Math.floor(Math.random()*VHS_N)}.jpg`; $('vhsOv').style.opacity = g ? 0.85 : 0.4 + Math.random()*0.25; }
-  if (logoOn > 0){ logoOn -= dt; if (logoOn <= 0){ $('crtLogo').classList.remove('on'); $('crtLogo').parentElement.classList.remove('logo'); vhsT = 0; } }
+// v0.48: the menu screen is mapped onto the glass of the turned TV (corners measured from the render of Ryan's model)
+const CRT_Q = [[16.378, 6.03], [93.093, 11.119], [92.76, 70.133], [16.496, 75.122]];
+function fitCRT(){ const box = document.querySelector('.crt'), sc = document.querySelector('.crtscr'); if (!box || !box.clientWidth) return;
+  const W = box.clientWidth, H = box.clientHeight, p = CRT_Q.map(([x,y])=>[x/100*W, y/100*H]), L = (a,b)=>Math.hypot(a[0]-b[0], a[1]-b[1]);
+  const w = (L(p[0],p[1]) + L(p[3],p[2]))/2, h = (L(p[0],p[3]) + L(p[1],p[2]))/2; sc.style.width = w + 'px'; sc.style.height = h + 'px';
+  const [[x0,y0],[x1,y1],[x2,y2],[x3,y3]] = p, dx1 = x1-x2, dx2 = x3-x2, dy1 = y1-y2, dy2 = y3-y2, sx = x0-x1+x2-x3, sy = y0-y1+y2-y3, det = dx1*dy2 - dx2*dy1;
+  const g = (sx*dy2 - dx2*sy)/det, k = (dx1*sy - sx*dy1)/det, A = x1-x0+g*x1, B = x3-x0+k*x3, D = y1-y0+g*y1, E = y3-y0+k*y3;
+  sc.style.transform = `matrix3d(${A/w},${D/w},0,${g/w},${B/h},${E/h},0,${k/h},0,0,1,0,${x0},${y0},0,1)`; }
+try { new ResizeObserver(fitCRT).observe(document.querySelector('.crt')); } catch(e){ addEventListener('resize', fitCRT); }
+document.querySelector('.crtimg').addEventListener('load', fitCRT); fitCRT();
+// sometimes Ryan's ASYNC logo takes over the set
+let logoT = 18 + Math.random()*10, logoOn = 0;
+function updateTVfx(dt){
+  if (logoOn > 0){ logoOn -= dt; if (logoOn <= 0){ $('crtLogo').classList.remove('on'); $('crtLogo').parentElement.classList.remove('logo'); } }
   else if ((logoT -= dt) <= 0){ logoT = 22 + Math.random()*20; logoOn = 2.6 + Math.random()*1.5; $('crtLogo').classList.add('on'); $('crtLogo').parentElement.classList.add('logo'); }
 }
 function updateCRT(dt){ if (!$('tvc').offsetParent) return; updateTVfx(dt); if (mode !== 'menu' || !$('menu').classList.contains('show') || $('menu').classList.contains('sub')) return; crtT += dt; if (crtT < 0.07) return; crtT = 0;
@@ -7006,7 +7041,10 @@ $('bJoin').onclick = async ()=>{ if (voice.want && !voice.stream) voiceEnable(tr
   readName(); sfx.init(); if (isTouch) goFull(); if (await connect(c, false)) sfx.bindLevel();
 };
 $('joincode').addEventListener('input', e=>{ e.target.value = e.target.value.toUpperCase().replace(/[^A-Z]/g,''); });
-$('bLv').onclick = ()=>{ if (!amHost()) return; startOpt = G.sl = ((G.sl ?? startOpt) + 1) % 7; try { localStorage.setItem('lvl0_start', startOpt); } catch(e){} lvLabel(); broadcastState(); renderLobby(); };
+$('bLv').onclick = ()=>{ if (!amHost()) return; $('lvPick').classList.add('show'); };
+$('lvPickBack').onclick = ()=>$('lvPick').classList.remove('show');
+$('lvPickGrid').innerHTML = $('lvgrid').innerHTML;
+for (const t of document.querySelectorAll('#lvPickGrid .tile')) t.onclick = ()=>{ $('lvPick').classList.remove('show'); if (!amHost()) return; startOpt = G.sl = +t.dataset.lv; try { localStorage.setItem('lvl0_start', startOpt); } catch(e){} lvLabel(); broadcastState(); renderLobby(); };
 $('bEx').onclick = ()=>{ if (!amHost()) return; exOpt = G.ex = G.ex ? 0 : 1; try { localStorage.setItem('lvl0_explore', exOpt); } catch(e){} exLabel(); broadcastState(); renderLobby(); };
 $('bDiff').onclick = ()=>{ if (!amHost()) return; diffOpt = G.df = ((G.df ?? diffOpt) + 1) % 4; try { localStorage.setItem('lvl0_diff', diffOpt); } catch(e){} diffLabel(); broadcastState(); renderLobby(); };
 $('bMonVoice').onclick = ()=>{ if (!amHost()) return; monVoiceOpt = G.ov = G.ov ? 0 : 1; try { localStorage.setItem('lvl0_monvoice', monVoiceOpt); } catch(e){} broadcastState(); renderLobby(); };
