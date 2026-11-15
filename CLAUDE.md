@@ -6,7 +6,7 @@ First-person co-op Backrooms horror game for 1–4 players, played in the browse
 
 - Live: https://rytheguy18.github.io/Haunted-Pines/ (GitHub Pages, `main` branch, repo root)
 - Owner: Ryan (GitHub `rytheguy18` / `RyTheGuy18`). Plays it with friends and younger brothers, mostly on phones.
-- Current version: **v0.50.10** (shown bottom-right of the menu, `#ver`)
+- Current version: **v0.50.11** (shown bottom-right of the menu, `#ver`)
 
 ## Files
 
@@ -34,7 +34,7 @@ First-person co-op Backrooms horror game for 1–4 players, played in the browse
 | `sfx/power-out.mp3`, `sfx/light-flicker.mp3` | v0.42, Ryan's uploads. power-out: a 4.5 s power-down (`pout`, leading silence cut, loudnorm, mono 64 kbps) — plays for every blackout: the Occupant's Blackout (`sfx.powerDown`, positional), the hotel outage (`outage188`, not doubled), the lab power failure, a Pipe Dreams circuit going dead. light-flicker: from his screen recording (0.45–10.6 s, ×6 + limiter, 10.15 s): buzzing tube with clicks; `FLICK_CLICKS` = click onsets used by `sfx.flick` (0.3–0.5 s slices via `sfx.slice`, ≥0.12 s apart, when the nearest panel flickers), `FLICK_ON` = 7.0 s + 3.1 s stutter = `sfx.lightsOn` when the power comes back (lab, hotel, and where an Occupant blackout ends if you're within 22 m, `liveBo`) |
 | `models/folding-table.glb` | v0.45: Ryan's upload, "Folding Table" by AK STUDIO (Sketchfab, **CC BY 4.0** — credit in the menu footer, keep it). Normal/MR maps + tangents dropped, base colour 256 px JPEG (1.16 MB → 0.2 MB). Y up, 2 × 0.83 × 0.81 units, long side along x, centred → drawn ×0.9 at y 0.37. Level 52 cafeteria only, one InstancedMesh (`fillTables52`, `level.s52.tables` = [x, y, z, ry, rx, rz] drawn coords) |
 | `menu/lv0.jpg` … `lv6.jpg` | v0.46: level-select thumbnails (384×216 JPEG, headless screenshots from spawn-ish spots; index = game order 0,1,37,188,852,2,52). **Placeholders — Ryan will replace them** |
-| `menu/vhs.mp4`, `menu/async.jpg` | v0.49 menu TV: VHS noise loop (Ryan's Pexels clip, 20–30 s, 640×360, no audio, 0.35 MB, NOT in SW CORE; the SW skips Range requests) + Ryan's ASYNC logo |
+| `menu/vhs.mp4`, `menu/async.jpg` | v0.49 menu TV: VHS noise loop (v0.50.11: Ryan's new upload `13184940_1920_1080_25fps.mp4`, first 12 s, contrast ×1.3, 640×360 CRF 33, no audio, 0.31 MB; PLAY/SP/timecode baked in, NOT in SW CORE; the SW skips Range requests) + Ryan's ASYNC logo |
 | `models/table.glb` | v0.49: "Table" by yryabchenko (Sketchfab, **CC BY 4.0** — credit in HOW TO PLAY · CREDITS, keep it): round pedestal table, normal map dropped, 256 px JPEG (2.3 MB → 0.26 MB). 4.5 wide × 3.3 tall → ×0.218 (top at 0.718 m). Menu room only |
 | `sw.js` | Service worker. **Bump `const V='level0-vX-Y'` every release** or phones keep the old version. CORE list must include every new asset |
 | `manifest.webmanifest`, icons | PWA |
@@ -250,3 +250,4 @@ Controls (desktop): WASD, Shift sprint, C crouch, Left click / F flashlight, E h
 **v0.50.8 (Ryan: ASYNC icon in VHS style with the TV's overlay):** the v0.50.7 logo icon + a frame of `menu/vhs.mp4` (t = 3 s, crop x 80–490, so PLAY ▶ / SP / timecode show) screen-blended ×0.8, chroma shift, scanlines, vignette, 1.2 px blur; `?v=7`.
 **v0.50.9 (Ryan: VHS slightly more extreme, no PLAY/SP/numbers):** overlay now uses only the text-free middle of two `vhs.mp4` frames (crop 120,80–420,280), screen ×1.3; three tracking bands shift the logo sideways, a bright tracking line, a torn noisy head-switch strip at the bottom, white specks, stronger chroma (±9 px), scanlines 0.28, heavier vignette + grain, blur 1.6, 340 px soft upscale; `?v=8`.
 **v0.50.10 (Ryan: logo a bit too low):** logo moved up (`OFF` −14 px of 1024; spans y 221–774), the lowest tracking band moved off the SYNC text. The whole icon is now made by `tools/async_icon.py` (needs two frames of `menu/vhs.mp4` as `vf.png` (t 3 s) / `vf2.png` (t 6.4 s) in the cwd: `ffmpeg -ss 3 -i menu/vhs.mp4 -frames:v 1 vf.png`); `?v=9`.
+**v0.50.11 (Ryan: "use this for tv as well"):** `menu/vhs.mp4` re-made from his new VHS clip (see the file table). Note `tools/async_icon.py` takes its frames from `menu/vhs.mp4`, so re-running it now uses the new clip.
