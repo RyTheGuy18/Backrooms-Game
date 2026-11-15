@@ -88,3 +88,4 @@ v0.50.6: app icon tried as a close-up looking through the lab portal
 v0.50.7: app icon is now the ASYNC logo
 v0.50.8: ASYNC app icon now has the menu TV's VHS look
 v0.50.9: heavier VHS glitch look on the ASYNC app icon, no PLAY/SP/timecode text
+v0.50.10: ASYNC logo centred better on the app icon
