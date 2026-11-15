@@ -6,7 +6,7 @@ First-person co-op Backrooms horror game for 1–4 players, played in the browse
 
 - Live: https://rytheguy18.github.io/Haunted-Pines/ (GitHub Pages, `main` branch, repo root)
 - Owner: Ryan (GitHub `rytheguy18` / `RyTheGuy18`). Plays it with friends and younger brothers, mostly on phones.
-- Current version: **v0.49.4** (shown bottom-right of the menu, `#ver`)
+- Current version: **v0.50.0** (shown bottom-right of the menu, `#ver`)
 
 ## Files
 
@@ -237,3 +237,5 @@ Controls (desktop): WASD, Shift sprint, C crouch, Left click / F flashlight, E h
 **v0.49.1 (Ryan: no back button on settings on mobile):** `html,body{touch-action:none}` meant nothing on the TV could be scrolled by touch, so BACK at the bottom of settings was unreachable. `#tvpages .screen/.msub` now have `touch-action:pan-y`, and settings on the TV has a sticky header with its own ◀ BACK (`bSetBack`, hidden outside the TV).
 
 **v0.49.4 (Ryan: a ▶ play button in the middle of the TV on iPhone):** that was Safari's own start-playback overlay on the VHS `<video>` when autoplay is blocked (e.g. Low Power Mode). The video is now invisible until it actually plays (`.on` on `playing`), and the WebKit media-control pseudo-elements are hidden. If autoplay stays blocked, the TV just shows no VHS noise until a tap starts it.
+
+**v0.50 (Ryan: clicking PLAY zooms the camera almost all the way into the TV):** `renderTVRoom` eases `TVR.zm` 0→1 (smoothstep, ~1 s) while `#pLevels` is shown: screen height fraction 0.4/0.6 → 0.9/0.97, width limit 0.8 → 0.98, the left-of-centre offset fades out. BACK eases it out again.
