@@ -248,6 +248,9 @@
   @keyframes tvWob{0%,90%,100%{transform:none}91%{transform:translateX(4px) skewX(-1.5deg)}92%{transform:translateX(-2px)}96%{transform:translateY(1px)}}
   #vhsVid{position:absolute;inset:-3% 0;width:100%;height:106%;object-fit:cover;mix-blend-mode:screen;opacity:.95;pointer-events:none;z-index:4}
   #vhsVid:not(.on){opacity:0}
+  #tvStatic{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;pointer-events:none;z-index:3;filter:contrast(1.15) brightness(1.1)}
+  #tvStatic.on{opacity:.92}
+  #tvStatic::-webkit-media-controls,#tvStatic::-webkit-media-controls-start-playback-button,#tvStatic::-webkit-media-controls-overlay-play-button{display:none!important;-webkit-appearance:none;opacity:0}
   #vhsVid::-webkit-media-controls,#vhsVid::-webkit-media-controls-start-playback-button,#vhsVid::-webkit-media-controls-overlay-play-button{display:none!important;-webkit-appearance:none;opacity:0}
   #tvroom .tvscan{z-index:5;background:repeating-linear-gradient(0deg,rgba(0,0,0,.4) 0 2px,transparent 2px 4px),radial-gradient(ellipse at center,transparent 45%,rgba(0,0,0,.85) 100%)}
   #tvpages .screen{position:absolute;inset:0;z-index:1;padding:34px 38px 26px;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;background:rgba(1,2,6,.86);font-family:monospace;color:#e6e1cc;text-shadow:2px 0 rgba(255,40,40,.55),-2px 0 rgba(40,200,255,.5);box-sizing:border-box;align-items:flex-start}
@@ -314,7 +317,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.50.12</div>
+<div class="osd" id="ver">v0.51.0</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -350,6 +353,7 @@
 
 <div id="tvroom"><div class="crtscr"><canvas id="tvc" width="320" height="240"></canvas><img class="crtlogo" id="crtLogo" src="menu/async.jpg" alt="">
   <div id="tvpages"></div>
+  <video id="tvStatic" src="menu/static.mp4" muted loop playsinline webkit-playsinline preload="auto" disablepictureinpicture disableremoteplayback tabindex="-1"></video>
   <video id="vhsVid" src="menu/vhs.mp4" muted loop playsinline webkit-playsinline autoplay preload="auto" disablepictureinpicture disableremoteplayback tabindex="-1" onplaying="this.classList.add('on')"></video><div class="tvscan"></div>
   <span id="tvtime" hidden></span>
 </div></div>
@@ -388,7 +392,7 @@
   </div>
   <div id="iosHint">iPhone: tap Share → <b>Add to Home Screen</b> and play from there. It runs fullscreen with no browser bars and the controls work much better.</div>
   <div class="foot">Headphones on. Listen to the hum.</div>
-  <div class="foot" style="font-size:15px;opacity:.7">Menu table: <a href="https://sketchfab.com/3d-models/table-1132fa2850a24917892733566bd68e74" target="_blank" rel="noopener" style="color:inherit">"Table" by yryabchenko</a>, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:inherit">CC BY 4.0</a> (texture shrunk) · VHS noise: Pexels · Cafeteria tables: <a href="https://sketchfab.com/3d-models/folding-table-dba1b4270fee431290c464742f5fd4f5" target="_blank" rel="noopener" style="color:inherit">"Folding Table" by AK STUDIO</a>, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:inherit">CC BY 4.0</a> (textures shrunk) · The Crawler: <a href="https://sketchfab.com/3d-models/goose-c0cf164370124d81b2737e864bf38205" target="_blank" rel="noopener" style="color:inherit">"Goose" by nodoxi</a>, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:inherit">CC BY 4.0</a> (re-textured smaller, rigged in code) · Phones: <a href="https://sketchfab.com/3d-models/telephone-be6af2677cea49f5bc2f65968df50460" target="_blank" rel="noopener" style="color:inherit">"Telephone" by sui</a>, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:inherit">CC BY 4.0</a> · Radio: <a href="https://sketchfab.com/3d-models/vintage-retro-radio-26fb0de1015d4570bac28cd8b1fb0a62" target="_blank" rel="noopener" style="color:inherit">"Vintage Retro Radio" by Pavlo_Holubov</a>, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:inherit">CC BY 4.0</a> · The Lurker: <a href="https://sketchfab.com/3d-models/a-terrifying-creature-monster-8d509a2a7e4d4fb7972fd7016c53a234" target="_blank" rel="noopener" style="color:inherit">"A Terrifying Creature (Monster)" by Dester</a>, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:inherit">CC BY 4.0</a> (textures shrunk, re-rigged for its run) · Flashlight: <a href="https://sketchfab.com/3d-models/pro-flashlight-4c421693ab9d4d24af19cf151f4569a0" target="_blank" rel="noopener" style="color:inherit">"Pro Flashlight" by Chancleto870</a>, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:inherit">CC BY 4.0</a> (simplified, smaller texture)</div>
+  <div class="foot" style="font-size:15px;opacity:.7">Menu table: <a href="https://sketchfab.com/3d-models/table-1132fa2850a24917892733566bd68e74" target="_blank" rel="noopener" style="color:inherit">"Table" by yryabchenko</a>, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:inherit">CC BY 4.0</a> (texture shrunk) · Menu remote: <a href="https://sketchfab.com/3d-models/simple-tv-remote-52f142c052564d85b6ef21413af34e25" target="_blank" rel="noopener" style="color:inherit">"Simple TV Remote" by Blender3D</a>, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:inherit">CC BY 4.0</a> (texture shrunk, rig removed) · VHS noise: Pexels · TV static video + sound: Pixabay · Cafeteria tables: <a href="https://sketchfab.com/3d-models/folding-table-dba1b4270fee431290c464742f5fd4f5" target="_blank" rel="noopener" style="color:inherit">"Folding Table" by AK STUDIO</a>, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:inherit">CC BY 4.0</a> (textures shrunk) · The Crawler: <a href="https://sketchfab.com/3d-models/goose-c0cf164370124d81b2737e864bf38205" target="_blank" rel="noopener" style="color:inherit">"Goose" by nodoxi</a>, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:inherit">CC BY 4.0</a> (re-textured smaller, rigged in code) · Phones: <a href="https://sketchfab.com/3d-models/telephone-be6af2677cea49f5bc2f65968df50460" target="_blank" rel="noopener" style="color:inherit">"Telephone" by sui</a>, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:inherit">CC BY 4.0</a> · Radio: <a href="https://sketchfab.com/3d-models/vintage-retro-radio-26fb0de1015d4570bac28cd8b1fb0a62" target="_blank" rel="noopener" style="color:inherit">"Vintage Retro Radio" by Pavlo_Holubov</a>, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:inherit">CC BY 4.0</a> · The Lurker: <a href="https://sketchfab.com/3d-models/a-terrifying-creature-monster-8d509a2a7e4d4fb7972fd7016c53a234" target="_blank" rel="noopener" style="color:inherit">"A Terrifying Creature (Monster)" by Dester</a>, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:inherit">CC BY 4.0</a> (textures shrunk, re-rigged for its run) · Flashlight: <a href="https://sketchfab.com/3d-models/pro-flashlight-4c421693ab9d4d24af19cf151f4569a0" target="_blank" rel="noopener" style="color:inherit">"Pro Flashlight" by Chancleto870</a>, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:inherit">CC BY 4.0</a> (simplified, smaller texture)</div>
 </div>
 </div>
 <div style="display:none"><button id="bSolo"></button><button id="bLv1"></button><button id="bVoice"></button><button id="bSkinL"></button><div id="bSkin"></div><button id="bSkinR"></button></div>
@@ -6533,7 +6537,7 @@ const sfx = {
   },
   samples:{},
   loadSamples(){
-    const c = this.ctx, files = { pout:'sfx/power-out.mp3', flick:'sfx/light-flicker.mp3', lstep:'sfx/lurker-steps.mp3', phRing:'sfx/phone-ring.mp3', phPick:'sfx/phone-pickup.mp3', crawl:'sfx/crawler-steps.mp3', heavy:'sfx/heavy-steps.mp3', atk1:'sfx/spider-attack-1.mp3', atk2:'sfx/spider-attack-2.mp3', atk4:'sfx/spider-attack-4.mp3', roar:'sfx/monster-roar.mp3', growl:'sfx/monster-growl.mp3', groan:'sfx/monster-groans.mp3', wwalk:'sfx/water-walk.mp3', wdeep:'sfx/water-deep.mp3', genStart:'sfx/gen-start.mp3', genRun:'sfx/gen-run.mp3', wrun:'sfx/water-run.mp3', breathL:'sfx/breathing.mp3', stepC:'sfx/steps-carpet.mp3', stepK:'sfx/steps-concrete.mp3', stepT:'sfx/steps-tile.mp3', stepW:'sfx/steps-wood.mp3' };
+    const c = this.ctx, files = { pout:'sfx/power-out.mp3', flick:'sfx/light-flicker.mp3', lstep:'sfx/lurker-steps.mp3', phRing:'sfx/phone-ring.mp3', phPick:'sfx/phone-pickup.mp3', crawl:'sfx/crawler-steps.mp3', heavy:'sfx/heavy-steps.mp3', atk1:'sfx/spider-attack-1.mp3', atk2:'sfx/spider-attack-2.mp3', atk4:'sfx/spider-attack-4.mp3', roar:'sfx/monster-roar.mp3', growl:'sfx/monster-growl.mp3', groan:'sfx/monster-groans.mp3', wwalk:'sfx/water-walk.mp3', wdeep:'sfx/water-deep.mp3', genStart:'sfx/gen-start.mp3', genRun:'sfx/gen-run.mp3', wrun:'sfx/water-run.mp3', tvst:'sfx/tv-static.mp3', breathL:'sfx/breathing.mp3', stepC:'sfx/steps-carpet.mp3', stepK:'sfx/steps-concrete.mp3', stepT:'sfx/steps-tile.mp3', stepW:'sfx/steps-wood.mp3' };
     for (const [k, url] of Object.entries(files)) fetch(url).then(r=>r.arrayBuffer()).then(ab=>new Promise((res, rej)=>c.decodeAudioData(ab, res, rej))).then(buf=>{ this.samples[k] = buf; if (k==='crawl' || k==='heavy' || k==='groan') this.startLoop(k); }).catch(e=>console.warn('sound failed', url, e));
   },
   loops:{},
@@ -7061,7 +7065,11 @@ function buildTVRoom(){
   // tapes and a remote on the table
   const tape = lam(0x161616), lab = lam(0x5a564c);
   for (let i = 0; i < 3; i++){ const t = box(0.19,0.025,0.105, tape, -0.33, 0.73 + i*0.026, 0.25, g, 0.3 + i*0.2); box(0.12,0.026,0.02, lab, 0, 0, 0.045, t); }
-  box(0.05,0.02,0.17, lam(0x222222), 0.28, 0.728, 0.3, g, -0.5);
+  // v0.51 (Ryan): his "Simple TV Remote" model (Blender3D, CC BY 4.0); a plain box until it loads
+  const rmt = new THREE.Group(); rmt.position.set(0.28, 0.718, 0.3); rmt.rotation.y = -0.5; g.add(rmt);
+  const rmtBox = box(0.05,0.02,0.2, lam(0x222222), 0, 0.01, 0, rmt);
+  new GLTFLoader().load('models/remote.glb', gl=>{ gl.scene.traverse(o=>{ if (o.isMesh){ const map = o.material.map || null; if (map) map.colorSpace = THREE.SRGBColorSpace; o.material = lam(0xffffff, { map }); } });
+    const s = 0.2/9.88; gl.scene.scale.setScalar(s); gl.scene.position.y = 0.685*s; rmt.add(gl.scene); rmtBox.visible = false; }, undefined, e=>console.warn('remote model failed', e));
   const glow = new THREE.PointLight(0x9fb4ff, 1, 3.2, 2); glow.position.set(sx, sy, 0.5); tv.add(glow);
   const corners = [[-1,1],[1,1],[1,-1],[-1,-1]].map(([a,b])=>new THREE.Vector3(sx + a*sw/2, sy + b*sh/2, fz + 0.002));
   TVR = { S, cam, tv, glow, corners, t:0, col:new THREE.Color(0x9fb4ff), v:new THREE.Vector3(), vt:new THREE.Vector3(), sc:document.querySelector('#tvroom .crtscr'), smp:Object.assign(document.createElement('canvas'), { width:4, height:3 }), smpT:0 };
@@ -7085,9 +7093,10 @@ function renderTVRoom(dt){
   cam.position.set(c.x + lerp(0.13, Math.sin(ry), zk)*d + Math.sin(t*0.23)*0.012*sw, c.y + lerp(0.1, 0.02, zk)*d + Math.sin(t*0.31 + 1)*0.008*sw, c.z + lerp(1, Math.cos(ry), zk)*d);
   cam.lookAt(c.x + 0.08*off*d + Math.sin(t*0.19)*0.004*sw, c.y - 0.012*off*d, c.z); cam.updateProjectionMatrix(); cam.updateMatrixWorld();
   if ((R.smpT -= dt) <= 0){ R.smpT = 0.2; try { R.smx.drawImage($('tvc'), 0, 0, 4, 3); const px = R.smx.getImageData(0,0,4,3).data; let r = 0, gg = 0, b = 0; for (let i = 0; i < px.length; i += 4){ r += px[i]; gg += px[i+1]; b += px[i+2]; } const n = px.length/4*255; R.col.setRGB(0.35 + r/n, 0.4 + gg/n, 0.55 + b/n); } catch(e){} }
-  R.glow.color.lerp(R.col, Math.min(1, dt*4)); R.glow.intensity = 0.75 * (0.85 + 0.1*Math.sin(t*37) + 0.08*Math.random()) * ($('crtLogo').classList.contains('on') ? 1.4 : 1);
+  if (stOn > 0) R.col.setRGB(0.75, 0.82, 1.0);
+  R.glow.color.lerp(R.col, Math.min(1, dt*4)); R.glow.intensity = 0.75 * (0.85 + 0.1*Math.sin(t*37) + 0.08*Math.random()) * ($('crtLogo').classList.contains('on') ? 1.4 : stOn > 0 ? 1.25 + 0.4*Math.random() : 1);
   tvMap(R.sc, R.corners.map(v=>{ R.v.copy(v); R.tv.localToWorld(R.v); R.v.project(cam); return [(R.v.x + 1)/2*W, (1 - R.v.y)/2*H]; }));
-  const vid = $('vhsVid'); if (vid.paused && !R.vTry){ R.vTry = 1; const pr = vid.play(); if (pr && pr.catch) pr.catch(()=>{}); setTimeout(()=>{ R.vTry = 0; }, 1500); }
+  if (!R.vTry){ for (const vid of [$('vhsVid'), $('tvStatic')]) if (vid.paused){ R.vTry = 1; const pr = vid.play(); if (pr && pr.catch) pr.catch(()=>{}); setTimeout(()=>{ R.vTry = 0; }, 1500); } }
   renderer.render(R.S, cam);
 }
 // v0.50.2 (Ryan: level select must scroll on phones): touch-drag scrolling for every scroll box on the TV, done in JS so it
@@ -7103,14 +7112,26 @@ function renderTVRoom(dt){
     const fl = ()=>{ if (Math.abs(v) < 0.4) return; s.scrollTop -= v; v *= 0.92; requestAnimationFrame(fl); }; requestAnimationFrame(fl); });
   tp.addEventListener('click', e=>{ if (moved){ e.stopPropagation(); e.preventDefault(); moved = false; } }, true);
 }
-function tvRoomOff(){ if (!tvWasOn) return; tvWasOn = false; document.body.classList.remove('tvroom'); try { $('vhsVid').pause(); } catch(e){} }
+function tvRoomOff(){ if (!tvWasOn) return; tvWasOn = false; document.body.classList.remove('tvroom'); try { $('vhsVid').pause(); $('tvStatic').pause(); } catch(e){} staticEnd(); }
 addEventListener('pointerdown', ()=>{ const v = $('vhsVid'); if (tvRoomOn() && v.paused){ const pr = v.play(); if (pr && pr.catch) pr.catch(()=>{}); } });
 // sometimes Ryan's ASYNC logo takes over the set
 let logoT = 18 + Math.random()*10, logoOn = 0;
 // v0.50.2 (Ryan): the logo only takes over the main menu page, and any touch/click on the TV ends it at once (the tap still goes through)
 function logoEnd(){ logoOn = 0; $('crtLogo').classList.remove('on'); $('crtLogo').parentElement.classList.remove('logo'); }
 document.querySelector('#tvroom .crtscr').addEventListener('pointerdown', ()=>{ if (logoOn > 0){ logoEnd(); logoT = 25 + Math.random()*20; } }, true);
+// v0.51 (Ryan): once in a while the signal drops and the TV fuzzes with static (his clip + his static sound, turned way down)
+let stT = 9 + Math.random()*12, stOn = 0, stSrc = null;
+function staticEnd(){ stOn = 0; $('tvStatic').classList.remove('on'); if (stSrc){ const s = stSrc; stSrc = null; try { s.g.gain.setTargetAtTime(0, sfx.ctx.currentTime, 0.03); s.src.stop(sfx.ctx.currentTime + 0.2); } catch(e){} } }
+function staticBurst(len){
+  const v = $('tvStatic'); if (v.paused || v.readyState < 2) return;
+  stOn = len; v.classList.add('on');
+  const c = sfx.ctx, b = sfx.samples && sfx.samples.tvst; if (!c || c.state !== 'running' || !b) return;
+  const src = c.createBufferSource(), g = c.createGain(); src.buffer = b; g.gain.setValueAtTime(0, c.currentTime); g.gain.linearRampToValueAtTime(0.09, c.currentTime + 0.03);
+  src.connect(g).connect(sfx.master); src.start(0, Math.random()*Math.max(0, b.duration - len - 0.5)); stSrc = { src, g };
+}
 function updateTVfx(dt){
+  if (stOn > 0){ stOn -= dt; if (stOn <= 0) staticEnd(); }
+  else if ((stT -= dt) <= 0){ stT = 16 + Math.random()*28; if (!$('crtLogo').classList.contains('on')) staticBurst(Math.random() < 0.25 ? 1.2 + Math.random()*1.2 : 0.25 + Math.random()*0.6); }
   const mainPage = mode === 'menu' && !$('menu').classList.contains('sub') && !settingsOpen;
   if (!mainPage && $('crtLogo').classList.contains('on')) logoEnd();
   if (logoOn > 0){ logoOn -= dt; if (logoOn <= 0) logoEnd(); }
