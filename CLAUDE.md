@@ -6,7 +6,7 @@ First-person co-op Backrooms horror game for 1–4 players, played in the browse
 
 - Live: https://rytheguy18.github.io/Haunted-Pines/ (GitHub Pages, `main` branch, repo root)
 - Owner: Ryan (GitHub `rytheguy18` / `RyTheGuy18`). Plays it with friends and younger brothers, mostly on phones.
-- Current version: **v0.50.9** (shown bottom-right of the menu, `#ver`)
+- Current version: **v0.50.10** (shown bottom-right of the menu, `#ver`)
 
 ## Files
 
@@ -249,3 +249,4 @@ Controls (desktop): WASD, Shift sprint, C crouch, Left click / F flashlight, E h
 **v0.50.7 (Ryan didn't like any of the screenshot/drawn icons → "just do the ASYNC logo"):** icons = Ryan's ASYNC logo (`menu/async.jpg`) cut out by brightness (dark logo → alpha mask) and redrawn near-black on a flat square of the logo's own blue (≈ rgb 40,56,240), 80% wide, centred; `?v=6`.
 **v0.50.8 (Ryan: ASYNC icon in VHS style with the TV's overlay):** the v0.50.7 logo icon + a frame of `menu/vhs.mp4` (t = 3 s, crop x 80–490, so PLAY ▶ / SP / timecode show) screen-blended ×0.8, chroma shift, scanlines, vignette, 1.2 px blur; `?v=7`.
 **v0.50.9 (Ryan: VHS slightly more extreme, no PLAY/SP/numbers):** overlay now uses only the text-free middle of two `vhs.mp4` frames (crop 120,80–420,280), screen ×1.3; three tracking bands shift the logo sideways, a bright tracking line, a torn noisy head-switch strip at the bottom, white specks, stronger chroma (±9 px), scanlines 0.28, heavier vignette + grain, blur 1.6, 340 px soft upscale; `?v=8`.
+**v0.50.10 (Ryan: logo a bit too low):** logo moved up (`OFF` −14 px of 1024; spans y 221–774), the lowest tracking band moved off the SYNC text. The whole icon is now made by `tools/async_icon.py` (needs two frames of `menu/vhs.mp4` as `vf.png` (t 3 s) / `vf2.png` (t 6.4 s) in the cwd: `ffmpeg -ss 3 -i menu/vhs.mp4 -frames:v 1 vf.png`); `?v=9`.
