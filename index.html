@@ -322,7 +322,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.51.6</div>
+<div class="osd" id="ver">v0.51.7</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -6546,11 +6546,11 @@ const sfx = {
   },
   samples:{},
   loadSamples(){
-    const c = this.ctx, files = { vhs:'sfx/vhs-hiss.mp3', pout:'sfx/power-out.mp3', flick:'sfx/light-flicker.mp3', lstep:'sfx/lurker-steps.mp3', phRing:'sfx/phone-ring.mp3', phPick:'sfx/phone-pickup.mp3', crawl:'sfx/crawler-steps.mp3', heavy:'sfx/heavy-steps.mp3', atk1:'sfx/spider-attack-1.mp3', atk2:'sfx/spider-attack-2.mp3', atk4:'sfx/spider-attack-4.mp3', roar:'sfx/monster-roar.mp3', growl:'sfx/monster-growl.mp3', groan:'sfx/monster-groans.mp3', wwalk:'sfx/water-walk.mp3', wdeep:'sfx/water-deep.mp3', genStart:'sfx/gen-start.mp3', genRun:'sfx/gen-run.mp3', wrun:'sfx/water-run.mp3', tvst:'sfx/tv-static.mp3', breathL:'sfx/breathing.mp3', stepC:'sfx/steps-carpet.mp3', stepK:'sfx/steps-concrete.mp3', stepT:'sfx/steps-tile.mp3', stepW:'sfx/steps-wood.mp3' };
+    const c = this.ctx, files = { vhs:'sfx/menu-hum.mp3', pout:'sfx/power-out.mp3', flick:'sfx/light-flicker.mp3', lstep:'sfx/lurker-steps.mp3', phRing:'sfx/phone-ring.mp3', phPick:'sfx/phone-pickup.mp3', crawl:'sfx/crawler-steps.mp3', heavy:'sfx/heavy-steps.mp3', atk1:'sfx/spider-attack-1.mp3', atk2:'sfx/spider-attack-2.mp3', atk4:'sfx/spider-attack-4.mp3', roar:'sfx/monster-roar.mp3', growl:'sfx/monster-growl.mp3', groan:'sfx/monster-groans.mp3', wwalk:'sfx/water-walk.mp3', wdeep:'sfx/water-deep.mp3', genStart:'sfx/gen-start.mp3', genRun:'sfx/gen-run.mp3', wrun:'sfx/water-run.mp3', tvst:'sfx/tv-static.mp3', breathL:'sfx/breathing.mp3', stepC:'sfx/steps-carpet.mp3', stepK:'sfx/steps-concrete.mp3', stepT:'sfx/steps-tile.mp3', stepW:'sfx/steps-wood.mp3' };
     for (const [k, url] of Object.entries(files)) fetch(url).then(r=>r.arrayBuffer()).then(ab=>new Promise((res, rej)=>c.decodeAudioData(ab, res, rej))).then(buf=>{ this.samples[k] = buf; if (k==='vhs') this.startVhs(); if (k==='crawl' || k==='heavy' || k==='groan') this.startLoop(k); }).catch(e=>console.warn('sound failed', url, e));
   },
   loops:{},
-  // v0.51.6 (Ryan): the menu/lobby TV room plays only VHS hiss (his "real VHS" upload, 30.5 s seamless loop)
+  // v0.51.7 (Ryan): the menu/lobby TV room plays only his ceiling-fan hum (17.2 s seamless loop; was VHS hiss in v0.51.6)
   startVhs(){ const c = this.ctx, src = c.createBufferSource(); src.buffer = this.samples.vhs; src.loop = true; src.connect(this.vhsG); src.start(); },
   roomMix(dt){
     const on = tvRoomOn(), k = Math.min(1, dt*(on ? 10 : 4));
@@ -7041,7 +7041,7 @@ const crtCtx = $('tvc').getContext('2d'); let crtT = 0;
 
 // v0.49 (Ryan): the menu is a pitch-dark room with the TV on his table; the TV is the only thing showing the Backrooms and every pre-game screen is ON it
 for (const id of ['menu','lvPick','lobby']) $('tvpages').appendChild($(id));
-const VHS_GAIN = 0.3;   // v0.51.6: VHS hiss level in the menu/lobby
+const VHS_GAIN = 0.22;   // v0.51.7: menu/lobby ceiling-fan hum level (v0.51.6 VHS hiss was 0.3)
 const TVW = 600, TVH = 450; let TVR = null, tvAcc = 1;
 const tvRoomOn = () => mode === 'menu' || mode === 'lobby';
 // v0.51.2 (Ryan): TV a bit smaller and a bit right so the tapes fit beside it
