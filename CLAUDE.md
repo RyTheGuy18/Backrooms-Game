@@ -6,7 +6,7 @@ First-person co-op Backrooms horror game for 1–4 players, played in the browse
 
 - Live: https://rytheguy18.github.io/Haunted-Pines/ (GitHub Pages, `main` branch, repo root)
 - Owner: Ryan (GitHub `rytheguy18` / `RyTheGuy18`). Plays it with friends and younger brothers, mostly on phones.
-- Current version: **v0.50.4** (shown bottom-right of the menu, `#ver`)
+- Current version: **v0.50.5** (shown bottom-right of the menu, `#ver`)
 
 ## Files
 
@@ -244,3 +244,4 @@ Controls (desktop): WASD, Shift sprint, C crouch, Left click / F flashlight, E h
 
 **v0.50.3 (Ryan: the app icon sucked):** new icons (`icon-192/512`, `icon-maskable-512`, `apple-touch-icon`, linked with `?v=2`): a one-point-perspective Level 0 hallway built in Python from the real wallpaper/carpet textures (perspective-warped), drop-ceiling with glowing panels, the Occupant as a black silhouette with two pale eye glints at the lit far end, bloom, chroma, scanlines, grain, rendered at 256 px and upscaled nearest (PSX), red REC dot top-left. Script lived in the session's work dir (not in the repo).
 **v0.50.4 (Ryan: icon "more like this" — his reference: a blue steel blast-door bulkhead opening onto a glowing yellow Backrooms hallway, VHS date stamp):** icon redrawn that way (PIL, `?v=3`): cyan-blue riveted bulkhead + open door leaves, girders, side pipes, bright yellow one-point corridor with ceiling lights in the doorway, a thin black figure standing in it, light pool + crack on the floor, `02/03/1990` chroma stamp, scanlines, 288 px → nearest.
+**v0.50.5 (Ryan hated the drawn icons: wants a direct in-game screenshot of the portal, no first-person arm):** icons are now a headless screenshot of the Async lab portal (Level 0, exploration mode, HUD/OSD/grain hidden, `__hp.VM.scale` ≈ 0 to hide the arm + flashlight, me at (10, 5.6) yaw π, 900×900 viewport, cropped (80,140)-(820,880)); `apple-touch-icon.png?v=4`. Don't draw icons by hand again.
