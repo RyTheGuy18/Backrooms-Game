@@ -305,6 +305,50 @@
   .setback{display:none}#tvpages .setback{display:block;order:2;margin-left:auto;font-size:20px!important;border:1px solid rgba(220,225,240,.5);padding:4px 12px!important;background:rgba(0,0,0,.4)}
   #tvpages #settings .title{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
   #tvpages #settings .title{position:sticky;top:-34px;z-index:2;background:rgba(1,2,6,.96);padding:6px 0 4px}
+
+  /* ---------- v0.52 HUD restyle (Ryan: polish the HUD): the same tape / CRT look as the menu TV ---------- */
+  #hud{font-family:monospace;text-shadow:2px 0 rgba(255,40,40,.42),-2px 0 rgba(40,200,255,.36),0 0 6px #000}
+  #objBox{border:1px solid rgba(220,225,240,.26);border-left:1px solid rgba(220,225,240,.26);top:12px;padding:7px 14px 9px 12px;max-width:min(58vw,440px);
+    background:repeating-linear-gradient(0deg,rgba(255,255,255,.03) 0 1px,transparent 1px 3px),linear-gradient(rgba(2,3,8,.66),rgba(2,3,8,.44))}
+  #objBox::before,#objBox::after{content:'';position:absolute;width:9px;height:9px;border-color:#e9d27c;border-style:solid;pointer-events:none}
+  #objBox::before{left:-2px;top:-2px;border-width:2px 0 0 2px} #objBox::after{right:-2px;bottom:-2px;border-width:0 2px 2px 0}
+  #objBox .lbl{font:bold 11px monospace;letter-spacing:.34em;color:#a9a28a;display:flex;align-items:center;gap:8px}
+  #objLbl::before{content:'';width:7px;height:7px;border-radius:50%;background:#e25a44;box-shadow:0 0 6px #e25a44;animation:recblink 1.6s steps(1) infinite}
+  #obj{font:bold 19px monospace;letter-spacing:.05em;color:#f4eed6;margin-top:4px;line-height:1.18}
+  #side{font:12.5px monospace;letter-spacing:.12em;color:#c9c0a0;text-transform:uppercase;margin-top:5px;opacity:.9}
+  #kit{font:11px monospace;letter-spacing:.3em;color:#a9a28a;margin-top:7px}
+  #kit::before{content:'BATT'}
+  #bat{width:58px;height:11px;border:1.5px solid #e9d27c;padding:1.5px}
+  #bat:after{background:#e9d27c;top:2.5px}
+  #batfill{background:#e9d27c;box-shadow:0 0 6px rgba(233,210,124,.5)}
+  #micbox{font:11px monospace;letter-spacing:.3em;color:#a9a28a}
+  #micbar{border-color:#e9d27c}
+  #mics{font-size:11px}
+  #prompt{font:bold 17px monospace;letter-spacing:.16em;border:1px solid rgba(220,225,240,.45);background:rgba(2,3,8,.62);padding:6px 16px 6px 32px;color:#f4eed6}
+  #prompt::before{content:'▶';position:absolute;left:11px;color:#e9d27c;animation:recblink 1.2s steps(1) infinite}
+  #prompt kbd{background:#e9d27c;color:#100c04;text-shadow:none;padding:0 6px}
+  #msg{font:clamp(15px,2.6vw,20px)/1.3 monospace;letter-spacing:.05em;color:#f4eed6;padding:7px 46px;max-width:min(92vw,760px);
+    background:linear-gradient(90deg,transparent,rgba(2,3,8,.72) 12%,rgba(2,3,8,.72) 88%,transparent);border-top:1px solid rgba(220,225,240,.14);border-bottom:1px solid rgba(220,225,240,.14)}
+  #stam{width:190px;margin-left:-95px;height:5px;bottom:16px;background:rgba(255,255,255,.1)}
+  #stam i{background:#e9d27c;-webkit-mask:repeating-linear-gradient(90deg,#000 0 8px,transparent 8px 10px);mask:repeating-linear-gradient(90deg,#000 0 8px,transparent 8px 10px)}
+  #stam.adr i{background:var(--red)} #stam.winded i{background:#7d7560}
+  #plist .chip{font:13px monospace;letter-spacing:.12em;border:1px solid rgba(220,225,240,.28);background:rgba(2,3,8,.55);padding:3px 10px}
+  #spec{font:bold 15px monospace;letter-spacing:.24em;color:#e9d27c}
+  #glbl{font:13px monospace;letter-spacing:.2em}
+  #stunTxt{font:bold 14px monospace;letter-spacing:.3em}
+  .ab{border-color:rgba(231,138,118,.45);background:rgba(14,3,2,.62)} .ab .k{font:11px monospace;letter-spacing:.2em} .ab .n{font:bold 15px monospace;letter-spacing:.1em}
+  #cross{width:3px;height:3px;margin:-1.5px;background:rgba(244,238,214,.45);box-shadow:0 0 3px rgba(0,0,0,.8)}
+  @keyframes recblink{0%,58%{opacity:1}59%,100%{opacity:.18}}
+  /* v0.52 death screen: the tape stops, rewinds, ejects */
+  #tapeEnd{position:fixed;inset:0;z-index:9;display:none;pointer-events:none;background:#000;overflow:hidden;font-family:monospace;color:#f4eed6;text-shadow:3px 0 rgba(255,40,40,.5),-3px 0 rgba(40,200,255,.45)}
+  #tapeEnd.on{display:block}
+  #tapeEnd canvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated}
+  #tapeEnd .tosd{position:absolute;left:6%;top:7%;font:bold clamp(20px,4vw,40px) monospace;letter-spacing:.12em}
+  #tapeEnd .tcount{position:absolute;right:6%;top:7%;font:bold clamp(18px,3.4vw,34px) monospace;letter-spacing:.1em}
+  #tapeEnd .tmid{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center}
+  #tapeEnd .tmid h2{margin:0;font:400 clamp(30px,7vw,72px) 'Special Elite',monospace;color:#e25a44;letter-spacing:.08em}
+  #tapeEnd .tmid p{margin:10px 0 0;font:clamp(13px,2.2vw,18px) monospace;letter-spacing:.3em;color:#c9c0a0}
+  #tapeEnd .tbar{position:absolute;left:0;right:0;height:9%;background:rgba(255,255,255,.08);mix-blend-mode:screen}
 </style>
 <script type="importmap">{"imports":{"three":"./three.module.min.js"}}</script>
 </head>
@@ -322,7 +366,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.51.9</div>
+<div class="osd" id="ver">v0.52.0</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -339,6 +383,7 @@
   <div id="stam"><i id="stamf"></i></div>
   <div id="abil"></div>
 </div>
+<div id="tapeEnd"></div>
 <div id="black"><h2 id="blacktext"></h2><div id="blackcount"></div><p id="blacksub"></p></div>
 
 <div id="touch"></div>
@@ -5329,7 +5374,9 @@ function animLurker(L, t, dt, st, spd){
 // v0.36 (Ryan): the hotel loses ALL its power now and then: every light on every floor, the courtyard goes dark too (G.hb = seconds left)
 // v0.36.0 had a random timer; v0.37 (Ryan): the MONSTER does it: in the hotel, the Occupant's Blackout (computer or player) cuts the whole hotel's power for as long as it lasts
 function hostOutage188(dt){ let hb = 0; for (const b of G.bo) hb = Math.max(hb, b[2]); G.hb = +hb.toFixed(2); }
-function lrBlackout(x, z){ for (const b of G.bo) if (Math.hypot(x-b[0], z-b[1]) < 12.5) return true; return false; }
+// v0.52 (Ryan): an Occupant blackout now kills EVERY light on the map, on every level (it used to be a 13 m circle; only the hotel went fully dark)
+function boT(){ let t = 0; for (const b of (G.bo || [])) t = Math.max(t, b[2]); return t; }
+function lrBlackout(x, z){ return !!(G.bo && G.bo.length); }
 // v0.37: "event darkness" on any level: an Occupant blackout, the hotel's power outage, a dead circuit in Pipe Dreams. Things hunt in it.
 const p2CircAt = (x, z) => Math.floor(cellOf(x)/4)*8 + Math.floor(cellOf(z)/4);
 function inDark(x, z){ if (lrBlackout(x, z)) return true; if (LK === 3 && G.hb > 0.4) return true; if (LK === 0 && G.lbo > 0.4) return true;
@@ -5463,7 +5510,7 @@ const AI_DIFF = [
   { name:'HARD',       hear:1.35, see:19, near:7, spd:1.04, wander:2.4, drift:1,    persist:1.5, spr:1, dash:1, stun:0.8,  bo:1, vent:1, lead:0.6, obj:1 },
   { name:'IMPOSSIBLE', hear:1.8,  see:24, near:8, spd:1.08, wander:2.8, drift:1,    persist:2.2, spr:1, dash:1, stun:0.6,  bo:1, vent:2, lead:1.4, obj:2 },
 ];
-function freshState(r=0){ return { ph:'lobby', r, mo:'AI', ax:0, az:0, ay:0, amv:0, w:'', wv:0, fz:[], pl:0, open:0, ring:-1, aw:[], bt:[], bo:[], dead:[], esc:[], grace:0, sk:0, cn:[], stun:0, t0:0, dg:0, dgp:'', lv:0, gen:[], ads:0, kl:[], ov:monVoiceOpt, df:diffOpt, sl:startOpt, ach:0, avt:0, tod:0, asub:0, stk:0, lr:[0,0,0,0,0], lkd:[], ld:0, lp:100, lbo:0, ex:exOpt }; }
+function freshState(r=0){ return { ph:'lobby', r, mo:'AI', ax:0, az:0, ay:0, amv:0, w:'', wv:0, fz:[], pl:0, open:0, ring:-1, aw:[], bt:[], bo:[], dead:[], esc:[], grace:0, sk:0, cn:[], stun:0, t0:0, dg:0, dgp:'', lv:0, gen:[], ads:0, kl:[], ov:monVoiceOpt, df:diffOpt, sl:startOpt, ach:0, avt:0, tod:0, asub:0, stk:0, lr:[0,0,0,0,0], lkd:[], ld:0, lp:100, lbo:0, ex:exOpt, fl:[], lsk:[], ls:[0,0,0,0,0] }; }
 let G = freshState();
 const H = { ai:{}, shiftT:30, ringT:25, ringEnd:0 };
 let mode = 'menu';
@@ -5543,7 +5590,7 @@ function applyUse(pid, m){
   else if (m.k === 'kc'){ if (G.kc && G.kc[0] === 0 && !isDead(pid)){ G.kc[0] = 1; G.kc[3] = pid; } }
   else if (m.k === 'kcuse'){ if (G.kc && G.kc[0] === 1 && G.kc[3] === pid && !isDead(pid)){ G.kc[0] = 2; G.open = 1; } }
   else if (m.k === 'bc'){ if (G.bc && G.bc[0] === 0 && !isDead(pid)){ G.bc[0] = 1; G.bc[3] = pid; } }
-  else if (m.k === 'pv'){ const v = level.p2 && level.p2.valves[m.v|0]; if (v && !isDead(pid)){ G.pv = (G.pv|0) | (1 << v.v);   // Level 2: a vented valve screams: the computer comes to look if it's not too far
+  else if (m.k === 'pv'){ const v = level.p2 && level.p2.valves[m.v|0]; if (v && !isDead(pid)){ G.pv = (G.pv|0) | (1 << v.v); lsAlert(v.x, v.z, 3);   // Level 2: a vented valve screams: the computer comes to look if it's not too far
     if (G.mo === 'AI' && H.ai.mode !== 'chase' && Math.hypot(G.ax - v.fx, G.az - v.fz) < 44){ H.ai.mode='hunt'; H.ai.lx=v.fx; H.ai.lz=v.fz; H.ai.lt=22; H.ai.rp=0; } } }
   else if (m.k === 'pcut'){ if (G.bc && G.bc[0] === 1 && G.bc[3] === pid){ G.bc[0] = 2; G.pc = 1; } }
   else if (m.k === 'rc'){ G.rc = (G.rc|0) | (1 << (m.i|0)); }
@@ -5564,6 +5611,7 @@ function applyUse(pid, m){
     if (P && G.stun <= 0.5 && Math.hypot(P.x-mp.x, P.z-mp.z) < 11){ G.stun = 3.6 * (G.mo==='AI' ? aiD().stun : 1); G.dg = 0; G.avt = 0; if (G.mo==='AI'){ H.ai.mode='hunt'; H.ai.lt=1.5; H.ai.lx=G.ax; H.ai.lz=G.az; } }
   }
   else if (m.k === 'noise'){
+    lsAlert(+m.x||0, +m.z||0, 2);
     if (G.mo === 'AI' && H.ai.mode !== 'chase'){ H.ai.mode='hunt'; H.ai.lx=+m.x||0; H.ai.lz=+m.z||0; H.ai.lt=10; H.ai.rp=0; }
   }
   else if (m.k === 'bite'){   // a player Occupant reports touching a survivor on its own screen
@@ -5582,7 +5630,9 @@ function applyUse(pid, m){
 }
 function killSurvivor(p, byLurker){
   if (isDead(p.pid)) return;
-  G.dead.push(p.pid); if (byLurker === 'hm') (G.hmk = G.hmk || []).push(p.pid); else if (byLurker === 'mq') (G.mqk = G.mqk || []).push(p.pid); else if (byLurker) (G.lkd = G.lkd || []).push(p.pid); else G.kl.push(p.pid);
+  // v0.52 (Ryan): their flashlight stays where they were caught, still on (G.fl = [x, z, yaw])
+  (G.fl = G.fl || []).push([+p.x.toFixed(2), +p.z.toFixed(2), +((p.yaw || 0) + (Math.random()-0.5)*1.2).toFixed(2)]);
+  G.dead.push(p.pid); if (byLurker === 'ls') (G.lsk = G.lsk || []).push(p.pid); else if (byLurker === 'hm') (G.hmk = G.hmk || []).push(p.pid); else if (byLurker === 'mq') (G.mqk = G.mqk || []).push(p.pid); else if (byLurker) (G.lkd = G.lkd || []).push(p.pid); else G.kl.push(p.pid);
   if (G.kc && G.kc[0] === 1 && G.kc[3] === p.pid){ G.kc[0] = 0; G.kc[1] = +p.x.toFixed(2); G.kc[2] = +p.z.toFixed(2); G.kc[3] = ''; }   // the keycard falls where they were caught
   for (const f of G.fz) if (f[0]===1 && f[3]===p.pid){ f[0]=0; f[1]=+p.x.toFixed(2); f[2]=+p.z.toFixed(2); f[3]=''; }
   for (const a of [G.mk, G.td, G.bc]) if (a && a[0] === 1 && a[3] === p.pid){ a[0] = 0; a[1] = +p.x.toFixed(2); a[2] = +p.z.toFixed(2); a[3] = ''; }   // the mall: keys / teddy fall where they were caught
@@ -5767,7 +5817,7 @@ function setupLevel(k){
   G.lv = k; G.esc = []; G.dead = [];   // everyone caught on the last level wakes up here too
   G.open = 0; G.fz = (k === 0) ? level.fuses.map(f=>[0, +f[0].toFixed(2), +f[1].toFixed(2), '']) : []; G.pl = 0; G.gen = level.gens.map(()=>0);
   G.aw = level.aw.map(()=>0); G.bt = level.bt.map(()=>0); G.cn = level.cn.map(()=>0);
-  G.bo = []; G.stun = 0; G.dg = 0; G.ring = -1; G.ads = 0; G.lkd = []; G.lr = [0,0,0,0,0]; H.lr = null; G.mqk = []; G.mq = []; H.mq = null; G.hmk = []; G.hm = []; H.hm = null;
+  G.bo = []; G.stun = 0; G.dg = 0; G.ring = -1; G.ads = 0; G.lkd = []; G.lr = [0,0,0,0,0]; H.lr = null; G.fl = []; G.lsk = []; G.ls = [0,0,0,0,0]; H.ls = null; G.mqk = []; G.mq = []; H.mq = null; G.hmk = []; G.hm = []; H.hm = null;
   G.ax = level.mspawn[0]; G.az = level.mspawn[1];
   aiReset(); H.shiftT = 26; H.ringT = 30; H.ringEnd = 0;
   if (k === 2){ G.open = 1; G.tod = 0; G.c0 = 0; G.dl = 100 + Math.random()*50; G.nl = 65 + Math.random()*45; G.stk = 0; G.dr37 = 0; G.dn37 = 0; H.dry37 = {}; G.asub = G.mo === 'AI' ? 1 : 0; }   // Level 37: the staircase is always there, you just have to find it
@@ -5809,7 +5859,7 @@ function hostTick(dt){
   if (LK === 3) hostOutage188(dt);
   if (LK === 0) hostLab(dt);
   if (G.ex){   // exploration mode: no Occupant, no Lurker, no mannequins
-    G.ax = G.az = -999; G.amv = 0; G.ach = 0; G.bo = []; G.lr = [0,0,0,0,0]; G.mq = [];
+    G.ax = G.az = -999; G.amv = 0; G.ach = 0; G.bo = []; G.lr = [0,0,0,0,0]; G.mq = []; G.ls = [0,0,0,0,0];
     if (LK === 3){ hostElev188(dt); hostOutage188(dt); } if (LK === 4) hostMall852(dt, ps); if (LK === 5) hostPipe2(dt, ps); if (LK === 2) hostDay37(dt, alive, { x:-999, z:-999 }); if (LK === 0) hostLab(dt);
     H.ringT -= dt; if (G.ring < 0 && H.ringT <= 0 && level.phones.length){ const tgt = alive[Math.floor(Math.random()*alive.length)]; let best = 0, bd = 1e9; level.phones.forEach((ph,k)=>{ const d=Math.hypot(ph.x-tgt.x, ph.z-tgt.z); if (d<bd){ bd=d; best=k; } }); G.ring = best; H.ringEnd = nowS() + 16; }
     if (G.ring >= 0 && nowS() > H.ringEnd){ G.ring = -1; H.ringT = 25+Math.random()*30; }
@@ -5827,6 +5877,7 @@ function hostTick(dt){
   const reach = (G.mo === 'AI' ? G.ads : mp.ds) ? 1.7 : 1.1;   // arms out while dashing
   if (G.grace <= 0 && G.stun <= 0 && !mp.vt && !(G.mo === 'AI' && G.avt) && !(LK === 2 && G.asub > 0)) for (const p of alive) if (!p.hd && !(LK === 2 && !prey37(p)) && !(G.mo === 'AI' && inLab(p.x, p.z)) && Math.hypot(p.x-mp.x, p.z-mp.z) < reach) killSurvivor(p);
   hostLurker(dt, alive.filter(p=>!isDead(p.pid)));
+  hostListener(dt, alive.filter(p=>!isDead(p.pid)));
   hostMannequins852(dt, alive.filter(p=>!isDead(p.pid)));
   // the phones ring
   H.ringT -= dt;
@@ -6291,7 +6342,7 @@ function updateVoice(dt){
       const rMon = r.pid === G.mo, rGone = isDead(r.pid) || isEsc(r.pid) || !r.a;
       if (rMon){ g = 0; if (G.ov && !iAmDead){ const d = Math.hypot(r.x-cx, r.z-cz); g = Math.pow(clamp(1 - (d-1.5)/9, 0, 1), 1.4); px = r.x; pz = r.z; } }
       else if (rGone) g = iAmDead ? 1 : 0;
-      else { const hunter = role === 'monster' && G.mo === myPid, d = Math.hypot(r.x-cx, r.z-cz); g = Math.pow(clamp(1 - (d-1.5)/(hunter ? 16.5 : 10.5), 0, 1), hunter ? 1.25 : 1.6); if (g > 0 && !losClear(cx, cz, r.x, r.z)) g *= hunter ? 0.7 : 0.55; px = r.x; pz = r.z; }
+      else { const hunter = role === 'monster' && G.mo === myPid, d = Math.hypot(r.x-cx, r.z-cz); g = Math.pow(clamp(1 - (d-1.5)/(hunter ? 16.5 : 12.5), 0, 1), hunter ? 1.25 : 1.45); if (g > 0 && !losClear(cx, cz, r.x, r.z)) g *= hunter ? 0.7 : 0.6;   /* v0.52 (Ryan): teammates carry a bit further (~14 m, was ~12) with a slightly gentler fall-off */ px = r.x; pz = r.z; }
     }
     const asMon = !!(r && playing && r.pid === G.mo && G.ov);
     if (asMon && !c.mv && c.src){ c.mv = monsterVoice(sfx.ctx); c.src.connect(c.mv.inp); c.mv.out.connect(c.g); }
@@ -6312,6 +6363,7 @@ function leaveRoom(){
   remotes.clear();
 }
 function goMenu(note){
+  tapeEndOff();
   $('locker').style.display='none'; me.hidden = -1;
   vhsK = 0; $('vhs').style.opacity = 0;
   mode='menu'; role='none'; VM.visible = false; amb.intensity = 0.16; PHANTOM.g.visible = false; $('hud').style.display='none'; $('black').style.opacity=0; $('white').style.opacity=0; setTouchUI(false); showScreen('menu');
@@ -6372,12 +6424,14 @@ function afterState(){
     if (G.stun <= 0) seenStun = false;
     if (me.alive && role==='survivor' && isDead(myPid) && mode==='play') triggerDeath();
     // someone else got caught: everyone nearby (and the Occupant) hears it happen
+    { const ls = G.lsk || []; if ((LSV.seen ?? 0) > ls.length) LSV.seen = 0; for (LSV.seen = LSV.seen ?? 0; LSV.seen < ls.length; LSV.seen++){ const pid = ls[LSV.seen]; if (pid === myPid) continue; const r = remotes.get(pid); if (r) playEventSound('lsKill', r.x, r.z); } }
     { const lk = G.lkd || []; if (seenLkd > lk.length) seenLkd = 0; for (; seenLkd < lk.length; seenLkd++){ const pid = lk[seenLkd]; if (pid === myPid) continue; const r = remotes.get(pid); if (r) playEventSound('lurkScream', r.x, r.z); } }
     const kl = G.kl || []; for (; seenKl < kl.length; seenKl++){ const pid = kl[seenKl]; if (pid === myPid) continue; const r = remotes.get(pid); const at = r ? { x:r.x, y:1.2, z:r.z } : { x:mDisp.x, y:1.2, z:mDisp.z }; sfx.sample(attackSound(), at, 2.2, 6); if (G.mo === 'AI') sfx.sample('roar', at, 1.8, 8); }
-    for (const b of G.bo) if (!knownBo.has(b[0].toFixed(1)+','+b[1].toFixed(1))){ knownBo.add(b[0].toFixed(1)+','+b[1].toFixed(1)); if (LK !== 3) sfx.powerDown(b[0], b[1]); }   // the hotel plays its own whole-building outage
-    { const live = new Set(G.bo.map(b=>b[0].toFixed(1)+','+b[1].toFixed(1)));
-      for (const k of liveBo) if (!live.has(k)){ liveBo.delete(k); const [x,z] = k.split(',').map(Number); if (LK !== 3 && Math.hypot(x-camera.position.x, z-camera.position.z) < 22) sfx.lightsOn({ x, y:2.6, z }, 0.7); }
-      for (const k of live) liveBo.add(k); }
+    // v0.52: blackouts are map-wide, so the power-down / lights-on sounds play once for everyone (the hotel plays its own outage)
+    { const dark = G.ph === 'play' && G.bo.length > 0;
+      if (dark !== boWas){ boWas = dark;
+        if (LK !== 3 && sfx.ctx){ if (dark){ if (!sfx.sample('pout', null, 0.8)) sfx.powerDown(camera.position.x, camera.position.z); } else sfx.lightsOn(null, 0.6); }
+        if (LK !== 3 && (mode === 'play' || mode === 'spect')) msg(dark ? (role === 'monster' ? 'Every light is out. They can\'t see.' : 'The power\'s out. All of it.') : 'The lights come back.', 3); } }
   }
   if (G.ph === 'lobby' && !net.solo && mode !== 'lobby' && mode !== 'menu' && myRound === G.r){ toLobby(); return; }
   if (G.ph === 'end' && myRound === G.r && mode !== 'end' && mode !== 'menu'){
@@ -6386,6 +6440,7 @@ function afterState(){
 }
 const knownBo = new Set(), liveBo = new Set();
 function startRoundLocal(){
+  tapeEndOff();
   role = G.mo === myPid ? 'monster' : 'survivor';
   if (!amHost() && G.w) walls = hexToWalls(G.w);
   applyWalls(false); wallsLoadedV = G.wv;
@@ -6395,7 +6450,7 @@ function startRoundLocal(){
   me.pitch = 0; me.bat = 100; me.light = false; me.stam = 100; me.alive = true; me.esc = false; me.crouch = false; me.san = 100; me.loudT = 0; me.hidden = -1; me.cans = 0; me.breath = 100; me.winded = false; me.vmRun = 0;
   stunCharge = 0; stunCD = 0; ventCD = 8; ventT = 0; roundT0 = nowS(); creakT = 25 + Math.random()*20; silT = 0; silNext = 70 + Math.random()*50; $('locker').style.display='none';
   mallHold = null; clawWon = false; sodaT = 0; seenPam = G.pam ? G.pam[0] : -1; mallMapT = 0; if ($('mmap')) $('mmap').style.display = 'none';
-  seenPl = G.pl; seenOpen = G.open; seenKl = (G.kl||[]).length; seenLkd = (G.lkd||[]).length; seenLv = G.lv|0; genSeen = []; crankK = -1; dashT = 0; pendingEnd = false; specIdx = 0; knownBo.clear(); liveBo.clear(); abCD = { blackout:8, shift:8, lure:5, disguise:20, dash:10 };
+  seenPl = G.pl; seenOpen = G.open; seenKl = (G.kl||[]).length; seenLkd = (G.lkd||[]).length; seenLv = G.lv|0; genSeen = []; crankK = -1; dashT = 0; pendingEnd = false; specIdx = 0; knownBo.clear(); boWas = false; liveBo.clear(); abCD = { blackout:8, shift:8, lure:5, disguise:20, dash:10 };
   mode = 'play';
   showScreen(null);
   $('hud').style.display = 'block'; $('black').style.opacity = 0; $('white').style.opacity = 0; $('spec').style.display = 'none';
@@ -6418,7 +6473,7 @@ function startRoundLocal(){
 }
 function monFilter(){ return role==='monster' ? `sepia(.85) saturate(2.6) hue-rotate(-38deg) contrast(1.1) brightness(${LK === 1 ? .86 : LK === 2 ? 1.0 : LK === 3 || LK === 4 || LK === 6 ? .82 : .64})` : ''; }
 function enterLevel(){
-  seenLv = G.lv|0; seenOpen = G.open; seenPl = G.pl; genSeen = []; mallHold = null; clawWon = false; sodaT = 0; seenPam = G.pam ? G.pam[0] : -1; mallMapT = 0; if ($('mmap')) $('mmap').style.display = 'none'; knownBo.clear(); liveBo.clear(); crankK = -1; dashT = 0; ventT = 0; ventCD = 8; pendingEnd = false;
+  seenLv = G.lv|0; seenOpen = G.open; seenPl = G.pl; genSeen = []; mallHold = null; clawWon = false; sodaT = 0; seenPam = G.pam ? G.pam[0] : -1; mallMapT = 0; if ($('mmap')) $('mmap').style.display = 'none'; knownBo.clear(); boWas = false; liveBo.clear(); crankK = -1; dashT = 0; ventT = 0; ventCD = 8; pendingEnd = false;
   PHANTOM.g.visible = false; seenZones.add(1); seenZones.add(2); for (const s of spots) s.intensity = 0; hatchT = 0;
   $('locker').style.display='none'; me.hidden = -1; $('white').style.transition='none'; $('white').style.opacity = 0; $('flash').style.opacity = 0; $('spec').style.display = 'none';
   setTimeout(()=>{ $('white').style.transition=''; }, 50);
@@ -6446,8 +6501,9 @@ function triggerDeath(){
   $('white').style.transition = 'none';
   if (me.hidden >= 0){ me.hidden = -1; $('locker').style.display='none'; }
   me.alive = false; mode = 'deadAnim'; deathT = 0; PHANTOM.g.visible = false; VM.visible = false;
-  scareLurk = !!LRK && (G.lkd || []).includes(myPid); scareMq = (G.mqk || []).includes(myPid); scareHm = (G.hmk || []).includes(myPid);
-  if (scareHm){ sfx.screech(); whistle37(me.x, me.z); }
+  scareLurk = !!LRK && (G.lkd || []).includes(myPid); scareMq = (G.mqk || []).includes(myPid); scareHm = (G.hmk || []).includes(myPid); scareLs = (G.lsk || []).includes(myPid);
+  if (scareLs){ sfx.screech(); playEventSound('lsShriek', me.x, me.z); }
+  else if (scareHm){ sfx.screech(); whistle37(me.x, me.z); }
   else if (scareMq){ sfx.screech(); playEventSound('mqKill', me.x, me.z); }
   else if (scareLurk){ sfx.screech(); sfx.sample('atk1', null, 1.6); }
   else { if (G.mo === 'AI') sfx.sample('roar', null, 1.5);
@@ -6824,6 +6880,9 @@ function lureBehind(){
 }
 function playEventSound(k, x, z, m){
   if (!sfx.ctx) return;
+  if (k === 'lsShriek'){ const o = sfx.panner(x, 2.0, z, 6); const f = sfx.noise(o,{ dur:1.1, type:'bandpass', freq:700, q:6, gain:0.9, attack:0.05 }); try { f.frequency.exponentialRampToValueAtTime(2600, sfx.ctx.currentTime + 0.9); } catch(e){}
+    sfx.tone(o,{ f:420, to:1300, type:'sawtooth', dur:0.9, gain:0.06 }); for (let i=0;i<6;i++) sfx.noise(o,{ dur:0.012, type:'bandpass', freq:3400, q:5, gain:0.5, at:0.9 + i*0.06 }); return; }
+  if (k === 'lsKill'){ const o = sfx.panner(x, 1.5, z, 3); sfx.noise(o,{ dur:0.5, type:'bandpass', freq:1600, q:1.4, gain:1.0 }); sfx.noise(o,{ dur:0.35, type:'lowpass', freq:300, gain:0.9 }); sfx.tone(o,{ f:110, to:30, dur:0.8, gain:0.45 }); return; }
   if (k === 'hmWhistle'){ whistle37(x, z); setTimeout(()=>whistle37(x, z), 1350); return; }
   if (k === 'hmKill'){ whistle37(x, z); const o = sfx.panner(x, 1.2, z, 4); sfx.noise(o,{ dur:0.25, type:'lowpass', freq:260, gain:0.9 }); sfx.tone(o,{ f:80, to:30, dur:0.6, gain:0.4 }); return; }
   if (k === 'mqKill'){ const o = sfx.panner(x, 1.5, z, 3); sfx.noise(o,{ dur:0.45, type:'bandpass', freq:1900, q:1.6, gain:1.0 }); sfx.noise(o,{ dur:0.3, type:'lowpass', freq:380, gain:0.9 }); sfx.tone(o,{ f:95, to:38, dur:0.7, gain:0.45 }); return; }   // plastic snapping
@@ -7204,6 +7263,7 @@ $('bLeave').onclick = ()=>{ leaveRoom(); goMenu(''); };
 $('bAgain').onclick = ()=>{ sfx.init(); hostStartRound(); };
 $('bLobby').onclick = ()=>{ if (!amHost() || net.solo) return; G.ph = 'lobby'; G.dg = 0; broadcastState(); afterState(); };
 function toLobby(){
+  tapeEndOff();
   $('locker').style.display='none'; me.hidden = -1; vhsK = 0; $('vhs').style.opacity = 0;
   mode = 'lobby'; role = 'none'; VM.visible = false; amb.intensity = 0.16; PHANTOM.g.visible = false; MON.g.visible = false;
   $('hud').style.display='none'; $('black').style.opacity=0; $('white').style.opacity=0; $('blackcount').textContent=''; setTouchUI(false);
@@ -7508,11 +7568,12 @@ function panelBright(p, t, mx, mz){
   if (md < 11 && G.ph==='play' && h01(p.idx*17+Math.floor(t*(9+(11-md)*2))) < (1-md/11)*0.75) b = 0.05;
   if (p.red) b *= 0.5 + 0.5*Math.sin(t*1.3+p.ph);
   // v0.29 (Ryan): a blackout is pitch black the whole time; only in its last 1.6 s do the lights stutter back on
-  for (const bo of G.bo){ const d=Math.hypot(p.x-bo[0], p.z-bo[1]); if (d < 13){ b = 0; if (bo[2] < 1.6 && h01(p.idx*3+Math.floor(t*14)) < (1 - bo[2]/1.6)*0.9) b = 0.9; } }
+  { const bt = boT(); if (bt > 0){ b = 0; if (bt < 1.6 && h01(p.idx*3+Math.floor(t*14)) < (1 - bt/1.6)*0.9) b = 0.9; } }   // v0.52: map-wide
+  if (TD.flk && b > 0.5 && Math.hypot(p.x-TD.flk.x, p.z-TD.flk.z) < 7 && h01(p.idx*29+Math.floor(t*(TD.flk.t < 0.6 ? 6 : 17))) < 0.6) b = 0.04;   // v0.52: the tension director flickers a light near you
   if (powerFlash > 0) b = Math.max(b, powerFlash > 1 ? 1.4 : (h01(p.idx+Math.floor(t*25))<0.5 ? 1 : 0.1));
   return b;
 }
-let localLight = 1;
+let localLight = 1, boWas = false;
 function updatePanels(t){
   const L = level, mx = mDisp.x, mz = mDisp.z;
   if (LK === 2){ const k = dayK(G.tod||0), cx = camera.position.x, cz = camera.position.z, near = (L.lamps||[]).map(p=>[Math.hypot(p.x-cx,p.z-cz), p]).sort((a,b)=>a[0]-b[0]);
@@ -7525,7 +7586,7 @@ function updatePanels(t){
     else if (p.t===1) tmpC.setRGB(0.06+0.8*p.b, 0.07+0.93*p.b, 0.07+0.86*p.b);
     else if (p.t===2) tmpC.setRGB(0.08+0.92*p.b, 0.08+0.92*p.b, 0.07+0.86*p.b);
     else tmpC.setRGB(0.07+0.93*p.b, 0.07+0.9*p.b, 0.05+0.78*p.b);
-    if (((LK === 3 && G.hb > 0) || (LK === 0 && G.ph === 'play' && G.lbo > 0)) && p.b === 0) tmpC.setRGB(0.012, 0.012, 0.012);   // hotel outage / lab power failure: the tubes are dead black
+    if (((LK === 3 && G.hb > 0) || (LK === 0 && G.ph === 'play' && G.lbo > 0) || (G.ph === 'play' && boT() > 0)) && p.b === 0) tmpC.setRGB(0.012, 0.012, 0.012);   // hotel outage / lab power failure: the tubes are dead black
     L.panelMesh.setColorAt(p.idx, tmpC);
   }
   if (L.panelMesh.instanceColor) L.panelMesh.instanceColor.needsUpdate = true;
@@ -7596,12 +7657,15 @@ function updateZoneEnv(dt){
     _fogT.setHex(role==='monster' ? 0x2a1e14 : 0x1a140d); if (role !== 'monster') _fogT.multiplyScalar((0.45 + 0.55*o)*(1 - bk*0.85)); scene.fog.color.lerp(_fogT, k); scene.background.copy(scene.fog.color);
     scene.fog.density = lerp(scene.fog.density, role==='monster' ? 0.02 + bk*0.02 : lerp(lerp(0.085, 0.024, o), 0.1, bk), k);
     amb.intensity = lerp(amb.intensity, role==='monster' ? 1.0 - bk*0.45 : lerp(lerp(0.06, 0.42, o), 0.012, bk), k); amb.color.lerp(H188_SKY, k); amb.groundColor.lerp(H188_GND, k); return; }
-  if (LK === 0 && level && level.lab){ const lb = G.ph === 'play' && G.lbo > 0.4, inL = inLab(camera.position.x, camera.position.z);
+  const boDark = G.ph === 'play' && LK !== 2 && LK !== 3 && boT() > 0.4;   // v0.52: map-wide Occupant blackout
+  if (LK === 0 && level && level.lab){ const lb = G.ph === 'play' && (G.lbo > 0.4 || boDark), inL = inLab(camera.position.x, camera.position.z);
     if (lb || inL){
       _fogT.setHex(lb ? 0x030303 : role === 'monster' ? 0x2a1e18 : 0x242524); scene.fog.color.lerp(_fogT, k); scene.background.copy(scene.fog.color);
       scene.fog.density = lerp(scene.fog.density, lb ? (role === 'monster' ? 0.09 : 0.13) : 0.022, k);
       amb.intensity = lerp(amb.intensity, lb ? (role === 'monster' ? 0.22 : 0.02) : role === 'monster' ? 0.6 : 0.55, k);
       amb.color.lerp(lb ? ZSKY[0] : LAB_SKY, k); amb.groundColor.lerp(lb ? ZGND[0] : LAB_GND, k); return; } }
+  if (boDark){ _fogT.setHex(0x030303); scene.fog.color.lerp(_fogT, k); scene.background.copy(scene.fog.color);
+    scene.fog.density = lerp(scene.fog.density, role === 'monster' ? 0.07 : 0.12, k); amb.intensity = lerp(amb.intensity, role === 'monster' ? 0.22 : 0.02, k); return; }
   const lit1 = LK === 1 && G.open;   // v0.36 (Ryan): the garage with every generator on is bright all the way down, you can see far
   if (lit1) _fogT.setHex(0x4a4c4e); else { _fogT.copy(ZFOG[z]); if (role==='monster') _fogT.multiplyScalar(LK === 1 ? 1.4 : LK === 2 ? 1 : 0.7); }
   scene.fog.color.lerp(_fogT, k); scene.background.copy(scene.fog.color);
@@ -7714,6 +7778,194 @@ function updateExtras(dt){
   // silence: every so often the whole level goes quiet for a few seconds
   if (silT > 0){ silT -= dt; if (silT <= 0 && LK !== 2 && LK !== 5 && Math.random() < 0.35) setTimeout(()=>sfx.ding({ x:cx+(Math.random()-0.5)*40, y:1.2, z:cz+(Math.random()-0.5)*40 }), 1500); }
   else if (me.alive && !me.esc){ silNext -= dt; if (silNext <= 0){ silNext = 80 + Math.random()*70; silT = 8; } }
+}
+
+/* ===== v0.52 the Listener (Ryan, Pipe Dreams only): blind, hunts by SOUND. Computer-only, host-run like the Lurker, separate from the Occupant.
+   It wanders slowly and stops to listen. Every survivor's noise (presence `m`: walking 1, running/valves 2, loud 3, voice chat counts) is heard
+   within LS_RNG[m] × LS_HEAR[difficulty] m (×0.65 through walls). A noise sends it to look (investigate); running, a valve, talking loudly or
+   anything within 6 m sets it hunting (a shriek, then LS_HUNT m/s, always under a 5.0 sprint) to where it LAST heard you. Go quiet (walk slowly,
+   crouch, stop talking, hide in a locker) and it loses you: it stands there listening, then wanders off. Flashlights and looking do nothing.
+   Contact (< 0.9 m) = caught (G.lsk). Its tell: dry clicking, faster when it's after something. G.ls = [x, z, yaw, state 1 wander / 2 look / 3 hunt, moving].
+   **Placeholder model** (makeListener): Ryan will send a real one — swap it in there (P = parts, headY = head height for the catch scare). */
+const LS_HEAR = [0.75, 1, 1.2, 1.45], LS_HUNT = [3.5, 4.0, 4.4, 4.75], LS_INV = [2.0, 2.3, 2.6, 2.9], LS_WALK = 1.25, LS_RNG = [0, 9, 28, 52];
+function lsAlert(x, z, lvl){   // a level event made a noise (a valve venting, a can, etc.)
+  const R = H.ls; if (!R || !R.on || LK !== 5) return; const d = Math.hypot(x-R.x, z-R.z);
+  if (d < LS_RNG[Math.min(3, lvl)]*LS_HEAR[G.df|0]*1.2){ R.hx = x; R.hz = z; R.hT = 0; if (R.st !== 3 && lvl >= 2){ R.st = 3; if (R.cd <= 0){ lrSnd('lsShriek', R.x, R.z); R.cd = 8; } } else if (R.st < 2) R.st = 2; }
+}
+function hostListener(dt, alive){
+  const key = G.r + '.' + (G.lv|0);
+  if (!H.ls || H.ls.key !== key) H.ls = { key, on:0, x:0, z:0, y:0, st:1, mv:0, t:0, hx:0, hz:0, hT:99, wx:0, wz:0, pause:2, ck:0, cd:0 };
+  const R = H.ls; R.mv = 0;
+  if (LK !== 5 || G.ex){ G.ls = [0,0,0,0,0]; return; }
+  if (!R.on){
+    if (G.grace > 0 || !alive.length){ G.ls = [0,0,0,0,0]; return; }
+    const sx = level.spawn ? level.spawn[0] : 0, sz = level.spawn ? level.spawn[1] : 0;
+    for (let k=0; k<200 && !R.on; k++){ const i = Math.floor(Math.random()*N), j = Math.floor(Math.random()*N), x = cc(i), z = cc(j);
+      if (Math.hypot(x-sx, z-sz) < 36 || alive.some(p=>Math.hypot(p.x-x, p.z-z) < 30)) continue;
+      R.x = x; R.z = z; R.on = 1; R.st = 1; R.pause = 3; }
+    if (!R.on){ G.ls = [0,0,0,0,0]; return; } }
+  const df = G.df|0, ok = alive.filter(p=>!p.hd);
+  R.hT += dt; R.cd -= dt; R.t += dt;
+  R.ck -= dt;
+  if (R.ck <= 0){ R.ck = 0.25; let best = null, bs = -9;
+    for (const p of ok){ if (!p.m) continue; const d = Math.hypot(p.x-R.x, p.z-R.z); let rng = LS_RNG[Math.min(3, p.m)]*LS_HEAR[df]; if (d > rng) continue;
+      if (!losClear(R.x, R.z, p.x, p.z)) rng *= 0.65; if (d < rng){ const sc = p.m - d/rng; if (sc > bs){ bs = sc; best = p; } } }
+    if (best){ const d = Math.hypot(best.x-R.x, best.z-R.z); R.hx = best.x; R.hz = best.z; R.hT = 0;
+      if ((best.m >= 2 || d < 6) && R.st !== 3){ R.st = 3; if (R.cd <= 0){ lrSnd('lsShriek', R.x, R.z); R.cd = 8; } } else if (R.st < 2) R.st = 2; } }
+  for (const p of ok) if (Math.hypot(p.x-R.x, p.z-R.z) < 0.9){ killSurvivor(p, 'ls'); lrSnd('lsKill', p.x, p.z); R.st = 1; R.pause = 5; R.hT = 99; R.wx = 0; break; }
+  if (R.st >= 2){
+    const arrived = Math.hypot(R.hx-R.x, R.hz-R.z) < 1.0;
+    if (!arrived && !lrMove(R, R.hx, R.hz, R.st === 3 ? LS_HUNT[df] : LS_INV[df], dt)){ R.st = 1; R.pause = 3; }
+    if ((arrived && R.hT > (R.st === 3 ? 6 : 4)) || R.hT > 16){ R.st = 1; R.pause = 3 + Math.random()*4; R.wx = 0; }   // lost it: stands and listens, then wanders
+  } else {
+    if (R.pause > 0) R.pause -= dt;
+    else { if (!R.wx || Math.hypot(R.wx-R.x, R.wz-R.z) < 0.8){ if (R.wx){ R.pause = 2 + Math.random()*4; R.wx = 0; }
+        else { const ci = cellOf(R.x), cj = cellOf(R.z); R.wx = cc(clamp(ci + Math.floor(Math.random()*11) - 5, 0, N-1)); R.wz = cc(clamp(cj + Math.floor(Math.random()*11) - 5, 0, N-1)); } }
+      if (R.wx && !lrMove(R, R.wx, R.wz, LS_WALK, dt)) R.wx = 0; } }
+  G.ls = [+R.x.toFixed(2), +R.z.toFixed(2), +R.y.toFixed(2), R.st, R.mv ? (R.st === 3 ? 2 : 1) : 0];
+}
+// ---- the placeholder model: tall, thin, grey, hunched, no eyes, huge ear flaps, long arms ----
+function makeListener(){
+  const g = new THREE.Group(), P = {}, skin = lam(0x8f8a82), dark = lam(0x3a3632), gum = lam(0x5a1e1c), hole = new THREE.MeshBasicMaterial({ color:0x050505 });
+  const hip = new THREE.Group(); hip.position.y = 1.18; g.add(hip); P.hip = hip;
+  for (const s of [-1,1]){ const leg = new THREE.Group(); leg.position.set(s*0.11, 0, 0); hip.add(leg); bx(leg, 0.09, 0.62, 0.1, 0, -0.31, 0, skin);
+    const shin = new THREE.Group(); shin.position.set(0, -0.6, 0); leg.add(shin); bx(shin, 0.075, 0.58, 0.085, 0, -0.29, 0, skin); bx(shin, 0.1, 0.04, 0.24, 0, -0.58, 0.07, dark); P[s < 0 ? 'legL' : 'legR'] = leg; P[s < 0 ? 'shinL' : 'shinR'] = shin; }
+  const torso = new THREE.Group(); hip.add(torso); torso.rotation.x = 0.35; P.torso = torso;
+  bx(torso, 0.3, 0.72, 0.17, 0, 0.36, 0, skin); for (let r=0;r<4;r++) bx(torso, 0.32, 0.02, 0.18, 0, 0.42 + r*0.08, 0.005, dark);   // ribs
+  for (const s of [-1,1]){ const arm = new THREE.Group(); arm.position.set(s*0.2, 0.68, 0); torso.add(arm); bx(arm, 0.07, 0.7, 0.08, 0, -0.35, 0, skin);
+    const fore = new THREE.Group(); fore.position.set(0, -0.68, 0); arm.add(fore); bx(fore, 0.06, 0.66, 0.07, 0, -0.33, 0, skin);
+    for (let f=0; f<3; f++){ const fg = bx(fore, 0.018, 0.22, 0.018, (f-1)*0.025, -0.76, 0.01, dark); fg.rotation.x = -0.25; }
+    P[s < 0 ? 'armL' : 'armR'] = arm; P[s < 0 ? 'foreL' : 'foreR'] = fore; }
+  bx(torso, 0.07, 0.2, 0.07, 0, 0.8, 0.03, skin);
+  const head = new THREE.Group(); head.position.set(0, 0.9, 0.05); torso.add(head); P.head = head;
+  const hd = new THREE.Mesh(new THREE.SphereGeometry(0.13, 10, 8), skin); hd.scale.set(0.8, 1.45, 1.1); hd.position.y = 0.14; head.add(hd);
+  const slit = new THREE.Mesh(new THREE.BoxGeometry(0.012, 0.2, 0.02), hole); slit.position.set(0, 0.18, 0.135); head.add(slit);   // no eyes: one vertical slit
+  const mouth = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.02, 0.03), gum); mouth.position.set(0, 0.0, 0.11); head.add(mouth);
+  for (const s of [-1,1]){ const ear = new THREE.Mesh(new THREE.CircleGeometry(0.17, 7), lam(0x7a6e66, { side:THREE.DoubleSide })); ear.scale.set(0.55, 1, 1); ear.position.set(s*0.13, 0.2, -0.02); ear.rotation.y = s*1.1; head.add(ear); P[s < 0 ? 'earL' : 'earR'] = ear; }
+  g.traverse(o=>{ if (o.isMesh) o.frustumCulled = false; });
+  return { g, P, headY: 2.38 };
+}
+function animListener(m, ph, sp, st, t){ const P = m.P, a = sp > 0 ? Math.min(0.75, 0.2 + sp*0.12) : 0, s = Math.sin(ph);
+  P.legL.rotation.x = s*a; P.legR.rotation.x = -s*a; P.shinL.rotation.x = Math.max(0, -s)*a*1.2; P.shinR.rotation.x = Math.max(0, s)*a*1.2;
+  const hunt = st === 3, listen = sp <= 0.05;
+  P.torso.rotation.x = hunt ? 0.75 : 0.35; P.hip.position.y = 1.18 - (hunt ? 0.12 : 0) + Math.abs(Math.cos(ph))*a*0.04;
+  P.armL.rotation.x = hunt ? -0.9 - s*0.3 : -s*a*0.5 + 0.1; P.armR.rotation.x = hunt ? -0.9 + s*0.3 : s*a*0.5 + 0.1; P.foreL.rotation.x = hunt ? -0.4 : -0.15; P.foreR.rotation.x = hunt ? -0.4 : -0.15;
+  // listening: the head snaps from side to side, the ear flaps twitch
+  const jerk = listen ? (h01(Math.floor(t*2.3)) - 0.5)*1.1 : Math.sin(ph*0.5)*0.12;
+  P.head.rotation.z = lerp(P.head.rotation.z, jerk*0.6, 0.35); P.head.rotation.y = lerp(P.head.rotation.y, listen ? (h01(Math.floor(t*1.7)+9) - 0.5)*1.2 : 0, 0.3); P.head.rotation.x = hunt ? -0.6 : 0;
+  P.earL.rotation.y = -1.1 - (listen ? Math.max(0, Math.sin(t*9))*0.3 : 0); P.earR.rotation.y = 1.1 + (listen ? Math.max(0, Math.sin(t*9+1))*0.3 : 0); }
+// ---- everyone: draw it, its clicks and soft steps ----
+const LSV = { m:null, x:0, z:0, sp:0, st:0, ph:0, clickT:0, stepT:0, warned:'' }; let scareLs = false, LSJ = null;
+function updateListener(dt){
+  const ls = G.ls || [0,0,0,0,0], on = LK === 5 && ls[3] > 0 && G.ph === 'play';
+  if (mode === 'deadAnim' && scareLs) return;
+  if (!on){ if (LSV.m) LSV.m.g.visible = false; LSV.st = 0; return; }
+  if (!LSV.m){ LSV.m = makeListener(); scene.add(LSV.m.g); }
+  const M = LSV.m, jump = !LSV.st || Math.hypot(ls[0]-LSV.x, ls[1]-LSV.z) > 4, k = jump ? 1 : 1 - Math.exp(-12*dt), ox = LSV.x, oz = LSV.z;
+  LSV.x = lerp(LSV.x, ls[0], k); LSV.z = lerp(LSV.z, ls[1], k);
+  const v = jump ? 0 : Math.hypot(LSV.x-ox, LSV.z-oz)/Math.max(dt, 1e-3); LSV.sp = lerp(LSV.sp, ls[4] ? v : 0, 1 - Math.exp(-10*dt)); LSV.st = ls[3];
+  M.g.visible = true; M.g.position.set(LSV.x, 0, LSV.z);
+  let dy = ls[2] - M.g.rotation.y; dy = Math.atan2(Math.sin(dy), Math.cos(dy)); M.g.rotation.y += jump ? dy : dy*(1 - Math.exp(-8*dt));
+  LSV.ph += dt*LSV.sp*2.6; animListener(M, LSV.ph, LSV.sp, LSV.st, nowS());
+  const d = Math.hypot(LSV.x-camera.position.x, LSV.z-camera.position.z);
+  if (sfx.ctx && d < 30){
+    LSV.clickT -= dt; if (LSV.clickT <= 0){ LSV.clickT = LSV.st === 3 ? 0.16 + Math.random()*0.1 : LSV.st === 2 ? 0.4 + Math.random()*0.25 : 0.8 + Math.random()*0.9; lsClick(LSV.x, LSV.z, LSV.st === 3); }
+    if (ls[4]){ LSV.stepT -= dt; if (LSV.stepT <= 0){ LSV.stepT = LSV.st === 3 ? 0.21 : 0.42; sfx.lurkTap(LSV.x, LSV.z, LSV.st === 3); } } }
+  // first time you hear it this round: tell survivors the rule (once)
+  const wk = G.r + ':' + (G.lv|0);
+  if (role === 'survivor' && me.alive && mode === 'play' && d < 22 && LSV.warned !== wk){ LSV.warned = wk; msg('Something down here is clicking. It can\'t see you. It HEARS you. Walk. Don\'t talk.', 5); }
+}
+function lsClick(x, z, fast){ const o = sfx.panner(x, 2.0, z, 2.2);
+  sfx.noise(o,{ dur:0.012, type:'bandpass', freq:3200 + Math.random()*900, q:4, gain:fast ? 0.55 : 0.4 });
+  sfx.noise(o,{ dur:0.01, type:'bandpass', freq:2600 + Math.random()*500, q:5, gain:fast ? 0.45 : 0.3, at:0.045 });
+  if (!fast && Math.random() < 0.35) sfx.noise(o,{ dur:0.012, type:'bandpass', freq:3600, q:5, gain:0.3, at:0.09 }); }
+
+/* ===== v0.52 dropped flashlights (Ryan): a caught survivor's light lies on the floor where it happened, still on.
+   Cheap fake light (no real lights, phones): the model on its side, a glowing lens, a faint additive beam cone and a pool of light on the floor. */
+const DFL = { key:'', list:[] };
+const dflPoolTex = (()=>{ const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d'), gr = x.createRadialGradient(32,32,0,32,32,32);
+  gr.addColorStop(0, 'rgba(255,246,214,1)'); gr.addColorStop(0.45, 'rgba(255,236,190,0.45)'); gr.addColorStop(1, 'rgba(255,230,180,0)'); x.fillStyle = gr; x.fillRect(0,0,64,64);
+  const t = new THREE.CanvasTexture(c); return t; })();
+function makeDroppedFL(e){
+  const [x, z, yaw] = e, g = new THREE.Group(), y = Math.max(LK === 2 ? -0.6 : -9, floorY(x, z));
+  const fx = -Math.sin(yaw), fz = -Math.cos(yaw), ry = Math.atan2(-fz, fx);
+  const body = flSrc ? flSrc.clone() : new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.03, 0.2, 8).rotateZ(Math.PI/2), new THREE.MeshLambertMaterial({ color:0x2a2a2a }));
+  body.scale.multiplyScalar(flSrc ? 1.25 : 1); body.rotation.set(0.25, ry, Math.PI/2); body.position.set(0, 0.035, 0); g.add(body);
+  const add = (geo, op) => { const m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color:0xfff1c8, transparent:true, opacity:op, blending:THREE.AdditiveBlending, depthWrite:false, side:THREE.DoubleSide, fog:true, polygonOffset:true, polygonOffsetFactor:-2, polygonOffsetUnits:-2 })); g.add(m); return m; };
+  const lens = add(new THREE.CircleGeometry(0.035, 10), 0.95); lens.position.set(fx*0.13, 0.04, fz*0.13); lens.lookAt(fx*5, 0.04, fz*5);
+  const cone = add(new THREE.ConeGeometry(0.75, 3.2, 14, 1, true).translate(0, -1.6, 0), 0.07); cone.position.set(fx*0.13, 0.05, fz*0.13); cone.lookAt(fx*4, 0.12, fz*4); cone.rotateX(-Math.PI/2);
+  const pool = add(new THREE.PlaneGeometry(2.4, 1.5).rotateX(-Math.PI/2), 0.55); pool.material.map = dflPoolTex; pool.position.set(fx*2.0, 0.02, fz*2.0); pool.rotation.y = ry;
+  const v = new THREE.Vector3(x, y, z); if (LK === 3) vis188(x, y, z, v); else if (LK === 4 || LK === 6) vis852(x, y, z, v);
+  g.position.copy(v); level.group.add(g);
+  return { g, lens, cone, pool, ph: Math.random()*9 };
+}
+function updateDroppedFL(dt){
+  if (!level || !level.group) return;
+  const key = G.r + ':' + (G.lv|0) + ':' + level.seed;
+  if (key !== DFL.key){ for (const d of DFL.list) d.g.parent && d.g.parent.remove(d.g); DFL.list = []; DFL.key = key; }
+  const fl = G.fl || [];
+  while (DFL.list.length < fl.length) DFL.list.push(makeDroppedFL(fl[DFL.list.length]));
+  const t = nowS();
+  for (const d of DFL.list){ const k = h01(Math.floor((t + d.ph)*12)) < 0.035 ? 0.15 : (0.92 + 0.08*Math.sin(t*3 + d.ph));   // a weak battery: now and then it flickers
+    d.lens.material.opacity = 0.95*k; d.cone.material.opacity = 0.07*k; d.pool.material.opacity = 0.55*k; }
+}
+
+/* ===== v0.52 the tension director (Ryan): paces the scares for each survivor, on their own screen only.
+   TD.t = how tense it is right now (0..1): jumps when the Occupant is close / chasing, a blackout, a teammate caught; falls slowly.
+   After something big it gives you a breather (TD.calm); after a long quiet stretch it makes something happen near you:
+   fake-out footsteps (the Occupant's own step loop, or the Lurker's steps on maps that have it), a light flickering right by you,
+   a close knock/slam behind you, or the ceiling creaking with dust. Fake footsteps never play while the real one is within 30 m. */
+const TD = { t:0, calm:20, quiet:0, next:45, fake:null, flk:null, log:[] };
+function tdBump(v){ TD.t = Math.max(TD.t, v); }
+function tdSpot(d0, d1, behind){   // a point near me, preferably out of sight (round a corner)
+  const cx = me.x, cz = me.z; let best = null;
+  for (let k=0;k<14;k++){ const a = me.yaw + (behind ? Math.PI : 0) + (Math.random()-0.5)*(behind ? 2.2 : 6.2), d = d0 + Math.random()*(d1-d0);
+    const x = cx - Math.sin(a)*d, z = cz - Math.cos(a)*d;
+    if (LK !== 2 && (x < 1 || z < 1 || x > W-1 || z > W-1)) continue;
+    const hid = !losClear(cx, cz, x, z); if (!best || (hid && !best.hid)) best = { x, z, a, hid }; if (hid) break; }
+  return best || (behind ? tdSpot(d0, d1, false) : null);
+}
+function tdFakeSteps(){
+  if (TD.fake) tdStopFake();
+  const sp = tdSpot(9, 14, true); if (!sp) return false;
+  const lurker = (LK === 0 || LK === 3) && !G.ex && Math.random() < 0.35;
+  const side = sp.a + Math.PI/2*(Math.random() < 0.5 ? 1 : -1), len = 5 + Math.random()*4;
+  const f = { x0:sp.x, z0:sp.z, x1:sp.x - Math.sin(side)*len, z1:sp.z - Math.cos(side)*len, t:0, dur:2.6 + Math.random()*1.8, lurker, stepT:0 };
+  if (!lurker){ const key = MON === MONS[CRAWLER] ? 'crawl' : 'heavy', b = sfx.samples[key]; if (!b) return false;
+    const c = sfx.ctx, src = c.createBufferSource(); src.buffer = b; src.loop = true; src.loopStart = Math.min(0.04, b.duration/4); src.loopEnd = b.duration - 0.04;
+    src.playbackRate.value = key === 'crawl' ? 0.86 : 1.02; const g = c.createGain(); g.gain.value = 0;
+    const pan = sfx.panner(f.x0, 0.2, f.z0, key === 'crawl' ? 3 : 5); src.connect(g).connect(pan); src.start(0, Math.random()*b.duration*0.6);
+    f.src = src; f.g = g; f.pan = pan; f.vol = key === 'crawl' ? 1.4 : 1.9; }
+  TD.fake = f; return true;
+}
+function tdStopFake(){ const f = TD.fake; TD.fake = null; if (f && f.src){ try { f.g.gain.setTargetAtTime(0, sfx.ctx.currentTime, 0.15); f.src.stop(sfx.ctx.currentTime + 0.8); } catch(e){} } }
+function updateTension(dt){
+  const on = G.ph === 'play' && mode === 'play' && role === 'survivor' && me.alive && !me.esc && sfx.ctx && level;
+  if (TD.flk && (TD.flk.t -= dt) <= 0) TD.flk = null;
+  if (!on){ if (TD.fake) tdStopFake(); TD.t = 0; TD.calm = Math.max(TD.calm, 15); TD.quiet = 0; return; }
+  const fooled = disguisedFrom(me.x, me.z), md = G.ax < -900 ? 999 : Math.hypot(mDisp.x - me.x, mDisp.z - me.z);
+  let threat = fooled ? 0 : G.ach && md < 40 ? 1 : clamp(1 - (md - 6)/22, 0, 1);
+  if (LK === 5 && G.ls && G.ls[3]){ const ld = Math.hypot(G.ls[0]-me.x, G.ls[1]-me.z); threat = Math.max(threat, G.ls[3] === 3 && ld < 30 ? 1 : clamp(1 - (ld - 4)/18, 0, 1)); }
+  TD.t = Math.max(TD.t - dt*0.035, threat, boT() > 0 ? 0.65 : 0);
+  { const nk = (G.kl||[]).length + (G.lkd||[]).length + (G.mqk||[]).length + (G.hmk||[]).length + (G.lsk||[]).length; if (nk > (TD.nk ?? nk)) TD.t = 1; TD.nk = nk; }   // a teammate was just caught
+  if (TD.t > 0.55){ TD.calm = Math.max(TD.calm, 30 + Math.random()*25); TD.quiet = 0; }   // something just happened: a breather after it
+  // a fake-out in progress
+  const f = TD.fake;
+  if (f){ f.t += dt; const u = clamp(f.t/f.dur, 0, 1), x = lerp(f.x0, f.x1, u), z = lerp(f.z0, f.z1, u);
+    if (md < 30 || f.t > f.dur){ tdStopFake(); }
+    else if (f.lurker){ f.stepT -= dt; if (f.stepT <= 0){ f.stepT = 0.27; sfx.lurkStep(x, z, false); } }
+    else { const env = Math.min(1, f.t/0.35, (f.dur - f.t)/0.6); f.g.gain.value = f.vol*Math.max(0, env);
+      if (f.pan.positionX){ f.pan.positionX.value = x; f.pan.positionZ.value = z; } else f.pan.setPosition(x, 0.2, z); } }
+  TD.calm -= dt; if (TD.calm > 0 || silenced()) return;
+  TD.quiet += dt; if (TD.quiet < TD.next) return;
+  TD.quiet = 0; TD.next = 40 + Math.random()*45;
+  const r = Math.random(); let kind = '';
+  if (r < 0.42 && LK !== 2 && md > 35 && tdFakeSteps()) kind = 'steps';
+  else if (r < 0.66 && LK !== 2){ const sp = tdSpot(2.5, 7, false); if (sp){ TD.flk = { x:sp.x, z:sp.z, t:2.2 + Math.random()*1.5 }; kind = 'flicker'; } }
+  if (!kind && r < 0.86){ const sp = tdSpot(6, 10, true); if (sp){ const pos = { x:sp.x, y:1.2, z:sp.z }, k = Math.floor(Math.random()*5);
+      if (LK === 6) schoolFar52(k, pos); else if (LK === 5) sfx.pipeFar(k, pos); else if (LK === 2) sfx.poolFar(k, pos); else sfx.far([2,3,4,9][k%4], pos); kind = 'close'; } }
+  if (!kind && LK !== 2 && LK !== 5 && LK !== 3){ const sp = tdSpot(2.5, 5, false); if (sp){ sfx.creak(sp.x, sp.z); setTimeout(()=>dropDust(sp.x, sp.z), 450); kind = 'creak'; } }
+  if (kind){ TD.t = Math.max(TD.t, 0.35); TD.log.push(kind); if (TD.log.length > 20) TD.log.shift(); }
 }
 
 let vhsK = 0, lowK = 0, lastSeenK = -99;
@@ -7834,7 +8086,11 @@ function placeCamera(dt){
     const face = deathT < 1.35, lunge = Math.max(0, 1.4 - deathT*14);
     $('msg').style.opacity = 0;
     const fy = floorY(me.x, me.z);
-    if (scareHm){ MON.g.visible = false; if (!HMJ){ HMJ = makeMonitor52(); scene.add(HMJ.g); } const J = HMJ; J.g.visible = face; animMonitor52(J, deathT*10, 0, 2);
+    if (scareLs){ MON.g.visible = false; if (LSV.m) LSV.m.g.visible = false; if (!LSJ){ LSJ = makeListener(); scene.add(LSJ.g); } const J = LSJ; J.g.visible = face; animListener(J, deathT*10, 0, 3, nowS());
+      J.P.head.rotation.z = Math.sin(deathT*40)*0.35; J.P.head.rotation.x = 0.1; J.P.torso.rotation.x = 0.35;
+      J.g.position.set(me.x, fy, me.z); J.g.rotation.y = Math.atan2(-lx, -lz) + R()*0.08; J.g.updateMatrixWorld(true); const hp = J.P.head.getWorldPosition(_jv);
+      J.g.position.x += me.x + lx*(0.62+lunge) - hp.x; J.g.position.y += fy + EYE - 0.12 + R()*0.04 - hp.y; J.g.position.z += me.z + lz*(0.62+lunge) - hp.z; }
+    else if (scareHm){ MON.g.visible = false; if (!HMJ){ HMJ = makeMonitor52(); scene.add(HMJ.g); } const J = HMJ; J.g.visible = face; animMonitor52(J, deathT*10, 0, 2);
       J.P.head.rotation.z = Math.sin(deathT*38)*0.3; J.P.armR.rotation.x = -1.6; J.P.armL.rotation.x = -1.3;
       J.g.position.set(me.x + lx*(0.5+lunge), fy + EYE - J.headY + 0.05 + R()*0.04, me.z + lz*(0.5+lunge)); J.g.rotation.y = Math.atan2(-lx, -lz) + R()*0.08; }
     else if (scareMq){ MON.g.visible = false; if (!MQJ){ MQJ = makeMannequin852(); scene.add(MQJ.g); } const J = MQJ; J.g.visible = face; mqPose852(J.P, 1);
@@ -7862,14 +8118,15 @@ function placeCamera(dt){
     $('white').style.opacity = deathT < 0.06 ? 1 : 0;
     $('flash').style.opacity = face ? (Math.random() < 0.35 ? 0.6 : 0.12) : 0;
     $('scare').style.opacity = face ? (0.55 + Math.random()*0.45) : deathT < 1.6 ? 1 : 0;
-    if (!face){ $('blacktext').textContent = 'YOU WERE FOUND'; $('blacksub').textContent = ''; $('black').style.transition = 'none'; $('black').style.opacity = 1; }
-    if (deathT > 4) toSpectate();
+    if (!face){ $('blacktext').textContent = ''; $('blacksub').textContent = ''; $('black').style.transition = 'none'; $('black').style.opacity = 1;
+      tapeEnd(deathT - 1.35, 'YOU WERE FOUND', scareLs ? 'THE LISTENER HEARD YOU' : scareHm ? 'THE HALL MONITOR CAUGHT YOU' : scareMq ? 'A MANNEQUIN GOT YOU' : scareLurk ? 'THE LURKER GOT YOU' : 'THE OCCUPANT FOUND YOU'); }
+    if (deathT > 4.1) toSpectate();
   } else if (mode==='fallAnim'){
     fallT += dt; fallV += 13*dt; fallY -= fallV*dt;
     camera.position.set(me.x, fallY, me.z);
     camera.rotation.set(Math.min(1.2, 0.2 + fallT*0.9), me.yaw + Math.sin(fallT*3)*0.2, Math.sin(fallT*5)*0.15);
-    if (fallT > 1.3){ $('blacktext').textContent = 'YOU FELL'; $('blacksub').textContent = 'There is no bottom.'; $('black').style.opacity = 1; }
-    if (fallT > 4.2) toSpectate();
+    if (fallT > 1.3){ $('blacktext').textContent = ''; $('blacksub').textContent = ''; $('black').style.opacity = 1; tapeEnd(fallT - 1.3, 'YOU FELL', 'THERE IS NO BOTTOM'); }
+    if (fallT > 4.1) toSpectate();
   } else if (mode==='escAnim'){
     escT += dt;
     camera.position.set(me.x, EYE + floorY(me.x, me.z), me.z);
@@ -7885,8 +8142,41 @@ function placeCamera(dt){
   }
 }
 const _jv = new THREE.Vector3();
+// v0.52 (Ryan: better death screen): the tape stops, rewinds, ejects; the picture collapses like an old CRT switching off
+const TE = { c:null, x:null, img:null, ph:-1, t0:0 };
+function tapeEnd(t, title, sub){
+  const el = $('tapeEnd');
+  if (!el.classList.contains('on')){ el.classList.add('on'); TE.ph = -1;
+    el.innerHTML = '<canvas width="160" height="100"></canvas><div class="tbar"></div><div class="tbar"></div><div class="tosd"></div><div class="tcount"></div><div class="tmid"><h2></h2><p></p></div>';
+    TE.c = el.querySelector('canvas'); TE.x = TE.c.getContext('2d'); TE.img = TE.x.createImageData(160, 100);
+    const secs = Math.max(0, Math.floor(nowS() - roundT0)); TE.t0 = secs;
+    el.querySelector('h2').textContent = title; el.querySelector('p').textContent = `${sub} · ${LV_NAMES[G.lv|0] || ''} · ${Math.floor(secs/60)}:${String(secs%60).padStart(2,'0')}`; }
+  const ph = t < 0.35 ? 0 : t < 1.95 ? 1 : 2;
+  if (ph !== TE.ph){ TE.ph = ph; el.querySelector('.tosd').textContent = ['■ STOP', '◀◀ REW', '⏏ EJECT'][ph]; tapeSnd(ph); }
+  // noise + tracking bars: slow on STOP, racing upward on REW
+  const d = TE.img.data, n = ph === 1 ? 70 : 40;
+  for (let i=0;i<d.length;i+=4){ const v = Math.random()*n; d[i] = v*1.1; d[i+1] = v*0.8; d[i+2] = v*0.8; d[i+3] = 255; }
+  const sp = ph === 1 ? 260 : 18, bars = el.querySelectorAll('.tbar');
+  bars.forEach((b, k)=>{ const y = (((100 - (t*sp + k*47)) % 110) + 110) % 110 - 9; b.style.top = y + '%'; b.style.opacity = ph === 2 ? 0 : 0.9; });
+  for (let r=0; r<3; r++){ const y = Math.floor(Math.random()*100), off = Math.floor((Math.random()-0.5)*(ph === 1 ? 40 : 10)); for (let x=0;x<160;x++){ const i = (y*160 + x)*4, j = (y*160 + ((x+off+160)%160))*4; d[i] = d[j] + 60; } }
+  TE.x.putImageData(TE.img, 0, 0);
+  // the counter runs back while it rewinds
+  const back = ph === 1 ? Math.max(0, TE.t0 - (t - 0.35)*TE.t0/1.4) : ph === 2 ? 0 : TE.t0, sec = Math.floor(back);
+  el.querySelector('.tcount').textContent = `${Math.floor(sec/3600)}:${String(Math.floor(sec/60)%60).padStart(2,'0')}:${String(sec%60).padStart(2,'0')}`;
+  const mid = el.querySelector('.tmid'); mid.style.transform = `translate(${(Math.random()-0.5)*(ph === 1 ? 14 : 4)}px, -50%)`; mid.style.opacity = ph === 0 ? 0.85 : 1;
+  // EJECT: squash to a line, then to a dot, then gone
+  const k = clamp((t - 2.15)/0.45, 0, 1), k2 = clamp((t - 2.6)/0.2, 0, 1);
+  el.style.transform = k > 0 ? `scale(${1 - k2*0.995}, ${Math.max(0.006, 1 - k*0.994)})` : ''; el.style.filter = k > 0 ? `brightness(${1 + k*2.5})` : '';
+  el.style.opacity = t > 2.85 ? 0 : 1;
+}
+function tapeEndOff(){ const el = $('tapeEnd'); el.classList.remove('on'); el.style.transform = ''; el.style.filter = ''; el.style.opacity = ''; el.innerHTML = ''; TE.ph = -1; }
+function tapeSnd(ph){ if (!sfx.ctx) return; const o = sfx.outG;
+  if (ph === 0){ sfx.noise(o,{ dur:0.12, type:'lowpass', freq:380, gain:0.5 }); sfx.tone(o,{ f:95, to:40, dur:0.25, gain:0.25 }); }   // clunk
+  else if (ph === 1){ const f = sfx.noise(o,{ dur:1.55, type:'bandpass', freq:500, q:2.5, gain:0.12, attack:0.1 }); try { f.frequency.exponentialRampToValueAtTime(2600, sfx.ctx.currentTime + 1.5); } catch(e){} sfx.tone(o,{ f:180, to:900, type:'square', dur:1.5, gain:0.012 }); }   // rewind whine
+  else { sfx.noise(o,{ dur:0.1, type:'lowpass', freq:600, gain:0.55 }); sfx.noise(o,{ dur:0.18, type:'bandpass', freq:1800, q:3, gain:0.25, at:0.12 }); sfx.tone(o,{ f:70, to:30, dur:0.3, gain:0.25, at:0.05 }); } }   // eject
 function toSpectate(){
-  $('white').style.transition = ''; $('black').style.transition = ''; $('scare').style.opacity = 0; camera.fov = SET.fov; camera.updateProjectionMatrix(); scareLurk = false; scareMq = false; scareHm = false;
+  tapeEndOff();
+  $('white').style.transition = ''; $('black').style.transition = ''; $('scare').style.opacity = 0; camera.fov = SET.fov; camera.updateProjectionMatrix(); scareLurk = false; scareMq = false; scareHm = false; scareLs = false; if (LSJ) LSJ.g.visible = false;
   $('locker').style.display='none'; $('stun').style.display='none'; $('stunTxt').style.display='none'; $('prompt').style.display='none'; $('stam').style.opacity=0;
   vhsK = 0; $('vhs').style.opacity = 0;
   VM.visible = false; $('flash').style.opacity = 0; canvas.style.filter=''; canvas.style.transform=''; $('elev').style.display = 'none';
@@ -7969,7 +8259,7 @@ function frame(now){
   } else {
     updateRemotes(dt);
     updateMonsterDisplay(dt);
-    updateLurker(dt);
+    updateLurker(dt); updateDroppedFL(dt); updateListener(dt);
     placeCamera(dt);
     updateZoneEnv(dt);
     updatePanels(t);
@@ -7983,7 +8273,7 @@ function frame(now){
     updateCamFx(dt);
     updateMonsterSenses(dt);
     updateAmbience(dt);
-    updateExtras(dt);
+    updateExtras(dt); updateTension(dt);
     updateHUD(dt); updateGuide(); soundWatch(dt);
     updateItems();
   }
@@ -8001,7 +8291,7 @@ function frame(now){
 }
 requestAnimationFrame(frame);
 
-window.__hp = { collide, gen52, hostSchool52, hostMonitors52, assign52, tardy52, roomAt52, schoolObj52, schoolTarget52, myRoom52, MV52, get HMJ(){ return HMJ; }, S52_LANES, get radio37(){ return radio37; }, get fig37(){ return fig37; }, get zLevel(){ return zLevel; }, get zK(){ return zK; }, deepDay37, deep37, forceFig37:()=>{ figT = 0; }, duskIn37, wakeLay37, nowS, buildLevel, hotelOpen188, hostOutage188, pipeObj2, pipeTarget2, p2Diag, MQV, hostMannequins852, mqSeen852, floorAt852, laneAt852, MLANES, mallObj852, mallTarget852, mallWayTo852, aiTick852, mallMove852, get mallHold(){ return mallHold; }, get guide(){ return guide; }, hostLurker, opusTweak, fillDevices, get LRK(){ return LRK; }, lrSpot, animLurker, get running(){ return me.running; }, get W(){ return W; }, get N(){ return N; }, get stunCharge(){ return stunCharge; }, losClear, me, H, net, hide, unhide, throwCan, contextAction, useSkin, get mySkin(){ return mySkin; }, set mySkin(v){ mySkin=v; }, inPit, zoneOf, get G(){ return G; }, set G(v){ G=v; }, get mode(){ return mode; }, get role(){ return role; }, get level(){ return level; }, get walls(){ return walls; }, mDisp, doShift, monsterPos, ability, get abCD(){ return abCD; }, disguisedFrom, get fakes(){ return fakes; }, enterVent, nearVent, get ventT(){ return ventT; }, get ventCD(){ return ventCD; }, set ventCD(v){ ventCD=v; }, get abCD2(){ return abCD; }, inPit, get LK(){ return LK; }, get crankK(){ return crankK; }, ability, get curRH(){ return curRH; }, get MON(){ return MON; }, sfx, voice, noiseLevel, get settingsOpen(){ return settingsOpen; }, myPid, monsterVoice, pitchDown, dropDust, get silT(){ return silT; }, set silNext(v){ silNext=v; }, advanceLevel, aiObjectives, poolBlock, aiTick, aiReset, bfsFrom, cellOf, cc, floorY, TU, PG, camera, scene, renderer, applyUse, AI_DIFF, set diffOpt(v){ diffOpt=v; }, get M37(){ return M37; }, buildL37test:(sd)=>build37(sd), ripP, ripWho, makeAvatar, animAvatar, buildLevelTest:(sd,k)=>buildLevel(sd,k), fpArm:(roll,axis,curl)=>{ FP_ROLL = roll; FP_AXIS = axis; if (curl) Object.assign(FP_CURL, curl); buildFPArm(survSrc); }, VM, collide, k37, h37, d37, nav37, isNight, dayK, aiTick37, collide37, K37, sdShape, floorAt188, vis188, hostElev188, aiTick188, myCar188, elevPress188, ELV, HO, elDisp, update188, inLab, hostLab, labUse, labSensor, labStatus, startHatch, get hatchT(){ return hatchT; }, connected };
+window.__hp = { get LSJ(){ return LSJ; }, get deathT(){ return deathT; }, get scareLs(){ return scareLs; }, hostListener, lsAlert, get LSV(){ return LSV; }, TD, updateTension, tdFakeSteps, DFL, boT, panelBright, collide, gen52, hostSchool52, hostMonitors52, assign52, tardy52, roomAt52, schoolObj52, schoolTarget52, myRoom52, MV52, get HMJ(){ return HMJ; }, S52_LANES, get radio37(){ return radio37; }, get fig37(){ return fig37; }, get zLevel(){ return zLevel; }, get zK(){ return zK; }, deepDay37, deep37, forceFig37:()=>{ figT = 0; }, duskIn37, wakeLay37, nowS, buildLevel, hotelOpen188, hostOutage188, pipeObj2, pipeTarget2, p2Diag, MQV, hostMannequins852, mqSeen852, floorAt852, laneAt852, MLANES, mallObj852, mallTarget852, mallWayTo852, aiTick852, mallMove852, get mallHold(){ return mallHold; }, get guide(){ return guide; }, hostLurker, opusTweak, fillDevices, get LRK(){ return LRK; }, lrSpot, animLurker, get running(){ return me.running; }, get W(){ return W; }, get N(){ return N; }, get stunCharge(){ return stunCharge; }, losClear, me, H, net, hide, unhide, throwCan, contextAction, useSkin, get mySkin(){ return mySkin; }, set mySkin(v){ mySkin=v; }, inPit, zoneOf, get G(){ return G; }, set G(v){ G=v; }, get mode(){ return mode; }, get role(){ return role; }, get level(){ return level; }, get walls(){ return walls; }, mDisp, doShift, monsterPos, ability, get abCD(){ return abCD; }, disguisedFrom, get fakes(){ return fakes; }, enterVent, nearVent, get ventT(){ return ventT; }, get ventCD(){ return ventCD; }, set ventCD(v){ ventCD=v; }, get abCD2(){ return abCD; }, inPit, get LK(){ return LK; }, get crankK(){ return crankK; }, ability, get curRH(){ return curRH; }, get MON(){ return MON; }, sfx, voice, noiseLevel, get settingsOpen(){ return settingsOpen; }, myPid, monsterVoice, pitchDown, dropDust, get silT(){ return silT; }, set silNext(v){ silNext=v; }, advanceLevel, aiObjectives, poolBlock, aiTick, aiReset, bfsFrom, cellOf, cc, floorY, TU, PG, camera, scene, renderer, applyUse, AI_DIFF, set diffOpt(v){ diffOpt=v; }, get M37(){ return M37; }, buildL37test:(sd)=>build37(sd), ripP, ripWho, makeAvatar, animAvatar, buildLevelTest:(sd,k)=>buildLevel(sd,k), fpArm:(roll,axis,curl)=>{ FP_ROLL = roll; FP_AXIS = axis; if (curl) Object.assign(FP_CURL, curl); buildFPArm(survSrc); }, VM, collide, k37, h37, d37, nav37, isNight, dayK, aiTick37, collide37, K37, sdShape, floorAt188, vis188, hostElev188, aiTick188, myCar188, elevPress188, ELV, HO, elDisp, update188, inLab, hostLab, labUse, labSensor, labStatus, startHatch, get hatchT(){ return hatchT; }, connected };
 </script>
 </body>
 </html>
