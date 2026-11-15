@@ -233,6 +233,30 @@
   .infobox{max-width:760px;font-size:17px;line-height:1.45;color:#cfc8b0}
   @media (max-aspect-ratio:1/1){ #menu .mm{flex-direction:column;justify-content:center} .mmR{width:100%;flex:0 0 auto} .lvgrid{grid-template-columns:repeat(2,minmax(0,1fr))} }
   @media (max-height:500px){ .tile .th{aspect-ratio:2.6} .tile .tt{padding:4px 6px 6px} .mtitle .sub{margin-bottom:4px} .mhead{margin-bottom:8px} }
+
+  /* ---------- v0.47 main menu: the menu is ON a CRT TV (Ryan's model), FNAF-dark room around it ---------- */
+  #menu{background:radial-gradient(ellipse at 30% 50%,rgba(6,6,8,.78),rgba(2,2,3,.96) 70%)!important}
+  #menu::before{display:none}
+  #menu .mm{gap:3vw;padding:2vh 4vw;justify-content:flex-start}
+  .crt{position:relative;height:min(94vh,calc(92vw*688/708));aspect-ratio:708/688;flex:0 0 auto;filter:drop-shadow(0 0 40px rgba(110,150,255,.12))}
+  .crtimg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;user-select:none}
+  .crtscr{position:absolute;left:7.3%;top:5.6%;width:85.4%;height:68.8%;border-radius:4% / 5%;overflow:hidden;background:#000;container-type:size;box-shadow:0 0 30px rgba(140,180,255,.18)}
+  .crtscr #tvc{position:absolute;inset:0;width:100%;height:100%;filter:contrast(1.15) saturate(.8) brightness(.9) blur(.5px);image-rendering:pixelated}
+  .crtlogo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;pointer-events:none;filter:blur(.6px) contrast(1.1)}
+  .crtlogo.on{opacity:1;animation:logoJit .12s steps(2) infinite}
+  @keyframes logoJit{50%{transform:translateX(.6%)}}
+  .vhsov{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;mix-blend-mode:screen;opacity:.55;pointer-events:none}
+  .crtscr .tvscan{position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.32) 0 1px,transparent 1px 3px),radial-gradient(ellipse at center,transparent 50%,rgba(0,0,0,.8) 100%)}
+  .crtscr .tvosd{position:absolute;left:5%;right:5%;top:5%;display:flex;justify-content:space-between;font:bold 5cqh monospace;color:#f4eed6;text-shadow:2px 0 rgba(255,40,40,.5),-2px 0 rgba(40,200,255,.45);pointer-events:none}
+  .crtui{position:absolute;left:7%;top:15%;bottom:6%;display:flex;flex-direction:column;align-items:flex-start;gap:2.2cqh;z-index:2;transition:opacity .2s}
+  .crtscr.logo .crtui,.crtscr.logo .tvosd{opacity:0}
+  .crtui .mtitle h1{font-size:13cqh;letter-spacing:.05em}
+  .crtui .mtitle .sub{font-size:3.6cqh;margin:0 0 2.5cqh}
+  .crtui .vbtn{font-size:7.2cqh;min-width:42cqw;padding:.6cqh 2cqw .6cqh 5cqw;border:1px solid rgba(200,220,255,.4);background:rgba(10,18,40,.45);box-shadow:0 0 1.4cqh rgba(140,180,255,.2)}
+  .crtui .vbtn::before{left:1.4cqw}
+  .crtui .vbtn:hover,.crtui .vbtn:focus-visible{background:rgba(233,210,124,.16);border-color:#e9d27c}
+  .mside{display:flex;flex-direction:column;gap:10px;align-self:flex-end;margin-bottom:4vh;opacity:.75}
+  @media (max-aspect-ratio:1/1){ #menu .mm{flex-direction:column;justify-content:center} .crt{height:auto;width:92vw} .mside{align-self:center} }
 </style>
 <script type="importmap">{"imports":{"three":"./three.module.min.js"}}</script>
 </head>
@@ -250,7 +274,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.46.0</div>
+<div class="osd" id="ver">v0.47.0</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -286,17 +310,20 @@
 
 <div class="screen show" id="menu">
 <div class="mm" id="mMain">
-  <div class="mmL">
-    <div class="mtitle"><h1>LEVEL 0</h1><div class="sub">THE BACKROOMS</div></div>
-    <button class="vbtn" id="mPlay">PLAY</button>
-    <button class="vbtn" id="bHost">HOST</button>
-    <button class="vbtn" id="mJoin">JOIN</button>
-    <button class="vbtn" id="bSet1">SETTINGS</button>
-    <div class="mname"><span>NAME</span><input id="name" maxlength="12" placeholder="WANDERER" autocomplete="off"></div>
-    <div id="netnote"></div>
-    <button class="vlink" id="mInfo">HOW TO PLAY · CREDITS</button>
+  <div class="crt"><img class="crtimg" src="menu/crt.png" alt="" draggable="false">
+    <div class="crtscr"><canvas id="tvc" width="320" height="240"></canvas><img class="crtlogo" id="crtLogo" src="menu/async.jpg" alt="">
+      <div class="crtui">
+        <div class="mtitle"><h1>LEVEL 0</h1><div class="sub">THE BACKROOMS</div></div>
+        <button class="vbtn" id="mPlay">PLAY</button>
+        <button class="vbtn" id="bHost">HOST</button>
+        <button class="vbtn" id="mJoin">JOIN</button>
+        <button class="vbtn" id="bSet1">SETTINGS</button>
+      </div>
+      <img class="vhsov" id="vhsOv" src="menu/vhs/n0.jpg" alt=""><div class="tvscan"></div>
+      <div class="tvosd"><span>PLAY ▶</span><span id="tvtime">0:00:00</span></div>
+    </div>
   </div>
-  <div class="mmR"><div class="tv"><div class="tvin"><canvas id="tvc" width="320" height="240"></canvas><div class="tvscan"></div><div class="tvosd"><span>PLAY ▶</span><span id="tvtime">0:00:00</span></div></div><div class="tvknobs"><i></i><i></i></div></div></div>
+  <div class="mside"><div class="mname"><span>NAME</span><input id="name" maxlength="12" placeholder="WANDERER" autocomplete="off"></div><div id="netnote"></div><button class="vlink" id="mInfo">HOW TO PLAY · CREDITS</button></div>
 </div>
 <div class="msub" id="pLevels">
   <div class="mhead"><button class="vbtn back" data-back>◀ BACK</button><h2>SELECT A LEVEL</h2></div>
@@ -324,7 +351,7 @@
   </div>
   <div id="iosHint">iPhone: tap Share → <b>Add to Home Screen</b> and play from there. It runs fullscreen with no browser bars and the controls work much better.</div>
   <div class="foot">Headphones on. Listen to the hum.</div>
-  <div class="foot" style="font-size:15px;opacity:.7">Cafeteria tables: <a href="https://sketchfab.com/3d-models/folding-table-dba1b4270fee431290c464742f5fd4f5" target="_blank" rel="noopener" style="color:inherit">"Folding Table" by AK STUDIO</a>, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:inherit">CC BY 4.0</a> (textures shrunk) · The Crawler: <a href="https://sketchfab.com/3d-models/goose-c0cf164370124d81b2737e864bf38205" target="_blank" rel="noopener" style="color:inherit">"Goose" by nodoxi</a>, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:inherit">CC BY 4.0</a> (re-textured smaller, rigged in code) · Phones: <a href="https://sketchfab.com/3d-models/telephone-be6af2677cea49f5bc2f65968df50460" target="_blank" rel="noopener" style="color:inherit">"Telephone" by sui</a>, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:inherit">CC BY 4.0</a> · Radio: <a href="https://sketchfab.com/3d-models/vintage-retro-radio-26fb0de1015d4570bac28cd8b1fb0a62" target="_blank" rel="noopener" style="color:inherit">"Vintage Retro Radio" by Pavlo_Holubov</a>, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:inherit">CC BY 4.0</a> · The Lurker: <a href="https://sketchfab.com/3d-models/a-terrifying-creature-monster-8d509a2a7e4d4fb7972fd7016c53a234" target="_blank" rel="noopener" style="color:inherit">"A Terrifying Creature (Monster)" by Dester</a>, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:inherit">CC BY 4.0</a> (textures shrunk, re-rigged for its run) · Flashlight: <a href="https://sketchfab.com/3d-models/pro-flashlight-4c421693ab9d4d24af19cf151f4569a0" target="_blank" rel="noopener" style="color:inherit">"Pro Flashlight" by Chancleto870</a>, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:inherit">CC BY 4.0</a> (simplified, smaller texture)</div>
+  <div class="foot" style="font-size:15px;opacity:.7">Menu TV: <a href="https://sketchfab.com/3d-models/crt-tv-9ba4baa106e64319a0b540cf0af5aa9e" target="_blank" rel="noopener" style="color:inherit">"CRT TV" by Timothy Ahene</a> (Sketchfab) · VHS overlays: <a href="https://resourceboy.com/" target="_blank" rel="noopener" style="color:inherit">Resource Boy</a> · Cafeteria tables: <a href="https://sketchfab.com/3d-models/folding-table-dba1b4270fee431290c464742f5fd4f5" target="_blank" rel="noopener" style="color:inherit">"Folding Table" by AK STUDIO</a>, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:inherit">CC BY 4.0</a> (textures shrunk) · The Crawler: <a href="https://sketchfab.com/3d-models/goose-c0cf164370124d81b2737e864bf38205" target="_blank" rel="noopener" style="color:inherit">"Goose" by nodoxi</a>, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:inherit">CC BY 4.0</a> (re-textured smaller, rigged in code) · Phones: <a href="https://sketchfab.com/3d-models/telephone-be6af2677cea49f5bc2f65968df50460" target="_blank" rel="noopener" style="color:inherit">"Telephone" by sui</a>, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:inherit">CC BY 4.0</a> · Radio: <a href="https://sketchfab.com/3d-models/vintage-retro-radio-26fb0de1015d4570bac28cd8b1fb0a62" target="_blank" rel="noopener" style="color:inherit">"Vintage Retro Radio" by Pavlo_Holubov</a>, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:inherit">CC BY 4.0</a> · The Lurker: <a href="https://sketchfab.com/3d-models/a-terrifying-creature-monster-8d509a2a7e4d4fb7972fd7016c53a234" target="_blank" rel="noopener" style="color:inherit">"A Terrifying Creature (Monster)" by Dester</a>, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:inherit">CC BY 4.0</a> (textures shrunk, re-rigged for its run) · Flashlight: <a href="https://sketchfab.com/3d-models/pro-flashlight-4c421693ab9d4d24af19cf151f4569a0" target="_blank" rel="noopener" style="color:inherit">"Pro Flashlight" by Chancleto870</a>, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:inherit">CC BY 4.0</a> (simplified, smaller texture)</div>
 </div>
 </div>
 <div style="display:none"><button id="bSolo"></button><button id="bLv1"></button><button id="bVoice"></button><button id="bSkinL"></button><div id="bSkin"></div><button id="bSkinR"></button></div>
@@ -6948,7 +6975,15 @@ function menuTick(){ const c = sfx.ctx; if (!c || c.state !== 'running') return;
 document.addEventListener('pointerover', e=>{ const b = e.target.closest && e.target.closest('.vbtn,.tile,.vlink,.btn'); if (!b || b.contains(e.relatedTarget)) return; if (e.pointerType === 'mouse') menuTick(); });
 document.addEventListener('pointerdown', e=>{ if (e.pointerType !== 'mouse' && e.target.closest && e.target.closest('.vbtn,.tile,.vlink,.btn')) menuTick(); });
 const crtCtx = $('tvc').getContext('2d'); let crtT = 0;
-function updateCRT(dt){ if (!$('tvc').offsetParent) return; if (mode !== 'menu' || !$('menu').classList.contains('show') || $('menu').classList.contains('sub')) return; crtT += dt; if (crtT < 0.07) return; crtT = 0;
+
+// v0.47: VHS overlay frames from Ryan's Resource Boy pack (screen blend), sometimes the ASYNC logo takes over the set
+const VHS_N = 10, VHS_G = 3; let vhsT = 0, logoT = 18 + Math.random()*10, logoOn = 0;
+function updateTVfx(dt){ if (!$('vhsOv').offsetParent) return;
+  vhsT -= dt; if (vhsT <= 0){ const g = Math.random() < 0.06; vhsT = g ? 0.18 : 0.09 + Math.random()*0.12; $('vhsOv').src = g ? `menu/vhs/g${Math.floor(Math.random()*VHS_G)}.jpg` : `menu/vhs/n${Math.floor(Math.random()*VHS_N)}.jpg`; $('vhsOv').style.opacity = g ? 0.85 : 0.4 + Math.random()*0.25; }
+  if (logoOn > 0){ logoOn -= dt; if (logoOn <= 0){ $('crtLogo').classList.remove('on'); $('crtLogo').parentElement.classList.remove('logo'); vhsT = 0; } }
+  else if ((logoT -= dt) <= 0){ logoT = 22 + Math.random()*20; logoOn = 2.6 + Math.random()*1.5; $('crtLogo').classList.add('on'); $('crtLogo').parentElement.classList.add('logo'); }
+}
+function updateCRT(dt){ if (!$('tvc').offsetParent) return; updateTVfx(dt); if (mode !== 'menu' || !$('menu').classList.contains('show') || $('menu').classList.contains('sub')) return; crtT += dt; if (crtT < 0.07) return; crtT = 0;
   const src = renderer.domElement, sw = src.width, sh = src.height, cw = Math.min(sw, sh*4/3), ch = cw*3/4;
   try { crtCtx.drawImage(src, (sw-cw)/2, (sh-ch)/2, cw, ch, 0, 0, 320, 240); } catch(e){}
   if (Math.random() < 0.04){ crtCtx.fillStyle = 'rgba(255,255,255,.08)'; crtCtx.fillRect(0, Math.random()*240, 320, 4 + Math.random()*14); }

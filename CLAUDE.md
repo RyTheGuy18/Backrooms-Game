@@ -6,7 +6,7 @@ First-person co-op Backrooms horror game for 1–4 players, played in the browse
 
 - Live: https://rytheguy18.github.io/Haunted-Pines/ (GitHub Pages, `main` branch, repo root)
 - Owner: Ryan (GitHub `rytheguy18` / `RyTheGuy18`). Plays it with friends and younger brothers, mostly on phones.
-- Current version: **v0.46.0** (shown bottom-right of the menu, `#ver`)
+- Current version: **v0.47.0** (shown bottom-right of the menu, `#ver`)
 
 ## Files
 
@@ -34,6 +34,7 @@ First-person co-op Backrooms horror game for 1–4 players, played in the browse
 | `sfx/power-out.mp3`, `sfx/light-flicker.mp3` | v0.42, Ryan's uploads. power-out: a 4.5 s power-down (`pout`, leading silence cut, loudnorm, mono 64 kbps) — plays for every blackout: the Occupant's Blackout (`sfx.powerDown`, positional), the hotel outage (`outage188`, not doubled), the lab power failure, a Pipe Dreams circuit going dead. light-flicker: from his screen recording (0.45–10.6 s, ×6 + limiter, 10.15 s): buzzing tube with clicks; `FLICK_CLICKS` = click onsets used by `sfx.flick` (0.3–0.5 s slices via `sfx.slice`, ≥0.12 s apart, when the nearest panel flickers), `FLICK_ON` = 7.0 s + 3.1 s stutter = `sfx.lightsOn` when the power comes back (lab, hotel, and where an Occupant blackout ends if you're within 22 m, `liveBo`) |
 | `models/folding-table.glb` | v0.45: Ryan's upload, "Folding Table" by AK STUDIO (Sketchfab, **CC BY 4.0** — credit in the menu footer, keep it). Normal/MR maps + tangents dropped, base colour 256 px JPEG (1.16 MB → 0.2 MB). Y up, 2 × 0.83 × 0.81 units, long side along x, centred → drawn ×0.9 at y 0.37. Level 52 cafeteria only, one InstancedMesh (`fillTables52`, `level.s52.tables` = [x, y, z, ry, rx, rz] drawn coords) |
 | `menu/lv0.jpg` … `lv6.jpg` | v0.46: level-select thumbnails (384×216 JPEG, headless screenshots from spawn-ish spots; index = game order 0,1,37,188,852,2,52). **Placeholders — Ryan will replace them** |
+| `menu/crt.png`, `menu/vhs/*.jpg`, `menu/async.jpg` | v0.47 main menu TV (see Main menu) |
 | `sw.js` | Service worker. **Bump `const V='level0-vX-Y'` every release** or phones keep the old version. CORE list must include every new asset |
 | `manifest.webmanifest`, icons | PWA |
 | `README.md` | Short description + one line per version (see Publishing) |
@@ -193,6 +194,8 @@ PeerJS, host's browser is the hub (star). Room code = 4 letters, peer id `level0
 ## Main menu (v0.46, Ryan; he has his own vision and WILL rework it — keep it easy to move around)
 
 Whole screen = an old CRT TV (Ryan's reference: "Escape the Backrooms" on a CRT): the live menu scene behind, CRT vignette/rounded corners/scanlines (`#menu::before/::after`), left-side gradient, title + 4 bordered VHS buttons on the left: **PLAY** (→ `#pLevels` level select), **HOST** (`bHost`, unchanged lobby), **JOIN** (→ `#pJoin`: code + `bJoin`), **SETTINGS** (`bSet1`); NAME field + a HOW TO PLAY · CREDITS link (`#pInfo`: the old how-to + iOS hint + the CC-BY credits — keep them). Sub panels: `menuSub(id)` (`showScreen('menu')` resets to the main panel). **Level select**: 3-column grid of tiles from `LV_INFO` (name, subtitle, one-sentence description, `menu/lv{k}.jpg`); clicking one sets `startOpt` and clicks the hidden `bSolo` (solo start). COMPUTER difficulty (`bDiff1`) + MODE (`bEx1`) under the grid. `bSolo`, `bLv1`, `bVoice`, the menu skin picker are kept as hidden elements so old code still works. Hover tick sound `menuTick` (mouse hover; touch on press). The camcorder OSD corners are hidden on the menu (`body:has(#menu.show) .osd:not(#ver)`), the version stays. A first try had a separate TV on the right showing the scene (`.mmR` / `#tvc`, `updateCRT` copies the WebGL canvas) — hidden now (`.mmR{display:none}`), easy to bring back. Lobby screen not restyled yet.
+
+**v0.47 (Ryan: the TV should be on the LEFT with the menu ON its screen, FNAF-dark around it):** `.crt` = `menu/crt.png` (a static front render of Ryan's "CRT TV" glb by Timothy Ahene, Sketchfab Standard licence — only the rendered PNG is shipped, not the model; credited in HOW TO PLAY · CREDITS) with `.crtscr` laid over its glass (left 7.3%, top 5.6%, 85.4 × 68.8% of the image; `container-type:size`, everything inside sized in `cqh/cqw`). Inside: the live scene feed (`#tvc`, `updateCRT`), title + PLAY/HOST/JOIN/SETTINGS (`.crtui`), a VHS overlay `#vhsOv` cycling `menu/vhs/n0–n9.jpg` (+ rare glitch frames `g0–g2`) with `mix-blend-mode:screen` (`updateTVfx`; from Ryan's Resource Boy VHS pack, 480×270 copies; the pack's licence allows use in the game, no attribution needed but credited), scanlines, OSD, and every 22–42 s Ryan's **ASYNC logo** (`menu/async.jpg`) takes over the screen for ~3 s (`#crtLogo`, the buttons fade). Outside the TV: dark radial gradient over the faint live scene; NAME + HOW TO PLAY link bottom right (`.mside`). Portrait: TV on top, full width.
 
 ## Settings
 
