@@ -108,3 +108,7 @@ v0.53.0: the Snatcher shambles with a zombie walk and writhes in agony when a fl
 v0.53.1: the Snatcher swipes at you with a zombie attack when it catches someone or lunges
 v0.54.0: the School Halls hall monitor is now a tall faceless teacher in a suit who sprints at you the moment you're late for class, and you can't outrun him
 v0.55.0: the Occupant stalks slowly with the zombie walk (feet match the ground), then breaks into a zombie run the moment it sees you; a player Occupant walks and holds sprint to run
+v0.56.0: the Occupant no longer gets stuck on desks, railings or ledges (school, mall, hotel, eel); it hears further now that it walks slower; the player Occupant gets a RUN meter; new level-select pictures
+v0.57.0: new Level Fun: party rooms, presents (one has the exit key, the rest are party horns), and Partygoers who watch you while the lights are on and hunt you when they go out (shut the doors!); the Listener now ignores walking but hears any talking and sprints at you; flashlight batteries drain faster
+v0.57.1: no Occupant in School Halls anymore, only the hall monitors
+v0.57.2: no Occupant in Level Fun anymore; if a player is the Occupant, they play as a Partygoer (harmless while the lights are on, deadly when they go out, and they can't open doors)
