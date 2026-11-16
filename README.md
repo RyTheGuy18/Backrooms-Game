@@ -107,3 +107,4 @@ v0.52.0: blackouts kill every light on the map; a tension system that paces scar
 v0.53.0: the Snatcher shambles with a zombie walk and writhes in agony when a flashlight blinds it
 v0.53.1: the Snatcher swipes at you with a zombie attack when it catches someone or lunges
 v0.54.0: the School Halls hall monitor is now a tall faceless teacher in a suit who sprints at you the moment you're late for class, and you can't outrun him
+v0.55.0: the Occupant stalks slowly with the zombie walk (feet match the ground), then breaks into a zombie run the moment it sees you; a player Occupant walks and holds sprint to run
