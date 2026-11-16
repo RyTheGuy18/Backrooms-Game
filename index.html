@@ -332,6 +332,7 @@
   #stam{width:190px;margin-left:-95px;height:5px;bottom:16px;background:rgba(255,255,255,.1)}
   #stam i{background:#e9d27c;-webkit-mask:repeating-linear-gradient(90deg,#000 0 8px,transparent 8px 10px);mask:repeating-linear-gradient(90deg,#000 0 8px,transparent 8px 10px)}
   #stam.adr i{background:var(--red)} #stam.winded i{background:#7d7560}
+  #stamLbl{display:none;position:absolute;right:100%;top:50%;transform:translateY(-50%);margin-right:8px;font:700 10px/1 monospace;letter-spacing:2px;color:#e9d27c;opacity:.8} #stam.mon #stamLbl{display:block} #stam.mon{bottom:86px} body.touch #stam.mon{bottom:22px} #stam.mon.winded #stamLbl{color:#7d7560}
   #plist .chip{font:13px monospace;letter-spacing:.12em;border:1px solid rgba(220,225,240,.28);background:rgba(2,3,8,.55);padding:3px 10px}
   #spec{font:bold 15px monospace;letter-spacing:.24em;color:#e9d27c}
   #glbl{font:13px monospace;letter-spacing:.2em}
@@ -366,7 +367,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.55.1</div>
+<div class="osd" id="ver">v0.56.0</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -380,7 +381,7 @@
   <div id="prompt"></div>
   <div id="guide"><div id="garr">▲</div><div id="glbl"></div></div>
   <div id="msg"></div>
-  <div id="stam"><i id="stamf"></i></div>
+  <div id="stam"><i id="stamf"></i><b id="stamLbl">RUN</b></div>
   <div id="abil"></div>
 </div>
 <div id="tapeEnd"></div>
@@ -3879,6 +3880,9 @@ function aiTick37(dt, alive){
     if (d < 0.3){ A.rp = 0; }
     [G.ax, G.az] = collide37(ax+dx/d*sp*dt, az+dz/d*sp*dt, 0.35, ax, az, true, lunge);
     G.ay = Math.atan2(dx, dz); G.amv = sp > MON_SPEED*1.01 ? 2 : 1;
+    // v0.56: unstick — it could press against a pool edge for over a minute; getting nowhere for 3 s = drop that target
+    if (d > 0.3 && Math.hypot(G.ax-ax, G.az-az) < sp*dt*0.2) A.estk = (A.estk||0) + dt; else A.estk = Math.max(0, (A.estk||0) - dt);
+    if (A.estk > 3){ A.estk = 0; A.wp = null; A.nx = null; A.rp = 0; if (A.mode === 'hunt') A.mode = 'wander'; }
   };
   // ---- DAY: it keeps its distance. Now and then it surfaces at the edge of your sight, then it's gone.
   // v0.44.1 (Ryan: "got to the exit in 30 seconds"): but the chest-deep water is ALWAYS its. Wade in and, a few seconds later,
@@ -3917,7 +3921,7 @@ function aiTick37(dt, alive){
   for (const p of alive){
     const d = Math.hypot(p.x-ax, p.z-az), dark = !p.l && lightAtCell(p.x,p.z) < 0.25;
     if (d < D.see && (p.l || d < (p.c && dark ? 2.5 : D.near) || lightAtCell(p.x,p.z) > 0.5) && los37(ax,az,p.x,p.z)){ if (d < sd){ sd = d; seen = p; } }
-    const hear = (p.m>=3 ? 60 : p.m===2 ? 32 : p.m===1 ? 11 : 0) * D.hear * 1.2;
+    const hear = (p.m>=3 ? 60 : p.m===2 ? 32 : p.m===1 ? 11 : 0) * [0.45, 1, 1.35, 1.8][clamp(G.df|0, 0, 3)] * 1.2;   // v0.56: the eel keeps the old hearing (the land Occupant's went up)
     if (d < hear){ A.lx = p.x; A.lz = p.z; A.know[p.pid] = now; if (A.mode !== 'chase') A.mode = 'hunt'; A.lt = 8*D.persist; }
   }
   if (seen){ A.mode = 'chase'; A.target = seen.pid; A.lx = seen.x; A.lz = seen.z; A.lt = 5*D.persist;
@@ -3935,7 +3939,10 @@ function aiTick37(dt, alive){
   A.dashCD = (A.dashCD||0) - dt;
   if (A.dashT > 0){ A.dashT -= dt; [G.ax, G.az] = collide37(ax + A.ddx*DASH_SPEED*dt, az + A.ddz*DASH_SPEED*dt, 0.35, ax, az, true, true); G.ay = Math.atan2(A.ddx, A.ddz); G.amv = 1; G.ads = 1; return; }
   G.ads = 0;
-  if (!isEelGround(k37(ax, az))){ const w = nearestWater(ax, az, 6); if (w){ const dx = w[0]-ax, dz = w[1]-az, d = Math.hypot(dx,dz)||1; [G.ax, G.az] = collide37(ax+dx/d*3*dt, az+dz/d*3*dt, 0.35, ax, az, true, true); G.ay = Math.atan2(dx,dz); G.amv = 1; } return; }
+  if (!isEelGround(k37(ax, az))){ const w = nearestWater(ax, az, 6) || randomWaterNear(ax, az); if (w){ const dx = w[0]-ax, dz = w[1]-az, d = Math.hypot(dx,dz)||1; [G.ax, G.az] = collide37(ax+dx/d*3*dt, az+dz/d*3*dt, 0.35, ax, az, true, true); G.ay = Math.atan2(dx,dz); G.amv = 1;
+      // v0.56: stranded after a lunge behind a wall / ledge (it sat there over a minute): after 2 s of getting nowhere it slips into the water
+      if (Math.hypot(G.ax-ax, G.az-az) < 3*dt*0.2) A.strand = (A.strand||0) + dt; else A.strand = 0;
+      if (A.strand > 2){ A.strand = 0; G.ax = w[0]; G.az = w[1]; } } return; }
   if (seen && sd > 1.3 && sd < 4 && A.dashCD <= 0 && D.spd > 0.9){ const l = sd||1; A.ddx = (seen.x-ax)/l; A.ddz = (seen.z-az)/l; A.dashT = DASH_T; A.dashCD = DASH_CD*0.6; dashSound(ax, az); return; }
   A.lt -= dt; if (A.mode === 'hunt' && A.lt <= 0){ A.mode = 'wander'; A.wp = null; }
   const SPD = MON_SPEED*D.spd;
@@ -4872,10 +4879,17 @@ function hotelWp188(ax, az, tgt){
 }
 function aiGo188(tx, tz, sp, dt){
   const A = H.ai, ax = G.ax, az = G.az, ci = cellOf(ax), cj = cellOf(az), ti = cellOf(tx), tj = cellOf(tz);
+  // v0.56: cells it got stuck going into (a railing / lane slab the wall grid doesn't know about) are avoided for 30 s
+  A.clk = (A.clk||0) + dt; let blk = null;
+  if (A.bad){ for (const k in A.bad) if (A.bad[k] < A.clk) delete A.bad[k]; const ks = Object.keys(A.bad); if (ks.length){ blk = new Uint8Array(N*N); for (const k of ks) blk[+k] = 1; if (blk[ti*N+tj]) blk[ti*N+tj] = 0; } }
   let gx = tx, gz = tz;
-  if (ci !== ti || cj !== tj){ if (A.lc !== ci*N+cj){ A.lc = ci*N+cj; A.rp = 0; } A.rp -= dt; if (A.rp <= 0){ A.rp = 0.4; A.nx = nextStep(ci,cj,ti,tj,null); } if (!A.nx) return false; gx = cc(A.nx[0]); gz = cc(A.nx[1]); }
+  if (ci !== ti || cj !== tj){ if (A.lc !== ci*N+cj){ A.lc = ci*N+cj; A.rp = 0; } A.rp -= dt; if (A.rp <= 0){ A.rp = 0.4; A.nx = nextStep(ci,cj,ti,tj,blk); } if (!A.nx) return false; gx = cc(A.nx[0]); gz = cc(A.nx[1]);
+    if ((A.gstk||0) > 0.7 && Math.hypot(cc(ci)-ax, cc(cj)-az) > 0.25){ gx = cc(ci); gz = cc(cj); } }   // stuck: back to the middle of its cell, then straight on
   const dx = gx-ax, dz = gz-az, d = Math.hypot(dx,dz); if (d < 0.05){ G.amv = 0; return true; }
-  const st = Math.min(d, sp*dt); [G.ax, G.az] = collide(ax + dx/d*st, az + dz/d*st, 0.35); G.ay = Math.atan2(dx, dz); G.amv = 1; return true;
+  const st = Math.min(d, sp*dt); [G.ax, G.az] = collide(ax + dx/d*st, az + dz/d*st, 0.35); G.ay = Math.atan2(dx, dz); G.amv = 1;
+  if (Math.hypot(G.ax-ax, G.az-az) < st*0.2) A.gstk = (A.gstk||0) + dt; else A.gstk = Math.max(0, (A.gstk||0) - dt*0.5);
+  if (A.gstk > 3 && A.nx){ (A.bad = A.bad || {})[A.nx[0]*N+A.nx[1]] = A.clk + 30; A.gstk = 0; A.rp = 0; }
+  return true;
 }
 function aiElev188(dt){
   const A = H.ai, T = A.el, el = G.el[T.k], fA = floorAt188(G.ax, G.az), lp = level.lands[T.k][fA], cp = level.cars[T.k][fA], sp = aiD().hunt;
@@ -5566,12 +5580,13 @@ function darkHunt(dt, alive){ const A = H.ai; if (!A) return; A.dk = Math.max(0,
    walks faster (hunt) to a noise it heard, and only RUNS (MON_SPEED × spd, Zombie Run clip) once it sees you, cuts you off (IMPOSSIBLE) or
    hunts you in a blackout. A player Occupant walks MON_WALK and holds SPRINT to run at MON_SPEED for ~11 s (MON_RUN_DRAIN / MON_RUN_REC). */
 /* v0.55.1 (Ryan: on HARD/IMPOSSIBLE the walk looked rushed): every difficulty walks at most 1.5 when wandering; HARD/IMPOSSIBLE RUN to noises instead (hunt ≥ MON_RUN_V). */
+/* v0.56: it walks slower now, so it hears further to make up for it (NORMAL 1 → 1.2, HARD 1.35 → 1.6, IMPOSSIBLE 1.8 → 2.2). */
 const MON_WALK = 2.0, MON_RUN_DRAIN = 9, MON_RUN_REC = 14, MON_RUN_V = 2.6;   // MON_RUN_V: at or above this it's drawn running
 const AI_DIFF = [
   { name:'EASY',       hear:0.45, see:9,  near:4, spd:0.85, wander:1.3, hunt:1.6, drift:0.25, persist:0.5, spr:0, dash:0, stun:1.25, bo:0, vent:0, lead:0,   obj:0 },
-  { name:'NORMAL',     hear:1,    see:15, near:6, spd:1,    wander:1.5, hunt:1.9, drift:1,    persist:1,   spr:0, dash:1, stun:1,    bo:1, vent:0, lead:0,   obj:0 },
-  { name:'HARD',       hear:1.35, see:19, near:7, spd:1.04, wander:1.5, hunt:3.2, drift:1,    persist:1.5, spr:1, dash:1, stun:0.8,  bo:1, vent:1, lead:0.6, obj:1 },
-  { name:'IMPOSSIBLE', hear:1.8,  see:24, near:8, spd:1.08, wander:1.5, hunt:3.5, drift:1,    persist:2.2, spr:1, dash:1, stun:0.6,  bo:1, vent:2, lead:1.4, obj:2 },
+  { name:'NORMAL',     hear:1.2,    see:15, near:6, spd:1,    wander:1.5, hunt:1.9, drift:1,    persist:1,   spr:0, dash:1, stun:1,    bo:1, vent:0, lead:0,   obj:0 },
+  { name:'HARD',       hear:1.6, see:19, near:7, spd:1.04, wander:1.5, hunt:3.2, drift:1,    persist:1.5, spr:1, dash:1, stun:0.8,  bo:1, vent:1, lead:0.6, obj:1 },
+  { name:'IMPOSSIBLE', hear:2.2,  see:24, near:8, spd:1.08, wander:1.5, hunt:3.5, drift:1,    persist:2.2, spr:1, dash:1, stun:0.6,  bo:1, vent:2, lead:1.4, obj:2 },
 ];
 function freshState(r=0){ return { ph:'lobby', r, mo:'AI', ax:0, az:0, ay:0, amv:0, w:'', wv:0, fz:[], pl:0, open:0, ring:-1, aw:[], bt:[], bo:[], dead:[], esc:[], grace:0, sk:0, cn:[], stun:0, t0:0, dg:0, dgp:'', lv:0, gen:[], ads:0, kl:[], ov:monVoiceOpt, df:diffOpt, sl:startOpt, ach:0, avt:0, tod:0, asub:0, stk:0, lr:[0,0,0,0,0], lkd:[], ld:0, lp:100, lbo:0, ex:exOpt, fl:[], lsk:[], ls:[0,0,0,0,0] }; }
 let G = freshState();
@@ -5841,8 +5856,10 @@ function aiTick(dt, alive){
     [tx,tz] = A.wp; sp = D.wander;
   }
   if (inLab(tx, tz)){ A.mode = 'wander'; A.wp = null; tx = ax; tz = az; }
-  const blk = poolBlock();
+  let blk = poolBlock();
   const ci=cellOf(ax), cj=cellOf(az), ti=cellOf(tx), tj=cellOf(tz);
+  A.clk = (A.clk||0) + dt;   // v0.56: cells it got stuck going into are avoided for 30 s (see the unstick below)
+  if (A.bad){ for (const k in A.bad) if (A.bad[k] < A.clk) delete A.bad[k]; const ks = Object.keys(A.bad); if (ks.length){ const b = new Uint8Array(N*N); if (blk) b.set(blk); for (const k of ks) b[+k] = 1; b[ti*N+tj] = blk ? blk[ti*N+tj] : 0; b[ci*N+cj] = 0; blk = b; } }
   // vents as shortcuts (HARD: sometimes, IMPOSSIBLE: whenever it's clearly faster)
   A.ventCD = (A.ventCD ?? 12) - dt;
   if (D.vent && A.mode !== 'wander' && A.ventCD <= 0 && level.vents && level.vents.length && (ci!==ti || cj!==tj) && !A.ventGo){
@@ -5863,9 +5880,14 @@ function aiTick(dt, alive){
     if (A.rp <= 0){ A.rp = 0.5; A.nx = nextStep(ci,cj,ti,tj,blk); }
     if (A.nx){ gx=cc(A.nx[0]); gz=cc(A.nx[1]); } else { A.mode='wander'; A.wp=null; }
   }
+  // v0.56: unstick. Cutting diagonally to the next cell can push it into a desk / locker bank / slab forever: if it stops getting
+  // anywhere, step back to the middle of its own cell and come at the next one straight; still stuck after that = pick a new way.
+  if ((A.stk||0) > 0.7 && (ci!==ti || cj!==tj || A.ventGo != null)){ if (Math.hypot(cc(ci)-ax, cc(cj)-az) > 0.25){ gx = cc(ci); gz = cc(cj); } else A.stk = 0.4; }
   const dx=gx-ax, dz=gz-az, d=Math.hypot(dx,dz)||1;
   [G.ax, G.az] = collide(ax+dx/d*sp*dt, az+dz/d*sp*dt, 0.35);
   if (inLab(G.ax, G.az)){ G.ax = ax; G.az = az; A.mode = 'wander'; A.wp = null; }   // it can't come into the lab
+  if (d > 0.3 && Math.hypot(G.ax-ax, G.az-az) < sp*dt*0.2){ A.stk = (A.stk||0) + dt; A.stkT = (A.stkT||0) + dt; } else { A.stk = Math.max(0, (A.stk||0) - dt*0.5); A.stkT = Math.max(0, (A.stkT||0) - dt*0.25); }
+  if ((A.stkT||0) > 4){ if (A.nx) (A.bad = A.bad || {})[A.nx[0]*N+A.nx[1]] = A.clk + 30; A.stkT = 0; A.stk = 0; A.rp = 0; A.wp = null; A.ventGo = null; if (A.mode !== 'chase') A.mode = 'wander'; }
   G.ay = Math.atan2(dx, dz); G.amv = sp >= MON_RUN_V ? 2 : 1;
   A.boT -= dt;
   if (LK === 0 || LK === 3){
@@ -6528,7 +6550,7 @@ function startRoundLocal(){
   sfx.init();
   if (role === 'monster'){
     if (G.ov && voice.stream) setTimeout(()=>msg('Your mic is on. Survivors near you hear a monster.', 5), 1500);
-    $('blacktext').textContent = 'YOU ARE THE OCCUPANT'; $('blacksub').textContent = (G.lv|0) === 0 && level.lab ? 'They start in a lab behind a portal at the edge of the halls. Its blast door shuts, but its power never lasts. Listen for them, and don\'t let them reach the exit.' : 'They wake up in the halls. You can\'t run, but you walk faster than they do. Listen for them, and don\'t let them reach the exit.';
+    $('blacktext').textContent = 'YOU ARE THE OCCUPANT'; $('blacksub').textContent = (G.lv|0) === 0 && level.lab ? 'They start in a lab behind a portal at the edge of the halls. Its blast door shuts, but its power never lasts. Listen for them, and don\'t let them reach the exit.' : 'They wake up in the halls. You walk slowly, but you can run for a while (hold SHIFT / RUN). Listen for them, and don\'t let them reach the exit.';
     $('black').style.transition='none'; $('black').style.opacity = 1; setTimeout(()=>{ $('black').style.transition=''; }, 50);
   } else if (G.ex) msg('EXPLORATION MODE. Nothing is hunting you. Take your time.', 5);
   else msg((G.lv|0) === 6 ? 'LEVEL 52. When the bell rings, get to the classroom on your schedule before the tardy bell. Never be in the halls during class.' : (G.lv|0) === 0 && level.lab ? 'ASYNC LAB 4. The portal is open. Find 3 fuses out there. Something else is awake.' : (G.lv|0) === 5 ? 'Vent the 4 red pressure valves and find bolt cutters. The EXIT door is chained shut somewhere in these tunnels.' : (G.lv|0) === 4 ? 'Find the 4 receipts. Each one has a number of the security code. Three floors. Nobody is shopping.' : (G.lv|0) === 3 ? 'Find the keycard. The elevators work. Something else uses them too.' : (G.lv|0) === 2 ? 'Find the staircase. Something is in the water.' : (G.lv|0) === 1 ? 'Start the 5 generators. They are LOUD. Something else is awake.' : 'Find 3 fuses. Something else is awake.', 5);
@@ -8108,7 +8130,8 @@ function updateHUD(dt){
     obj.textContent = G.grace > 0 ? `They wake in ${Math.ceil(G.grace)}…` : G.stun > 0 ? 'Blinded…' : ventT > 0 ? 'In the vents…' : G.dg > 0 ? `Disguised · ${Math.ceil(G.dg)}s · ${left} left` : G.lv === 2 ? (isNight() ? `Night. Hunt. ${left} left · dawn in ${mmss(dawnIn37())}` : `Daylight: stay unseen · anyone in the deep water is yours · stalk ${Math.round(G.stk||0)}% · dark in ${mmss(duskIn37())}`) : G.lv === 6 ? schoolMon52(left) : G.lv === 3 ? `Listen for them. ${left} left · ${G.open ? 'the room is open' : G.kc && G.kc[0] >= 1 ? 'they have the keycard' : 'the keycard is still out there'} · floor ${floorAt188(me.x, me.z)+2}` : G.open ? `The exit is open. ${left} left.` : ( G.lv === 1 ? `Listen for them. ${left} left · generators ${(G.gen||[]).filter(Boolean).length}/${(G.gen||[]).length}` : `Listen for them. ${left} left · fuses ${G.pl}/${FUSES}`);
     if (G.grace <= 0 && $('black').style.opacity === '1' && mode==='play') $('black').style.opacity = 0;
     $('kit').style.display = 'none'; $('side').style.display = 'none';
-    { const st = $('stam'); st.style.opacity = me.stam < 99 ? 1 : 0; $('stamf').style.width = me.stam+'%'; st.classList.toggle('adr', false); st.classList.toggle('winded', !!me.winded); }
+    { const st = $('stam'), runMeter = LK !== 2 && G.grace <= 0; st.style.opacity = runMeter || me.stam < 99 ? 1 : 0; $('stamf').style.width = me.stam+'%'; st.classList.toggle('adr', false); st.classList.toggle('winded', !!me.winded); st.classList.toggle('mon', runMeter);   // v0.56: the player Occupant's run meter is always up
+      if (runMeter && !me.runHint && mode === 'play'){ me.runHint = 1; msg(isTouch ? 'You stalk slowly. Hold RUN to run, until the meter runs out.' : 'You stalk slowly. Hold SHIFT to run, until the meter runs out.', 5); } }
   } else if (role === 'survivor'){
     const found = G.fz.filter(f=>f[0]>=1).length, mine = G.fz.filter(f=>f[0]===1 && f[3]===myPid).length;
     $('objLbl').textContent = me.hidden >= 0 ? 'HIDING' : 'OBJECTIVE';
@@ -8362,7 +8385,7 @@ function frame(now){
 }
 requestAnimationFrame(frame);
 
-window.__hp = { get MONS(){ return MONS; }, get LSJ(){ return LSJ; }, get deathT(){ return deathT; }, get scareLs(){ return scareLs; }, hostListener, lsAlert, get LSV(){ return LSV; }, TD, updateTension, tdFakeSteps, DFL, boT, panelBright, collide, gen52, hostSchool52, hostMonitors52, assign52, tardy52, roomAt52, schoolObj52, schoolTarget52, myRoom52, MV52, get HMJ(){ return HMJ; }, S52_LANES, get radio37(){ return radio37; }, get fig37(){ return fig37; }, get zLevel(){ return zLevel; }, get zK(){ return zK; }, deepDay37, deep37, forceFig37:()=>{ figT = 0; }, duskIn37, wakeLay37, nowS, buildLevel, hotelOpen188, hostOutage188, pipeObj2, pipeTarget2, p2Diag, MQV, hostMannequins852, mqSeen852, floorAt852, laneAt852, MLANES, mallObj852, mallTarget852, mallWayTo852, aiTick852, mallMove852, get mallHold(){ return mallHold; }, get guide(){ return guide; }, hostLurker, opusTweak, fillDevices, get LRK(){ return LRK; }, lrSpot, animLurker, get running(){ return me.running; }, get W(){ return W; }, get N(){ return N; }, get stunCharge(){ return stunCharge; }, losClear, me, H, net, hide, unhide, throwCan, contextAction, useSkin, get mySkin(){ return mySkin; }, set mySkin(v){ mySkin=v; }, inPit, zoneOf, get G(){ return G; }, set G(v){ G=v; }, get mode(){ return mode; }, get role(){ return role; }, get level(){ return level; }, get walls(){ return walls; }, mDisp, doShift, monsterPos, ability, get abCD(){ return abCD; }, disguisedFrom, get fakes(){ return fakes; }, enterVent, nearVent, get ventT(){ return ventT; }, get ventCD(){ return ventCD; }, set ventCD(v){ ventCD=v; }, get abCD2(){ return abCD; }, inPit, get LK(){ return LK; }, get crankK(){ return crankK; }, ability, get curRH(){ return curRH; }, get MON(){ return MON; }, sfx, voice, noiseLevel, get settingsOpen(){ return settingsOpen; }, myPid, monsterVoice, pitchDown, dropDust, get silT(){ return silT; }, set silNext(v){ silNext=v; }, advanceLevel, aiObjectives, poolBlock, aiTick, aiReset, bfsFrom, cellOf, cc, floorY, TU, PG, camera, scene, renderer, applyUse, AI_DIFF, set diffOpt(v){ diffOpt=v; }, get M37(){ return M37; }, buildL37test:(sd)=>build37(sd), ripP, ripWho, makeAvatar, animAvatar, buildLevelTest:(sd,k)=>buildLevel(sd,k), fpArm:(roll,axis,curl)=>{ FP_ROLL = roll; FP_AXIS = axis; if (curl) Object.assign(FP_CURL, curl); buildFPArm(survSrc); }, VM, collide, k37, h37, d37, nav37, isNight, dayK, aiTick37, collide37, K37, sdShape, floorAt188, vis188, hostElev188, aiTick188, myCar188, elevPress188, ELV, HO, elDisp, update188, inLab, hostLab, labUse, labSensor, labStatus, startHatch, get hatchT(){ return hatchT; }, connected };
+window.__hp = { updateLab, hostTick, nextStep, isDead, killSurvivor, get remotes(){ return remotes; }, setRole:(r)=>{ role = r; }, get MON_WALK(){ return MON_WALK; }, get MONS(){ return MONS; }, get LSJ(){ return LSJ; }, get deathT(){ return deathT; }, get scareLs(){ return scareLs; }, hostListener, lsAlert, get LSV(){ return LSV; }, TD, updateTension, tdFakeSteps, DFL, boT, panelBright, collide, gen52, hostSchool52, hostMonitors52, assign52, tardy52, roomAt52, schoolObj52, schoolTarget52, myRoom52, MV52, get HMJ(){ return HMJ; }, S52_LANES, get radio37(){ return radio37; }, get fig37(){ return fig37; }, get zLevel(){ return zLevel; }, get zK(){ return zK; }, deepDay37, deep37, forceFig37:()=>{ figT = 0; }, duskIn37, wakeLay37, nowS, buildLevel, hotelOpen188, hostOutage188, pipeObj2, pipeTarget2, p2Diag, MQV, hostMannequins852, mqSeen852, floorAt852, laneAt852, MLANES, mallObj852, mallTarget852, mallWayTo852, aiTick852, mallMove852, get mallHold(){ return mallHold; }, get guide(){ return guide; }, hostLurker, opusTweak, fillDevices, get LRK(){ return LRK; }, lrSpot, animLurker, get running(){ return me.running; }, get W(){ return W; }, get N(){ return N; }, get stunCharge(){ return stunCharge; }, losClear, me, H, net, hide, unhide, throwCan, contextAction, useSkin, get mySkin(){ return mySkin; }, set mySkin(v){ mySkin=v; }, inPit, zoneOf, get G(){ return G; }, set G(v){ G=v; }, get mode(){ return mode; }, get role(){ return role; }, get level(){ return level; }, get walls(){ return walls; }, mDisp, doShift, monsterPos, ability, get abCD(){ return abCD; }, disguisedFrom, get fakes(){ return fakes; }, enterVent, nearVent, get ventT(){ return ventT; }, get ventCD(){ return ventCD; }, set ventCD(v){ ventCD=v; }, get abCD2(){ return abCD; }, inPit, get LK(){ return LK; }, get crankK(){ return crankK; }, ability, get curRH(){ return curRH; }, get MON(){ return MON; }, sfx, voice, noiseLevel, get settingsOpen(){ return settingsOpen; }, myPid, monsterVoice, pitchDown, dropDust, get silT(){ return silT; }, set silNext(v){ silNext=v; }, advanceLevel, aiObjectives, poolBlock, aiTick, aiReset, bfsFrom, cellOf, cc, floorY, TU, PG, camera, scene, renderer, applyUse, AI_DIFF, set diffOpt(v){ diffOpt=v; }, get M37(){ return M37; }, buildL37test:(sd)=>build37(sd), ripP, ripWho, makeAvatar, animAvatar, buildLevelTest:(sd,k)=>buildLevel(sd,k), fpArm:(roll,axis,curl)=>{ FP_ROLL = roll; FP_AXIS = axis; if (curl) Object.assign(FP_CURL, curl); buildFPArm(survSrc); }, VM, collide, k37, h37, d37, nav37, isNight, dayK, aiTick37, collide37, K37, sdShape, floorAt188, vis188, hostElev188, aiTick188, myCar188, elevPress188, ELV, HO, elDisp, update188, inLab, hostLab, labUse, labSensor, labStatus, startHatch, get hatchT(){ return hatchT; }, connected };
 </script>
 </body>
 </html>
