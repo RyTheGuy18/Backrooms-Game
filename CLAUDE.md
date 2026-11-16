@@ -6,7 +6,7 @@ First-person co-op Backrooms horror game for 1–4 players, played in the browse
 
 - Live: https://rytheguy18.github.io/Haunted-Pines/ (GitHub Pages, `main` branch, repo root)
 - Owner: Ryan (GitHub `rytheguy18` / `RyTheGuy18`). Plays it with friends and younger brothers, mostly on phones.
-- Current version: **v0.59.4** (shown bottom-right of the menu, `#ver`)
+- Current version: **v0.59.5** (shown bottom-right of the menu, `#ver`)
 
 ## Files
 
@@ -319,3 +319,5 @@ Controls (desktop): WASD, Shift sprint, C crouch, Left click / F flashlight, E h
 **v0.59.3 (Ryan: move the whole arm back toward the camera; the beam must come straight out of the end of the flashlight):** `FP_BACK` 0.5: after placing, the arm group slides that fraction of the way along the line from the flashlight to the eye (in VM space), so it stays where Ryan put it on screen, just closer and bigger (moving straight back on z pushed it off the bottom-right). `updateLights`: the player's spot `spots[0]` now sits on the lens (`VM.userData.lens` world position) and aims along the flashlight's +x axis (`_flAx`); the old chest position is the fallback when the hand isn't built. Because the beam no longer falls on your own hand, the glove/sleeve/flashlight have their own materials with `emissiveMap = map` (`VM.userData.handMats`), emissive 0.32 × the beam's flicker while the light is on, 0.03 off. Checked: spot position = lens position; screenshots lights on / off.
 
 **v0.59.4 (Ryan: the whole thing a tiny bit smaller):** `FP_BACK` 0.5 → 0.44 (on-screen size ×2.0 → ×1.79 of his poser framing, ~10% smaller, same spot on screen).
+
+**v0.59.5 (Ryan: 20% smaller than v0.59.4):** `FP_BACK` 0.44 → 0.3 (on-screen size ×1.79 → ×1.43 of his poser framing; size = 1/(1 − FP_BACK)).
