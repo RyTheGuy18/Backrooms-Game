@@ -27,7 +27,7 @@
   #ztxt{position:absolute;left:50%;bottom:9%;transform:translateX(-50%);font:12px/1 monospace;letter-spacing:2px;color:rgba(230,240,230,.8);text-shadow:0 0 3px #000}
   #vhs{position:fixed;inset:0;pointer-events:none;opacity:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.07) 0 1px,transparent 1px 3px)}
   #vband{position:absolute;left:0;right:0;height:12%;top:30%;background:linear-gradient(transparent,rgba(255,255,255,.22),rgba(120,200,255,.12),transparent)}
-  #vtxt{position:absolute;left:max(18px,env(safe-area-inset-left));bottom:18%;font-size:26px;color:#e8f0ff;text-shadow:2px 0 #f33,-2px 0 #3cf;opacity:0}
+  #vtxt{position:absolute;left:max(18px,var(--sa-left,env(safe-area-inset-left)));bottom:18%;font-size:26px;color:#e8f0ff;text-shadow:2px 0 #f33,-2px 0 #3cf;opacity:0}
   #black{position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;display:flex;align-items:center;justify-content:center;flex-direction:column;transition:opacity 1.2s;text-align:center;padding:0 20px;z-index:8}
   #black h2{font-family:'Special Elite',serif;font-size:clamp(26px,6.5vw,58px);color:#a2241a;letter-spacing:.06em;margin:0;text-shadow:3px 0 rgba(255,0,0,.35),-3px 0 rgba(0,200,255,.25)}
   #blackcount{font-family:'Special Elite',serif;font-size:clamp(110px,30vw,240px);line-height:1;color:#e9d27c;margin:6px 0 0;text-shadow:5px 0 rgba(255,40,40,.45),-5px 0 rgba(40,200,255,.35)}
@@ -37,11 +37,11 @@
   /* ---------- camcorder on-screen display ---------- */
   .osd{position:fixed;font-size:clamp(20px,3.2vw,28px);letter-spacing:.08em;color:#f4eed6;text-shadow:2px 0 rgba(255,40,40,.45),-2px 0 rgba(40,200,255,.4);pointer-events:none;z-index:21;display:none}
   body.showosd .osd{display:block}
-  #osdTL{left:max(18px,env(safe-area-inset-left));top:14px}
+  #osdTL{left:max(18px,var(--sa-left,env(safe-area-inset-left)));top:14px}
   #osdTL b{color:var(--red);font-weight:400;animation:blink 1.2s steps(1) infinite}
-  #osdTR{right:max(18px,env(safe-area-inset-right));top:14px;text-align:right}
-  #osdBL{left:max(18px,env(safe-area-inset-left));bottom:12px;opacity:.75}
-  #ver{right:max(18px,env(safe-area-inset-right));bottom:12px;opacity:.6;font-size:20px}
+  #osdTR{right:max(18px,var(--sa-right,env(safe-area-inset-right)));top:14px;text-align:right}
+  #osdBL{left:max(18px,var(--sa-left,env(safe-area-inset-left)));bottom:12px;opacity:.75}
+  #ver{right:max(18px,var(--sa-right,env(safe-area-inset-right)));bottom:12px;opacity:.6;font-size:20px}
   @keyframes blink{50%{opacity:0}}
 
   /* ---------- screens ---------- */
@@ -73,7 +73,7 @@
   #settings .btn{font-size:22px}
   .srow{display:flex;justify-content:space-between;align-items:baseline;font-size:19px;color:#cfc49e}
   #settings input[type=range]{padding:0;border:0;background:none;height:30px;accent-color:#e9d27c;width:100%}
-  #bGear{position:absolute;right:max(14px,env(safe-area-inset-right));top:8px;width:42px;height:42px;border:1px solid var(--line);background:rgba(0,0,0,.45);font-size:24px;line-height:1;pointer-events:auto;display:none;padding:0}
+  #bGear{position:absolute;right:max(14px,var(--sa-right,env(safe-area-inset-right)));top:8px;width:42px;height:42px;border:1px solid var(--line);background:rgba(0,0,0,.45);font-size:24px;line-height:1;pointer-events:auto;display:none;padding:0}
   body.touch #bGear{display:block}
   body.touch #plist{top:58px}
   .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -107,7 +107,7 @@
 
   /* ---------- HUD ---------- */
   #hud{position:fixed;inset:0;pointer-events:none;display:none;z-index:6;text-shadow:0 0 6px #000,0 0 2px #000}
-  #objBox{position:absolute;left:max(14px,env(safe-area-inset-left));top:10px;max-width:min(58vw,460px);padding:6px 14px 8px 10px;border-left:3px solid var(--hot);background:linear-gradient(90deg,rgba(0,0,0,.55),rgba(0,0,0,0))}
+  #objBox{position:absolute;left:max(14px,var(--sa-left,env(safe-area-inset-left)));top:10px;max-width:min(58vw,460px);padding:6px 14px 8px 10px;border-left:3px solid var(--hot);background:linear-gradient(90deg,rgba(0,0,0,.55),rgba(0,0,0,0))}
   #objBox .lbl{font-size:14px}
   #obj{font-size:22px;line-height:1.05}
   #side{display:none;font-size:15px;line-height:1.1;margin-top:4px;color:#d8cea6;opacity:.85}
@@ -121,7 +121,7 @@
   #bat{position:relative;width:62px;height:14px;border:2px solid #cfc59c;padding:2px}
   #bat:after{content:'';position:absolute;right:-6px;top:3px;width:3px;height:4px;background:#cfc59c}
   #batfill{height:100%;width:100%;background:#e8de9e;-webkit-mask:repeating-linear-gradient(90deg,#000 0 9px,transparent 9px 11px);mask:repeating-linear-gradient(90deg,#000 0 9px,transparent 9px 11px)}
-  #plist{position:absolute;right:max(14px,env(safe-area-inset-right));top:10px;display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+  #plist{position:absolute;right:max(14px,var(--sa-right,env(safe-area-inset-right)));top:10px;display:flex;flex-direction:column;align-items:flex-end;gap:4px}
   #plist .chip{font-size:18px;padding:2px 9px}
   #guide{position:absolute;left:50%;top:11%;transform:translateX(-50%);text-align:center;display:none;pointer-events:none;color:var(--hot)}
   #garr{font-size:30px;line-height:1;display:inline-block;opacity:.85} #glbl{font-size:17px;letter-spacing:.12em;opacity:.75;margin-top:2px}
@@ -151,8 +151,8 @@
   #stick{position:fixed;width:116px;height:116px;margin:-58px 0 0 -58px;border:2px solid rgba(241,230,180,.25);border-radius:50%;display:none;pointer-events:none;z-index:6}
   #knob{position:absolute;left:50%;top:50%;width:46px;height:46px;margin:-23px;border-radius:50%;background:rgba(241,230,180,.3)}
   /* v0.28.2 (Ryan): every button the same round size, in one column against the right edge */
-  #btns{position:fixed;right:max(8px,env(safe-area-inset-right));top:0;bottom:0;display:none;z-index:7;flex-direction:column;justify-content:center;align-items:center;gap:var(--bg,8px);
-    padding:60px 0 max(8px,env(safe-area-inset-bottom));pointer-events:none}   /* top 60px: the ⚙ button */
+  #btns{position:fixed;right:max(8px,var(--sa-right,env(safe-area-inset-right)));top:0;bottom:0;display:none;z-index:7;flex-direction:column;justify-content:center;align-items:center;gap:var(--bg,8px);
+    padding:60px 0 max(8px,var(--sa-bottom,env(safe-area-inset-bottom)));pointer-events:none}   /* top 60px: the ⚙ button */
   #btns button{width:var(--bs,62px);height:var(--bs,62px);flex:0 0 auto;pointer-events:auto;font-size:calc(var(--bs,62px)*.22)!important;letter-spacing:.02em!important}
   #btns button svg{width:calc(var(--bs,62px)*.36)!important;height:calc(var(--bs,62px)*.36)!important}
   #btns button{border-radius:50%;padding:0;background:rgba(14,12,5,.5);border:1.5px solid rgba(241,230,180,.32);font-size:16px;letter-spacing:.06em;line-height:1;position:relative;overflow:hidden;color:var(--ink)}
@@ -171,7 +171,10 @@
   #stick.run{border-color:rgba(233,210,124,.75);box-shadow:0 0 14px rgba(233,210,124,.35)} #stick.run #knob{background:rgba(233,210,124,.7)}
   #stick .rl{position:absolute;left:50%;top:-24px;transform:translateX(-50%);font-size:15px;letter-spacing:.2em;color:var(--hot);opacity:0} #stick.run .rl{opacity:1}
   #rotate{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px;background:#000;font-size:26px;letter-spacing:.12em;text-align:center;padding:20px}
-  @media (orientation:portrait){ body.touch.playing #rotate{display:flex} }
+  @media (orientation:portrait){ html:not(.rot) body.touch.playing #rotate{display:flex} }
+  html.rot,html.rot body{overflow:hidden}
+  html.rot body{position:fixed;left:0;top:0;transform-origin:0 0}
+  #saProbe{position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;pointer-events:none;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
   #settings select{width:100%;font:inherit;font-size:20px;color:var(--ink);background:rgba(20,18,10,.9);border:1px solid var(--line);padding:8px 10px;border-radius:0;-webkit-appearance:none;appearance:none}
   #settings select:disabled{opacity:.55}
   .devnote{font-size:16px;color:#a99f7c;line-height:1.25}
@@ -188,7 +191,7 @@
   body:has(#menu.show) .osd:not(#ver),body:has(#lobby.show) .osd:not(#ver){display:none!important}
   #code{font-size:clamp(40px,8vw,84px)!important;letter-spacing:.25em}
   #menu::after{content:'';position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.035) 0 1px,transparent 1px 3px);z-index:3}
-  #menu .mm{display:flex;width:100%;height:100%;align-items:center;gap:4vw;padding:max(16px,env(safe-area-inset-top)) max(4vw,env(safe-area-inset-right)) 16px max(5vw,env(safe-area-inset-left));box-sizing:border-box}
+  #menu .mm{display:flex;width:100%;height:100%;align-items:center;gap:4vw;padding:max(16px,var(--sa-top,env(safe-area-inset-top))) max(4vw,var(--sa-right,env(safe-area-inset-right))) 16px max(5vw,var(--sa-left,env(safe-area-inset-left)));box-sizing:border-box}
   #menu.sub .mm{display:none}
   .mmL{flex:0 0 auto;display:flex;flex-direction:column;align-items:flex-start;gap:clamp(4px,1.4vh,12px);min-width:200px}
   .mtitle h1{font-family:'Special Elite',monospace;font-size:clamp(34px,7vw,74px);margin:0;color:#e9d27c;letter-spacing:.06em;text-shadow:3px 0 rgba(255,40,40,.45),-3px 0 rgba(40,200,255,.4),0 0 18px rgba(233,210,124,.35);animation:crtflick 4s infinite}
@@ -214,7 +217,7 @@
   .tvosd{position:absolute;left:7%;right:7%;top:7%;display:flex;justify-content:space-between;font:bold clamp(10px,1.6vw,16px) monospace;color:#f4eed6;text-shadow:2px 0 rgba(255,40,40,.5),-2px 0 rgba(40,200,255,.45)}
   .tvknobs{position:absolute;right:4.5%;top:12%;display:flex;flex-direction:column;gap:18%;height:60%}
   .tvknobs i{display:block;width:clamp(16px,3.4vw,34px);aspect-ratio:1;border-radius:50%;background:radial-gradient(#6a604e,#1a1610);box-shadow:0 2px 4px #000}
-  .msub{display:none;position:absolute;inset:0;overflow:auto;padding:max(12px,env(safe-area-inset-top)) max(4vw,env(safe-area-inset-right)) 20px max(4vw,env(safe-area-inset-left));box-sizing:border-box}
+  .msub{display:none;position:absolute;inset:0;overflow:auto;padding:max(12px,var(--sa-top,env(safe-area-inset-top))) max(4vw,var(--sa-right,env(safe-area-inset-right))) 20px max(4vw,var(--sa-left,env(safe-area-inset-left)));box-sizing:border-box}
   .msub.show{display:block}
   .mhead{display:flex;align-items:center;gap:18px;margin-bottom:12px}
   .mhead h2{margin:0;font:bold clamp(18px,3vw,30px) monospace;letter-spacing:.2em;color:#e9d27c;text-shadow:2px 0 rgba(255,40,40,.4),-2px 0 rgba(40,200,255,.35)}
@@ -367,7 +370,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.59.6</div>
+<div class="osd" id="ver">v0.60.0</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -394,7 +397,7 @@
   <button class="btn" id="mhReload">RELOAD &amp; ASK AGAIN</button>
   <button class="btn ghost" id="mhClose">NOT NOW</button>
 </div></div>
-<div id="rotate"><div>⟲</div><div>TURN YOUR PHONE SIDEWAYS</div></div>
+<div id="saProbe"></div><div id="rotate"><div>⟲</div><div>TURN YOUR PHONE SIDEWAYS</div></div>
 <div id="stick"><div class="rl">RUN</div><div id="knob"></div></div>
 <div id="btns">
   <button id="bA"></button><button id="bB"></button><button id="bC"></button><button id="bD"></button><button id="bE"></button><button id="bF"></button><button id="bUse">USE</button>
@@ -495,6 +498,7 @@
   <div class="card">
     <div class="srow"><span class="lbl">LOOK SENSITIVITY</span><span id="vSens"></span></div><input type="range" id="sSens" min="30" max="250">
     <div class="srow"><span class="lbl">FIELD OF VIEW</span><span id="vFov"></span></div><input type="range" id="sFov" min="60" max="100">
+    <div class="row" id="rotRow"><button class="btn" id="bRot">SCREEN: AUTO-ROTATE</button></div><div class="devnote" id="rotNote"></div>
   </div>
   <div class="card">
     <button class="btn" id="bUpdate">UPDATE GAME</button>
@@ -580,8 +584,56 @@ camera.rotation.order = 'YXZ';
 scene.add(camera);
 const RH = isTouch ? 270 : 320;
 let curRH = RH;
+/* ===== v0.60 forced landscape (Ryan: on iPhone the game should auto-rotate and stay in landscape)
+   iOS Safari / home-screen apps ignore the manifest orientation and have no screen.orientation.lock().
+   So on a touch device whose viewport is portrait (held upright, or the iPhone's rotation lock is on)
+   the whole page is turned 90° with a CSS transform on <body> and laid out as landscape.
+   ROT.dir 1 = turned clockwise (phone's right edge up), -1 = counter-clockwise (left edge up).
+   AUTO-ROTATE picks the side from the motion sensor (iPhone asks once, on a tap); without it,
+   it stays on the last side (default 1). VW()/VH() = the game's layout size, tX/tY = a touch in layout px.
+   If the phone is really held sideways with rotation lock off, iOS turns the page itself and ROT is off. */
+const ROT = { on:false, dir:1, mode:'auto', asked:false, motion:false, gx:0 };
+try { const m = localStorage.getItem('lvl0_rot'); if (['auto','cw','ccw','off'].includes(m)) ROT.mode = m; } catch(e){}
+if (ROT.mode === 'ccw') ROT.dir = -1;
+const VW = () => ROT.on ? innerHeight : innerWidth, VH = () => ROT.on ? innerWidth : innerHeight;
+const tX = t => !ROT.on ? t.clientX : ROT.dir > 0 ? t.clientY : innerHeight - t.clientY;
+const tY = t => !ROT.on ? t.clientY : ROT.dir > 0 ? innerWidth - t.clientX : t.clientX;
+function readSA(){ const el = document.getElementById('saProbe'); if (!el) return [0,0,0,0]; const c = getComputedStyle(el); return ['paddingTop','paddingRight','paddingBottom','paddingLeft'].map(k => parseFloat(c[k]) || 0); }
+let rotKey = '';
+function applyRot(){
+  const want = isTouch && ROT.mode !== 'off' && innerHeight > innerWidth;
+  const key = want + ':' + ROT.dir + ':' + innerWidth + 'x' + innerHeight;
+  if (key === rotKey) return; rotKey = key; ROT.on = want;
+  const H = document.documentElement, B = document.body;
+  H.classList.toggle('rot', want);
+  for (const k of ['top','right','bottom','left']) H.style.removeProperty('--sa-' + k);
+  if (!want){ B.style.width = B.style.height = B.style.transform = ''; return; }
+  const W = innerWidth, Hh = innerHeight;
+  B.style.width = Hh + 'px'; B.style.height = W + 'px';
+  B.style.transform = ROT.dir > 0 ? `translateX(${W}px) rotate(90deg)` : `translateY(${Hh}px) rotate(-90deg)`;
+  // the notch / home bar insets, moved to the sides they end up on
+  const [t, r, b, l] = readSA(), sa = ROT.dir > 0 ? { top:r, right:b, bottom:l, left:t } : { top:l, right:t, bottom:r, left:b };
+  for (const k in sa) H.style.setProperty('--sa-' + k, sa[k] + 'px');
+}
+function rotMotion(e){
+  const g = e.accelerationIncludingGravity; if (!g || g.x == null) return; ROT.motion = true;
+  const gx = (isIOS ? -1 : 1)*g.x, gy = (isIOS ? -1 : 1)*(g.y || 0);   // iOS reports gravity, the spec the reaction
+  ROT.gx = gx;
+  if (ROT.mode !== 'auto') return;
+  if (Math.abs(gx) > 5.5 && Math.abs(gx) > Math.abs(gy)*1.2){ const d = gx > 0 ? 1 : -1; if (d !== ROT.dir){ ROT.dir = d; rotKey = ''; resize(); } }
+}
+function rotAsk(){
+  if (ROT.asked || ROT.mode !== 'auto' || !ROT.on) return; ROT.asked = true;
+  const DM = window.DeviceMotionEvent;
+  if (DM && typeof DM.requestPermission === 'function') DM.requestPermission().then(r => { if (r === 'granted') addEventListener('devicemotion', rotMotion); }).catch(()=>{});
+  else addEventListener('devicemotion', rotMotion);
+}
+if (!(window.DeviceMotionEvent && typeof DeviceMotionEvent.requestPermission === 'function')) addEventListener('devicemotion', rotMotion);
+addEventListener('touchend', rotAsk, { passive:true }); addEventListener('click', rotAsk);
+addEventListener('orientationchange', () => setTimeout(() => { rotKey = ''; resize(); }, 250));
 function resize(){
-  const w = innerWidth, h = innerHeight;
+  applyRot();
+  const w = VW(), h = VH();
   renderer.setSize(Math.max(1, Math.round(curRH*w/h)), curRH, false);
   camera.aspect = w/h; camera.updateProjectionMatrix();
 }
@@ -6641,9 +6693,15 @@ function applySet(){
   if (!dashT){ camera.fov = SET.fov; camera.updateProjectionMatrix(); }
 }
 for (const [id, key] of [['sVol','vol'],['sVv','vv'],['sSens','sens'],['sFov','fov'],['sMg','mg']]){ const el = $(id); el.value = SET[key]; el.addEventListener('input', ()=>{ SET[key] = +el.value; applySet(); saveSet(); }); }
+const ROT_LBL = { auto:'SCREEN: AUTO-ROTATE', cw:'SCREEN: LANDSCAPE ⟳', ccw:'SCREEN: LANDSCAPE ⟲', off:'SCREEN: FOLLOW PHONE' };
+function rotUI(){ $('bRot').textContent = ROT_LBL[ROT.mode]; $('rotRow').style.display = isTouch ? '' : 'none';
+  $('rotNote').textContent = !isTouch ? '' : ROT.mode === 'auto' ? (ROT.motion ? 'Flips to whichever way you hold the phone, even with rotation lock on.' : 'Allow Motion access when asked so it can flip the right way up. Otherwise pick a side.') : ROT.mode === 'off' ? 'Turn your phone sideways yourself (rotation lock off).' : 'Always landscape on this side.'; }
+$('bRot').addEventListener('click', () => { const o = ['auto','cw','ccw','off']; ROT.mode = o[(o.indexOf(ROT.mode) + 1) % 4]; if (ROT.mode === 'cw') ROT.dir = 1; if (ROT.mode === 'ccw') ROT.dir = -1;
+  try { localStorage.setItem('lvl0_rot', ROT.mode); } catch(e){} if (ROT.mode === 'auto'){ ROT.asked = false; rotAsk(); } rotKey = ''; resize(); fitButtons(); rotUI(); });
+rotUI();
 const soloPaused = () => settingsOpen && net.solo && (mode === 'play' || mode === 'spect');
 function openSettings(){
-  if (settingsOpen) return; settingsOpen = true;
+  if (settingsOpen) return; settingsOpen = true; rotUI();
   const inGame = mode === 'play' || mode === 'spect' || mode === 'deadAnim' || mode === 'fallAnim' || mode === 'escAnim';
   $('pausenote').textContent = inGame ? (net.solo ? 'PAUSED' : 'The game keeps going while you\'re in here.') : '';
   $('bResume').textContent = inGame ? 'RESUME' : 'BACK';
@@ -7547,17 +7605,17 @@ const STICK_R = 50, STICK_DZ = 0.14;
 touch.addEventListener('touchstart', e=>{
   e.preventDefault();
   for (const t of e.changedTouches){
-    if (t.clientX < innerWidth*0.42 && stickId===null && mode==='play'){
-      stickId=t.identifier; stickO=[t.clientX,t.clientY]; stickV=[0,0]; stickRun=false;
-      stick.style.left=t.clientX+'px'; stick.style.top=t.clientY+'px'; stick.style.display='block'; knob.style.transform=''; stick.classList.remove('run');
-    } else if (lookId===null){ lookId=t.identifier; lookL=[t.clientX,t.clientY]; lookT=performance.now(); if (mode==='spect') specIdx++; }
+    if (tX(t) < VW()*0.42 && stickId===null && mode==='play'){
+      stickId=t.identifier; stickO=[tX(t),tY(t)]; stickV=[0,0]; stickRun=false;
+      stick.style.left=tX(t)+'px'; stick.style.top=tY(t)+'px'; stick.style.display='block'; knob.style.transform=''; stick.classList.remove('run');
+    } else if (lookId===null){ lookId=t.identifier; lookL=[tX(t),tY(t)]; lookT=performance.now(); if (mode==='spect') specIdx++; }
   }
 },{passive:false});
 touch.addEventListener('touchmove', e=>{
   e.preventDefault();
   for (const t of e.changedTouches){
     if (t.identifier===stickId){
-      let dx=t.clientX-stickO[0], dy=t.clientY-stickO[1]; const l=Math.hypot(dx,dy), m=STICK_R;
+      let dx=tX(t)-stickO[0], dy=tY(t)-stickO[1]; const l=Math.hypot(dx,dy), m=STICK_R;
       // v0.28.2 (Ryan): the stick stays locked where your thumb first landed (it used to follow and drift up while running)
       // pushed out past the ring = run (a little hysteresis so it doesn't flicker)
       if (role === 'survivor' || role === 'monster'){ if (!stickRun && l > m*1.3 && dy < l*0.35) stickRun = true; else if (stickRun && (l < m*1.1 || dy > l*0.5)) stickRun = false; }
@@ -7567,10 +7625,10 @@ touch.addEventListener('touchmove', e=>{
       stickV=[nx*v, ny*v]; knob.style.transform=`translate(${nx*kl}px,${ny*kl}px)`;
     } else if (t.identifier===lookId && mode==='play'){
       const now = performance.now(), dt = Math.max(8, now - lookT); lookT = now;
-      const ddx = t.clientX-lookL[0], ddy = t.clientY-lookL[1], spd = Math.hypot(ddx,ddy)/dt;   // px per ms
+      const ddx = tX(t)-lookL[0], ddy = tY(t)-lookL[1], spd = Math.hypot(ddx,ddy)/dt;   // px per ms
       const acc = 1 + Math.min(1.2, Math.max(0, spd - 0.35)*0.9);
       const sv = 0.0062*SET.sens/100*acc*(1 - 0.72*zK); me.yaw -= ddx*sv; me.pitch = clamp(me.pitch-ddy*sv*0.85, -1.35, 1.35);
-      lookL=[t.clientX,t.clientY];
+      lookL=[tX(t),tY(t)];
     }
   }
 },{passive:false});
@@ -7629,7 +7687,7 @@ function updateButtons(){
 }
 function fitButtons(){
   const bs = $('btns'), n = [...bs.children].filter(b=>b.style.display !== 'none').length || 1;
-  const vv = window.visualViewport, h = (vv ? vv.height : innerHeight) - 72, gap = 7;
+  const vv = window.visualViewport, h = (ROT.on ? VH() : vv ? vv.height : innerHeight) - 72, gap = 7;
   const size = Math.max(36, Math.min(54, Math.floor((h - gap*(n-1))/n)));   // v0.28.3: a bit smaller (Ryan)
   bs.style.setProperty('--bs', size + 'px'); bs.style.setProperty('--bg', gap + 'px');
 }
@@ -7762,7 +7820,7 @@ let tvWasOn = true;
 function renderTVRoom(dt){
   if (!TVR) buildTVRoom();
   if (!tvWasOn){ tvWasOn = true; document.body.classList.add('tvroom'); }
-  const R = TVR, cam = R.cam, W = innerWidth, H = innerHeight; R.t += dt; const t = R.t;
+  const R = TVR, cam = R.cam, W = VW(), H = VH(); R.t += dt; const t = R.t;
   // v0.50 (Ryan): PLAY → the camera pushes in almost all the way to the TV for the level select
   const zt = ($('pLevels').classList.contains('show') || mode === 'lobby' || settingsOpen) ? 1 : 0; /* v0.51.4: the lobby (HOST/JOIN) zooms in too; v0.51.8: and settings */ R.zm = (R.zm || 0) + (zt - (R.zm || 0))*Math.min(1, dt*2.2); const zk = R.zm*R.zm*(3 - 2*R.zm);
   cam.aspect = W/H; const th = Math.tan(cam.fov*Math.PI/360), fh = lerp(H < 520 ? 0.68 : 0.48, H < 520 ? 0.97 : 0.9, zk), fw = lerp(0.8, 0.98, zk);
@@ -7785,10 +7843,10 @@ function renderTVRoom(dt){
 { let sc = null, y0 = 0, st0 = 0, moved = false, k = 1, vy = 0, ly = 0, lt = 0;
   const box = el => { for (let e = el; e && e.id !== 'tvpages'; e = e.parentElement){ const cs = getComputedStyle(e); if ((cs.overflowY === 'auto' || cs.overflowY === 'scroll') && e.scrollHeight > e.clientHeight + 2) return e; } return null; };
   const tp = $('tvpages');
-  tp.addEventListener('touchstart', e=>{ if (e.touches.length !== 1){ sc = null; return; } sc = box(e.target); if (!sc) return; const t = e.touches[0]; y0 = ly = t.clientY; lt = performance.now(); st0 = sc.scrollTop; moved = false; vy = 0;
-    const r = document.querySelector('#tvroom .crtscr').getBoundingClientRect(); k = TVH / Math.max(1, r.height); }, { passive:true });
-  tp.addEventListener('touchmove', e=>{ if (!sc) return; const t = e.touches[0], dy = t.clientY - y0; if (Math.abs(dy) > 8) moved = true; if (!moved) return;
-    e.preventDefault(); sc.scrollTop = st0 - dy*k; const now = performance.now(); vy = (t.clientY - ly)/Math.max(1, now - lt); ly = t.clientY; lt = now; }, { passive:false });
+  tp.addEventListener('touchstart', e=>{ if (e.touches.length !== 1){ sc = null; return; } sc = box(e.target); if (!sc) return; const t = e.touches[0]; y0 = ly = tY(t); lt = performance.now(); st0 = sc.scrollTop; moved = false; vy = 0;
+    const r = document.querySelector('#tvroom .crtscr').getBoundingClientRect(); k = TVH / Math.max(1, ROT.on ? r.width : r.height); }, { passive:true });
+  tp.addEventListener('touchmove', e=>{ if (!sc) return; const t = e.touches[0], dy = tY(t) - y0; if (Math.abs(dy) > 8) moved = true; if (!moved) return;
+    e.preventDefault(); sc.scrollTop = st0 - dy*k; const now = performance.now(); vy = (tY(t) - ly)/Math.max(1, now - lt); ly = tY(t); lt = now; }, { passive:false });
   tp.addEventListener('touchend', ()=>{ if (!sc) return; const s = sc; let v = vy*k*16; sc = null; if (!moved) return;
     const fl = ()=>{ if (Math.abs(v) < 0.4) return; s.scrollTop -= v; v *= 0.92; requestAnimationFrame(fl); }; requestAnimationFrame(fl); });
   tp.addEventListener('click', e=>{ if (moved){ e.stopPropagation(); e.preventDefault(); moved = false; } }, true);
