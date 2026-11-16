@@ -112,3 +112,5 @@ v0.56.0: the Occupant no longer gets stuck on desks, railings or ledges (school,
 v0.57.0: new Level Fun: party rooms, presents (one has the exit key, the rest are party horns), and Partygoers who watch you while the lights are on and hunt you when they go out (shut the doors!); the Listener now ignores walking but hears any talking and sprints at you; flashlight batteries drain faster
 v0.57.1: no Occupant in School Halls anymore, only the hall monitors
 v0.57.2: no Occupant in Level Fun anymore; if a player is the Occupant, they play as a Partygoer (harmless while the lights are on, deadly when they go out, and they can't open doors)
+v0.58.0: the Partygoers use the real model now (balloon removed) with walk and breathing-idle animations; when you're close they stand and stare, their head following you, and shuffle round if you circle them; 2 on Easy up to 5 on Impossible
+v0.59.0: new first-person hand: a gloved hand with a sleeve, fingers closed round the flashlight
