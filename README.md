@@ -105,3 +105,4 @@ v0.51.8: the camera zooms into the TV for settings too
 v0.51.9: the ASYNC logo no longer flashes on the menu TV
 v0.52.0: blackouts kill every light on the map; a tension system that paces scares and fakes the monster's footsteps; the Listener hunts by sound in Pipe Dreams; caught players drop their flashlight, still on; teammates' voices carry a bit further; new HUD; new tape-rewind death screen
 v0.53.0: the Snatcher shambles with a zombie walk and writhes in agony when a flashlight blinds it
+v0.53.1: the Snatcher swipes at you with a zombie attack when it catches someone or lunges
