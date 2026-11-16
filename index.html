@@ -367,7 +367,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.59.3</div>
+<div class="osd" id="ver">v0.59.4</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -5576,7 +5576,7 @@ let fpHandSrc = null;
 // v0.59.2 (Ryan's pose from the Hand Poser artifact): models/fp-hand.glb is the FLAT glove; it's rigged here exactly like the poser does it
 // (wrist, thumb1–3, index/middle/ring/pinky 1–3), posed with FP_POSE, baked once into a static mesh, and placed in the view-model frame.
 // The pinky is hidden (Ryan: "hide or bend the pinky toward the flashlight" — it sits too far from the handle to reach it).
-const FP_BACK = 0.5;   // v0.59.3 (Ryan): the whole arm pulled back toward the camera: this fraction of the way along the line from the flashlight to the eye (it stays where it was on screen, just closer and bigger)
+const FP_BACK = 0.44;   // v0.59.3 (Ryan): the whole arm pulled back toward the camera: this fraction of the way along the line from the flashlight to the eye (it stays where it was on screen, just closer and bigger)
 const FP_POSE = {"v":1,"joints":{"wrist.x":1,"wrist.y":-15,"wrist.z":14,"thumb1.x":-21,"thumb1.y":12,"thumb1.z":15},"flashlight":{"p":[-0.2566,-0.2357,-1.5552],"q":[0.0279,0.795,-0.0145,0.6059],"s":9.2857},"arm":{"p":[0.0133,0.1604,0.1147],"q":[-0.0089,0.0277,-0.6125,0.79],"s":0.14}, hide:['pinky1'] };
 function rigFPGlove(geoSrc){
   const FINGERS = [['index', -0.23], ['middle', 0.19], ['ring', 0.6], ['pinky', 1.03]], KN = -1.9, WRIST = new THREE.Vector3(0.35, 0, -0.3), THUMB_B = new THREE.Vector3(-0.22, -0.16, -0.72);

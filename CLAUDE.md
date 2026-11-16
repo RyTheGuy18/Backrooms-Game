@@ -6,7 +6,7 @@ First-person co-op Backrooms horror game for 1–4 players, played in the browse
 
 - Live: https://rytheguy18.github.io/Haunted-Pines/ (GitHub Pages, `main` branch, repo root)
 - Owner: Ryan (GitHub `rytheguy18` / `RyTheGuy18`). Plays it with friends and younger brothers, mostly on phones.
-- Current version: **v0.59.3** (shown bottom-right of the menu, `#ver`)
+- Current version: **v0.59.4** (shown bottom-right of the menu, `#ver`)
 
 ## Files
 
@@ -317,3 +317,5 @@ Controls (desktop): WASD, Shift sprint, C crouch, Left click / F flashlight, E h
 **v0.59.2 (Ryan posed it himself in the Hand Poser: "use this in game", and hide or bend the pinky toward the flashlight):** `FP_POSE` = his pose code verbatim (wrist + thumb only) + `hide:['pinky1']`. `placeFPHand()` now: `rigFPGlove()` (the poser's rig, same joint positions and weights) on the flat glove, sets the joints, scales hidden bones to 0.001, bakes with `applyBoneTransform` into a static mesh, places the arm group from `FP_POSE.arm` (VM frame) and the flashlight from `FP_POSE.flashlight` under a holder carrying the wrist bone's matrix; the lens is a child of the flashlight (+0.104 x). `FPH` and the v0.59.1 placement code are gone. Measured: with his grip (flashlight under the index/middle fingers) the pinky tip stays ≥ 3.3 flashlight radii from the handle at any bend/spread, so it's hidden instead (only the knuckle stub remains). To change the pose: Ryan copies a new code from the poser → replace `FP_POSE`.
 
 **v0.59.3 (Ryan: move the whole arm back toward the camera; the beam must come straight out of the end of the flashlight):** `FP_BACK` 0.5: after placing, the arm group slides that fraction of the way along the line from the flashlight to the eye (in VM space), so it stays where Ryan put it on screen, just closer and bigger (moving straight back on z pushed it off the bottom-right). `updateLights`: the player's spot `spots[0]` now sits on the lens (`VM.userData.lens` world position) and aims along the flashlight's +x axis (`_flAx`); the old chest position is the fallback when the hand isn't built. Because the beam no longer falls on your own hand, the glove/sleeve/flashlight have their own materials with `emissiveMap = map` (`VM.userData.handMats`), emissive 0.32 × the beam's flicker while the light is on, 0.03 off. Checked: spot position = lens position; screenshots lights on / off.
+
+**v0.59.4 (Ryan: the whole thing a tiny bit smaller):** `FP_BACK` 0.5 → 0.44 (on-screen size ×2.0 → ×1.79 of his poser framing, ~10% smaller, same spot on screen).
