@@ -366,7 +366,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.54.0</div>
+<div class="osd" id="ver">v0.55.0</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -433,7 +433,7 @@
     <b>Blind it:</b> hold your flashlight on its face up close to stun it.<br>
     <b>Escape Level 0</b> and everyone still alive drops into <b>Level 1</b>, a dark parking garage. Start all 5 generators (it takes a while and it's LOUD: the Occupant will come), then find the exit.<br>
     <b>Escape the garage</b> and you wake up in <b>Level 37, the Poolrooms</b>. Turn all 3 drain valves to empty the great pool, then climb down to the drain at the bottom.<br>
-    <b>Adrenaline</b> kicks in when it's close, so run. It walks faster than you but it can't sprint.<br>
+    <b>Adrenaline</b> kicks in when it's close, so run. It stalks slowly, but once it sees you it runs (still slower than your sprint).<br>
     <b>Crouch in the dark</b> with your light off and it can barely see you.<br>
     <b>Trust nobody far away.</b> It can look like one of you. Watch for a hazmat suit with no flashlight and lights flickering around it, or hold your light on them.<br><br>
     <i>The Occupant</i> hunts by sound: it hears running, talking and gasps, but can't see you through walls. It can kill the lights, move the walls, fake footsteps, disguise itself as a survivor, lunge forward with its arms out, and crawl through vents (you'll hear it climb out). It hears every fuse you place.<br>
@@ -535,7 +535,7 @@ const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platfor
 document.body.classList.toggle('touch', isTouch);
 $('controls').textContent = isTouch
   ? 'Left thumb moves, right thumb looks. USE pops up next to lockers.'
-  : 'Click to look · WASD move · Shift run · C crouch · Left click / F flashlight · E hide · V mute mic · Esc settings · Occupant: Shift sprint, E vent, 1 blackout, 2 disguise, 3 dash.';
+  : 'Click to look · WASD move · Shift run · C crouch · Left click / F flashlight · E hide · V mute mic · Esc settings · Occupant: Shift run, E vent, 1 blackout, 2 disguise, 3 dash.';
 function vibrate(p){ try{ navigator.vibrate && navigator.vibrate(p); }catch(e){} }
 
 /* ================= constants ================= */
@@ -1591,7 +1591,7 @@ function aiTick852(dt, alive){
   if (A.el){ const T = A.el; T.t += dt; G.ach = 0; G.ads = 0;
     const f = floorAt852(G.ax, G.az); if (f === T.tf && !T.on){ A.el = null; A.mode = 'wander'; A.wp = null; aiTick(dt, same); return; }
     if (T.t > 70){ A.el = null; aiTick(dt, same); return; }
-    const sp = MON_SPEED*D.spd*0.9;
+    const sp = D.hunt;   // v0.55: walks to the escalator/stairs
     if (!T.on){ const w = mallWayTo852(G.ax, G.az, T.tf); if (!w){ A.el = null; return; }
       if (Math.hypot(w.p[0]-G.ax, w.p[1]-G.az) < 0.6){ T.on = { ln:w.ln, up:T.tf > f, f0:f }; }
       else if (!aiGo188(w.p[0], w.p[1], sp, dt)){ A.el = null; return; } after(); return; }
@@ -4878,7 +4878,7 @@ function aiGo188(tx, tz, sp, dt){
   const st = Math.min(d, sp*dt); [G.ax, G.az] = collide(ax + dx/d*st, az + dz/d*st, 0.35); G.ay = Math.atan2(dx, dz); G.amv = 1; return true;
 }
 function aiElev188(dt){
-  const A = H.ai, T = A.el, el = G.el[T.k], fA = floorAt188(G.ax, G.az), lp = level.lands[T.k][fA], cp = level.cars[T.k][fA], sp = MON_SPEED*aiD().spd*0.85;
+  const A = H.ai, T = A.el, el = G.el[T.k], fA = floorAt188(G.ax, G.az), lp = level.lands[T.k][fA], cp = level.cars[T.k][fA], sp = aiD().hunt;
   G.ach = 0; G.ads = 0; T.t += dt; T.all = (T.all||0) + dt;
   if (T.all > 90){ A.el = null; return; }
   const face = () => { G.ay = Math.atan2(-lp.nx, -lp.nz); G.amv = 0; };
@@ -5266,14 +5266,14 @@ function makeSnatcher(){
    its position mapped into the glb Armature's space ((X, Z, −Y)·~9.5); the walk's forward root motion is stripped (the game moves it).
    WALK while it moves (sped up to its pace, see SN_WALK_V), AGONY (from 0.5 s in: hands to its face, then doubled over) while a flashlight has it blinded. */
 let snatcherClips = null;
-const SN_ACTS = ['idle','walk','agony','attack'], SN_ATK_T0 = 0.25;   // attack: wind-up from 0.25 s, the swipe lands ~0.5–1.0 s
-const SN_WALK_V = 0.57, SN_WALK_TS = 2.0, SN_RUN_TS = 2.5, SN_AGONY_T0 = 0.5;   // the walk clip covers ~0.57 m/s at the Snatcher's 2.7 m size; played ×2 walking, ×2.5 sprinting (the Occupant moves 4 m/s, so the feet still slide a bit)
+const SN_ACTS = ['idle','walk','run','agony','attack'], SN_ATK_T0 = 0.25, SN_RUN_V = 4.5;   // v0.55: Zombie Run (retargeted from Ryan's teacher-rig FBX) covers ~4.5 m/s at 2.7 m   // attack: wind-up from 0.25 s, the swipe lands ~0.5–1.0 s
+const SN_WALK_V = 0.57, SN_WALK_TS = 2.0, SN_RUN_TS = 2.5, SN_AGONY_T0 = 0.5;   // v0.55: the walk is now played at speed / SN_WALK_V, so its feet match the ground   // the walk clip covers ~0.57 m/s at the Snatcher's 2.7 m size; played ×2 walking, ×2.5 sprinting (the Occupant moves 4 m/s, so the feet still slide a bit)
 function snatcherActs(M){ const S = M.gltf; if (S.acts || !snatcherClips) return;
-  const walk = S.mixer.clipAction(snatcherClips.Walk), agony = S.mixer.clipAction(snatcherClips.Agony), attack = snatcherClips.Attack ? S.mixer.clipAction(snatcherClips.Attack) : null;
-  walk.play(); walk.setEffectiveWeight(0); agony.setLoop(THREE.LoopOnce); agony.clampWhenFinished = true; agony.play(); agony.setEffectiveWeight(0);
+  const walk = S.mixer.clipAction(snatcherClips.Walk), agony = S.mixer.clipAction(snatcherClips.Agony), attack = snatcherClips.Attack ? S.mixer.clipAction(snatcherClips.Attack) : null, run = snatcherClips.Run ? S.mixer.clipAction(snatcherClips.Run) : null;
+  walk.play(); walk.setEffectiveWeight(0); if (run){ run.play(); run.setEffectiveWeight(0); } agony.setLoop(THREE.LoopOnce); agony.clampWhenFinished = true; agony.play(); agony.setEffectiveWeight(0);
   if (attack){ attack.setLoop(THREE.LoopOnce); attack.clampWhenFinished = true; attack.play(); attack.setEffectiveWeight(0); }
   if (S.idle) S.idle.setEffectiveWeight(1);
-  S.acts = { idle:S.idle, walk, agony, attack }; S.w.attack = 0; }
+  S.acts = { idle:S.idle, walk, run, agony, attack }; S.w.attack = 0; S.w.run = 0; }
 fetch('models/snatcher-anims.json').then(r=>r.json()).then(list=>{
   const C = {};
   for (const c of list) C[c.name] = new THREE.AnimationClip(c.name, c.dur, c.tracks.map(([n, k, v]) => new (k === 'q' ? THREE.QuaternionKeyframeTrack : THREE.VectorKeyframeTrack)(n, c.times, v)));
@@ -5285,7 +5285,7 @@ function animSnatcher(M, t, moving, speed, stunned, dash, attack){
   for (const [b,q] of S.saved) b.quaternion.copy(q);           // undo last frame's offsets before the clip runs
   const A = S.acts;
   if (A){   // v0.53: blend idle / walk / agony by weight
-    const want = stunned ? 'agony' : (attack || dash) ? 'attack' : moving ? 'walk' : 'idle';
+    const want = stunned ? 'agony' : (attack || dash) ? 'attack' : moving ? (speed >= MON_RUN_V && A.run ? 'run' : 'walk') : 'idle';
     if (want !== S.cur){ if (want === 'agony'){ A.agony.reset(); A.agony.time = SN_AGONY_T0; A.agony.play(); }
       if (want === 'attack'){ A.attack.reset(); A.attack.time = SN_ATK_T0; A.attack.play(); }
       S.cur = want; }
@@ -5294,7 +5294,8 @@ function animSnatcher(M, t, moving, speed, stunned, dash, attack){
     for (const n of SN_ACTS) S.w[n] += ((n === want ? 1 : 0) - S.w[n])*k;
     const tot = SN_ACTS.reduce((a, n) => a + S.w[n], 0) || 1;
     for (const n of SN_ACTS) if (A[n]) A[n].setEffectiveWeight(S.w[n]/tot);
-    A.walk.setEffectiveTimeScale(dash ? 2.8 : speed >= 4 ? SN_RUN_TS : SN_WALK_TS);   // speed: 2 = walking (4 m/s), 4 = sprinting
+    A.walk.setEffectiveTimeScale(dash ? 2.8 : clamp(speed/SN_WALK_V, 1, 5));   // speed in m/s (v0.55): feet match the ground
+    if (A.run) A.run.setEffectiveTimeScale(clamp(speed/SN_RUN_V, 0.6, 1.3));
   }
   S.mixer.update(dt);
   S.saved.clear();
@@ -5561,11 +5562,15 @@ function darkHunt(dt, alive){ const A = H.ai; if (!A) return; A.dk = Math.max(0,
     const d = Math.hypot(p.x-G.ax, p.z-G.az); if (d < bd){ bd = d; best = p; } }
   if (!best) return; A.dk = 2.5;
   if (A.mode !== 'chase'){ A.mode = 'hunt'; A.lx = best.x; A.lz = best.z; A.lt = Math.max(A.lt||0, 8); A.rp = 0; } }
+/* v0.55 (Ryan): STALK SLOW, CHASE FAST. The computer Occupant walks ~1.5 m/s while it wanders (the Snatcher's zombie walk, matched to its pace),
+   walks faster (hunt) to a noise it heard, and only RUNS (MON_SPEED × spd, Zombie Run clip) once it sees you, cuts you off (IMPOSSIBLE) or
+   hunts you in a blackout. A player Occupant walks MON_WALK and holds SPRINT to run at MON_SPEED for ~11 s (MON_RUN_DRAIN / MON_RUN_REC). */
+const MON_WALK = 2.0, MON_RUN_DRAIN = 9, MON_RUN_REC = 14, MON_RUN_V = 2.6;   // MON_RUN_V: at or above this it's drawn running
 const AI_DIFF = [
-  { name:'EASY',       hear:0.45, see:9,  near:4, spd:0.85, wander:1.7, drift:0.25, persist:0.5, spr:0, dash:0, stun:1.25, bo:0, vent:0, lead:0,   obj:0 },
-  { name:'NORMAL',     hear:1,    see:15, near:6, spd:1,    wander:2.0, drift:1,    persist:1,   spr:0, dash:1, stun:1,    bo:1, vent:0, lead:0,   obj:0 },
-  { name:'HARD',       hear:1.35, see:19, near:7, spd:1.04, wander:2.4, drift:1,    persist:1.5, spr:1, dash:1, stun:0.8,  bo:1, vent:1, lead:0.6, obj:1 },
-  { name:'IMPOSSIBLE', hear:1.8,  see:24, near:8, spd:1.08, wander:2.8, drift:1,    persist:2.2, spr:1, dash:1, stun:0.6,  bo:1, vent:2, lead:1.4, obj:2 },
+  { name:'EASY',       hear:0.45, see:9,  near:4, spd:0.85, wander:1.3, hunt:1.8, drift:0.25, persist:0.5, spr:0, dash:0, stun:1.25, bo:0, vent:0, lead:0,   obj:0 },
+  { name:'NORMAL',     hear:1,    see:15, near:6, spd:1,    wander:1.5, hunt:2.2, drift:1,    persist:1,   spr:0, dash:1, stun:1,    bo:1, vent:0, lead:0,   obj:0 },
+  { name:'HARD',       hear:1.35, see:19, near:7, spd:1.04, wander:1.6, hunt:2.5, drift:1,    persist:1.5, spr:1, dash:1, stun:0.8,  bo:1, vent:1, lead:0.6, obj:1 },
+  { name:'IMPOSSIBLE', hear:1.8,  see:24, near:8, spd:1.08, wander:1.8, hunt:2.8, drift:1,    persist:2.2, spr:1, dash:1, stun:0.6,  bo:1, vent:2, lead:1.4, obj:2 },
 ];
 function freshState(r=0){ return { ph:'lobby', r, mo:'AI', ax:0, az:0, ay:0, amv:0, w:'', wv:0, fz:[], pl:0, open:0, ring:-1, aw:[], bt:[], bo:[], dead:[], esc:[], grace:0, sk:0, cn:[], stun:0, t0:0, dg:0, dgp:'', lv:0, gen:[], ads:0, kl:[], ov:monVoiceOpt, df:diffOpt, sl:startOpt, ach:0, avt:0, tod:0, asub:0, stk:0, lr:[0,0,0,0,0], lkd:[], ld:0, lp:100, lbo:0, ex:exOpt, fl:[], lsk:[], ls:[0,0,0,0,0] }; }
 let G = freshState();
@@ -5813,7 +5818,7 @@ function aiTick(dt, alive){
   A.sprCD = Math.max(0, (A.sprCD||0) - dt);
   if (A.mode==='chase' || (A.mode==='cut' && D.obj > 1)){ tx=A.lx; tz=A.lz; sp=SPD;
     if (D.spr){ if (A.sprT > 0){ A.sprT -= dt; sp = SPD*1.15; if (A.sprT <= 0) A.sprCD = 4; } else if (A.sprCD <= 0) A.sprT = 1.8; } }
-  else if (A.mode==='hunt' || A.mode==='cut'){ tx=A.lx; tz=A.lz; sp=SPD;
+  else if (A.mode==='hunt' || A.mode==='cut'){ tx=A.lx; tz=A.lz; sp = (A.dk||0) > 0 ? SPD : D.hunt;   // v0.55: walks to what it heard; runs at you in the dark
     if (Math.hypot(tx-ax,tz-az)<1.2){ if (A.mode==='cut'){ A.objCD[A.cutKey] = now + 20; A.lt = Math.min(A.lt, 2.5); A.mode='hunt'; } else { A.mode='wander'; A.wp=null; } } }
   else {
     if (!A.wp || Math.hypot(A.wp[0]-ax,A.wp[1]-az) < 1.5){
@@ -5860,7 +5865,7 @@ function aiTick(dt, alive){
   const dx=gx-ax, dz=gz-az, d=Math.hypot(dx,dz)||1;
   [G.ax, G.az] = collide(ax+dx/d*sp*dt, az+dz/d*sp*dt, 0.35);
   if (inLab(G.ax, G.az)){ G.ax = ax; G.az = az; A.mode = 'wander'; A.wp = null; }   // it can't come into the lab
-  G.ay = Math.atan2(dx, dz); G.amv = sp > SPD ? 2 : 1;
+  G.ay = Math.atan2(dx, dz); G.amv = sp >= MON_RUN_V ? 2 : 1;
   A.boT -= dt;
   if (LK === 0 || LK === 3){
     // v0.28 (Ryan): the lights go out every time the blackout cooldown is done. Wandering, it cuts them where one of them is.
@@ -7365,12 +7370,12 @@ function updateMe(dt){
   const md = Math.hypot(mDisp.x-me.x, mDisp.z-me.z);
   me.adren = role==='survivor' && G.grace <= 0 && md < 10 && !disguisedFrom(me.x, me.z);
   if (me.stam <= 0.5) me.winded = true;
-  if (me.winded && (role === 'monster' ? me.stam >= 100 : (me.stam >= 35 || (!runReq && me.stam >= 12)))) me.winded = false;
+  if (me.winded && (role === 'monster' ? me.stam >= (LK === 2 ? 100 : 40) : (me.stam >= 35 || (!runReq && me.stam >= 12)))) me.winded = false;
   me.running = runReq && !me.winded && me.stam > 0.5;
-  if (role === 'monster') me.stam = clamp(me.stam + (me.running ? -55 : 24)*dt, 0, 100);   // ~1.8s sprint, ~4s to recharge
+  if (role === 'monster') me.stam = clamp(me.stam + (LK === 2 ? (me.running ? -55 : 24) : (me.running ? -MON_RUN_DRAIN : MON_RUN_REC))*dt, 0, 100);   // eel: ~1.8 s burst; v0.55 others: ~11 s run, ~7 s to recharge
   else me.stam = clamp(me.stam + (me.running ? (me.adren ? -8 : -14)*(sodaT > 0 ? 0.5 : 1) : 16*(sodaT > 0 ? 1.5 : 1))*dt, 0, 100);   // the mall's energy soda   // ~7s of sprint (~12s with adrenaline)
   let sp;
-  if (role === 'monster') sp = (me.running ? MON_SPEED*1.15 : MON_SPEED) * (LK === 2 && !isNight() && h37(me.x, me.z) > -0.4 ? 0.72 : 1);   // the eel drifts slowly by day (not in the deep water: v0.44.1)
+  if (role === 'monster') sp = LK !== 2 ? (me.running ? MON_SPEED : MON_WALK) : (me.running ? MON_SPEED*1.15 : MON_SPEED) * (LK === 2 && !isNight() && h37(me.x, me.z) > -0.4 ? 0.72 : 1);   // the eel drifts slowly by day (not in the deep water: v0.44.1)
   else sp = me.crouch ? 1.35 : me.running ? (me.adren ? 5.6 : 5.0) : 2.6;
   if (LK === 2 && role === 'survivor'){ const dp = wadeDepth37(me.x, me.z);   // v0.43: wading chest-deep is slow, and you can't duck under
     if (dp > 0.05) sp *= 1 - 0.5*Math.min(1, dp/WADE_D);
@@ -7591,6 +7596,7 @@ function updateRemotes(dt){
 }
 const fakes = new Map();
 function fakeFor(pid){ let f = fakes.get(pid); if (!f){ f = makeAvatar(pid, true); f.g.visible = false; fakes.set(pid, f); } return f; }
+function monAnimSp(){ return !mDisp.mv ? 0 : mDisp.mv === 2 ? Math.max(3.2, mDisp.sp||0) : clamp(mDisp.sp||0, 0.8, MON_RUN_V - 0.1); }   // m/s; over 3 = running for the built-in skins
 function updateMonsterDisplay(dt){
   let x, z, ry, mv;
   if (G.mo === 'AI'){
@@ -7602,6 +7608,8 @@ function updateMonsterDisplay(dt){
   else { const r = remotes.get(G.mo); if (r){ mDisp.x=r.x; mDisp.z=r.z; mDisp.ry=r.yaw+Math.PI; mDisp.mv=r.mv; if (r.vt || (LK === 2 && G.asub > 0)){ mDisp.x=-999; mDisp.z=-999; mDisp.mv=0; } } }
   useSkin(LK === 2 ? EEL : G.mo === 'AI' ? G.sk : G.mo === myPid ? mySkin : ((remotes.get(G.mo)||{}).sk|0));
   if (G.ex){ mDisp.x = -999; mDisp.z = -999; mDisp.mv = 0; }
+  { const jd = Math.hypot(mDisp.x - (mDisp.px ?? mDisp.x), mDisp.z - (mDisp.pz ?? mDisp.z)), v = jd > 3 || dt <= 0 ? (mDisp.sp||0) : Math.min(8, jd/Math.max(dt, 1e-3));   // v0.55: how fast it's really going (for the walk/run clips)
+    mDisp.sp = (mDisp.sp||0) + (v - (mDisp.sp||0))*(1 - Math.exp(-5*dt)); mDisp.px = mDisp.x; mDisp.pz = mDisp.z; }
   const showMon = !G.ex && G.mo !== myPid && myRound===G.r && (mode==='play'||mode==='spect'||mode==='deadAnim') && G.ph==='play';
   const fooled = showMon && mode !== 'deadAnim' && disguisedFrom(camera.position.x, camera.position.z);
   MON.g.visible = showMon && !fooled;
@@ -7609,7 +7617,7 @@ function updateMonsterDisplay(dt){
   if (fooled){ const f = fakeFor(G.dgp); f.g.visible = true; f.g.position.set(mDisp.x, floorY(mDisp.x, mDisp.z), mDisp.z); f.g.rotation.y = mDisp.ry; animAvatar(f, dt, mDisp.mv ? 1 : 0, 0); }
   if (mode !== 'deadAnim'){ MON.g.position.set(mDisp.x, LK === 2 ? Math.max(floorY(mDisp.x, mDisp.z), -0.12) : floorY(mDisp.x, mDisp.z), mDisp.z); MON.g.rotation.y = mDisp.ry; }
   monAtkT = Math.max(0, monAtkT - dt);
-  animMonster(MON, nowS(), mDisp.mv>0 && G.stun<=0, mDisp.mv===2?4:2, G.stun>0, G.mo==='AI' ? !!G.ads : G.mo===myPid ? dashT>0 : !!(remotes.get(G.mo)||{}).ds, monAtkT > 0 || mode === 'deadAnim');
+  animMonster(MON, nowS(), mDisp.mv>0 && G.stun<=0, monAnimSp(), G.stun>0, G.mo==='AI' ? !!G.ads : G.mo===myPid ? dashT>0 : !!(remotes.get(G.mo)||{}).ds, monAtkT > 0 || mode === 'deadAnim');
 }
 
 function panelBright(p, t, mx, mz){
