@@ -370,7 +370,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.60.0</div>
+<div class="osd" id="ver">v0.60.1</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -592,8 +592,8 @@ let curRH = RH;
    AUTO-ROTATE picks the side from the motion sensor (iPhone asks once, on a tap); without it,
    it stays on the last side (default 1). VW()/VH() = the game's layout size, tX/tY = a touch in layout px.
    If the phone is really held sideways with rotation lock off, iOS turns the page itself and ROT is off. */
-const ROT = { on:false, dir:1, mode:'auto', asked:false, motion:false, gx:0 };
-try { const m = localStorage.getItem('lvl0_rot'); if (['auto','cw','ccw','off'].includes(m)) ROT.mode = m; } catch(e){}
+const ROT = { on:false, dir:1, mode:'cw', asked:false, motion:false, gx:0 };
+try { const m = localStorage.getItem('lvl0_rot2'); if (['auto','cw','ccw','off'].includes(m)) ROT.mode = m; } catch(e){}
 if (ROT.mode === 'ccw') ROT.dir = -1;
 const VW = () => ROT.on ? innerHeight : innerWidth, VH = () => ROT.on ? innerWidth : innerHeight;
 const tX = t => !ROT.on ? t.clientX : ROT.dir > 0 ? t.clientY : innerHeight - t.clientY;
@@ -6695,9 +6695,9 @@ function applySet(){
 for (const [id, key] of [['sVol','vol'],['sVv','vv'],['sSens','sens'],['sFov','fov'],['sMg','mg']]){ const el = $(id); el.value = SET[key]; el.addEventListener('input', ()=>{ SET[key] = +el.value; applySet(); saveSet(); }); }
 const ROT_LBL = { auto:'SCREEN: AUTO-ROTATE', cw:'SCREEN: LANDSCAPE ⟳', ccw:'SCREEN: LANDSCAPE ⟲', off:'SCREEN: FOLLOW PHONE' };
 function rotUI(){ $('bRot').textContent = ROT_LBL[ROT.mode]; $('rotRow').style.display = isTouch ? '' : 'none';
-  $('rotNote').textContent = !isTouch ? '' : ROT.mode === 'auto' ? (ROT.motion ? 'Flips to whichever way you hold the phone, even with rotation lock on.' : 'Allow Motion access when asked so it can flip the right way up. Otherwise pick a side.') : ROT.mode === 'off' ? 'Turn your phone sideways yourself (rotation lock off).' : 'Always landscape on this side.'; }
-$('bRot').addEventListener('click', () => { const o = ['auto','cw','ccw','off']; ROT.mode = o[(o.indexOf(ROT.mode) + 1) % 4]; if (ROT.mode === 'cw') ROT.dir = 1; if (ROT.mode === 'ccw') ROT.dir = -1;
-  try { localStorage.setItem('lvl0_rot', ROT.mode); } catch(e){} if (ROT.mode === 'auto'){ ROT.asked = false; rotAsk(); } rotKey = ''; resize(); fitButtons(); rotUI(); });
+  $('rotNote').textContent = !isTouch ? '' : ROT.mode === 'auto' ? 'Flips to whichever way you hold the phone, but iPhone asks for Motion access every time the game opens.' : ROT.mode === 'off' ? 'Turn your phone sideways yourself (rotation lock off). Best feel: the whole phone turns, swipe-up works sideways.' : 'Always landscape on this side. The phone itself stays upright, so swipe up from the phone\'s real bottom. Tip: turn rotation lock off and iPhone turns everything for real.'; }
+$('bRot').addEventListener('click', () => { const o = ['cw','ccw','auto','off']; ROT.mode = o[(o.indexOf(ROT.mode) + 1) % 4]; if (ROT.mode === 'cw') ROT.dir = 1; if (ROT.mode === 'ccw') ROT.dir = -1;
+  try { localStorage.setItem('lvl0_rot2', ROT.mode); } catch(e){} if (ROT.mode === 'auto'){ ROT.asked = false; rotAsk(); } rotKey = ''; resize(); fitButtons(); rotUI(); });
 rotUI();
 const soloPaused = () => settingsOpen && net.solo && (mode === 'play' || mode === 'spect');
 function openSettings(){
