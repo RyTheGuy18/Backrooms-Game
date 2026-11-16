@@ -367,7 +367,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.57.1</div>
+<div class="osd" id="ver">v0.57.2</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -3048,6 +3048,9 @@ function hostPartygoers(dt, alive){
       for (const p of ok) if (Math.hypot(p.x-q.x, p.z-q.z) < PG_REACH){ killSurvivor(p, 'pg'); lrSnd('pgKill', p.x, p.z); q.tg = null; q.st = 1; q.pause = 6; break; }
     } }
   G.pg = R.list.map(q=>[+q.x.toFixed(2), +q.z.toFixed(2), +q.y.toFixed(2), q.st, q.mv ? (q.st === 3 ? 2 : 1) : 0]);
+  if (G.mo !== 'AI'){ const mp = allPlayers().find(p=>p.pid === G.mo); if (mp){ const mv = R.mx != null && Math.hypot(mp.x - R.mx, mp.z - R.mz) > 0.01; R.mx = mp.x; R.mz = mp.z;
+      G.pg.push([+mp.x.toFixed(2), +mp.z.toFixed(2), +(mp.yaw + Math.PI).toFixed(2), night ? 3 : 2, mv ? (night ? 2 : 1) : 0, 1]);
+      if (night && G.grace <= 0) for (const p of ok) if (p.pid !== G.mo && Math.hypot(p.x-mp.x, p.z-mp.z) < 0.95){ killSurvivor(p, 'pg'); lrSnd('pgKill', p.x, p.z); break; } } }
 }
 
 /* ---- the Partygoers on screen. PLACEHOLDER model (Ryan will send one): a yellow cylinder body, a round head with a painted grin ---- */
@@ -3072,7 +3075,7 @@ function updatePartygoers(dt){
   if (mode === 'deadAnim' && scarePg) return;
   while (PGV.length < list.length){ const m = makePartygoer(PGV.length); scene.add(m.g); PGV.push({ m, x:0, z:0, sp:0, ph:0, st:0, init:false, stepT:0 }); }
   const cx = camera.position.x, cz = camera.position.z;
-  PGV.forEach((v, k)=>{ const q = list[k]; if (!q){ v.m.g.visible = false; v.init = false; return; }
+  PGV.forEach((v, k)=>{ const q = list[k]; if (!q || (q[5] && G.mo === myPid)){ v.m.g.visible = false; v.init = false; return; }
     const jump = !v.init || Math.hypot(q[0]-v.x, q[1]-v.z) > 4, kk = jump ? 1 : 1 - Math.exp(-12*dt), ox = v.x, oz = v.z; v.init = true;
     v.x = lerp(v.x, q[0], kk); v.z = lerp(v.z, q[1], kk); const s = jump ? 0 : Math.hypot(v.x-ox, v.z-oz)/Math.max(dt, 1e-3); v.sp = lerp(v.sp, q[4] ? s : 0, 1 - Math.exp(-10*dt)); v.st = q[3];
     v.m.g.visible = true; v.m.g.position.set(v.x, 0, v.z); let dy = q[2] - v.m.g.rotation.y; dy = Math.atan2(Math.sin(dy), Math.cos(dy)); v.m.g.rotation.y += jump ? dy : dy*(1 - Math.exp(-8*dt));
@@ -6039,8 +6042,8 @@ function hostStartRound(){
   aiReset();
   H.shiftT = 26; H.ringT = 30; H.ringEnd = 0;
   // the host can start the round on a later level
-  const sl = clamp(G.sl ?? startOpt, 0, 7); if (sl > 0){ const gr = G.grace; setupLevel(sl); G.grace = sl === 6 ? 0 : gr; }
-  if (G.ex || sl === 6){ G.ax = G.az = -999; }
+  const sl = clamp(G.sl ?? startOpt, 0, 7); if (sl > 0){ const gr = G.grace; setupLevel(sl); G.grace = sl === 6 || (sl === 7 && G.mo === 'AI') ? 0 : gr; }
+  if (G.ex || sl === 6 || sl === 7){ G.ax = G.az = -999; }
   broadcastState(); afterState();
 }
 function applyUse(pid, m){
@@ -6087,6 +6090,7 @@ function applyUse(pid, m){
   else if (m.k === 'bite'){   // a player Occupant reports touching a survivor on its own screen
     if (pid !== G.mo || G.grace > 0 || G.stun > 0 || (LK === 2 && G.asub > 0)) return;
     const ps = allPlayers(), mp = ps.find(p=>p.pid===G.mo), v = ps.find(p=>p.pid===m.v);
+    if (LK === 7){ if (mp && v && funNight() && !v.hd && v.pid !== G.mo && !isDead(v.pid) && !isEsc(v.pid) && Math.hypot(v.x-mp.x, v.z-mp.z) < 5){ killSurvivor(v, 'pg'); lrSnd('pgKill', v.x, v.z); } return; }   // v0.57.2: the player Partygoer only kills in the dark
     if (mp && v && (LK !== 2 || prey37(v)) && !mp.vt && !v.hd && v.pid !== G.mo && !isDead(v.pid) && !isEsc(v.pid) && Math.hypot(v.x-mp.x, v.z-mp.z) < 5) killSurvivor(v);
   }
   else if (m.k === 'crank'){   // someone is starting a generator: the whole garage hears it, the computer comes straight for it
@@ -6317,7 +6321,7 @@ function setupLevel(k){
 }
 function advanceLevel(){
   setupLevel(Math.min(7, (G.lv|0) + 1));
-  G.grace = G.ex || G.lv === 6 ? 0 : G.mo === 'AI' ? 12 : 15; if (G.ex || G.lv === 6){ G.ax = G.az = -999; }
+  G.grace = G.ex || G.lv === 6 || (G.lv === 7 && G.mo === 'AI') ? 0 : G.mo === 'AI' ? 12 : 15; if (G.ex || G.lv === 6 || G.lv === 7){ G.ax = G.az = -999; }
   broadcastState(); afterState();
 }
 function hostTick(dt){
@@ -6343,7 +6347,7 @@ function hostTick(dt){
   if (LK === 7) hostFun(dt, alive, !!G.ex);
   if (LK === 3) hostOutage188(dt);
   if (LK === 0) hostLab(dt);
-  if (G.ex || LK === 6){   // exploration mode (and the school, v0.57.1): no Occupant, no Lurker, no mannequins
+  if (G.ex || LK === 6 || LK === 7){   // exploration mode (and the school v0.57.1, Level Fun v0.57.2): no Occupant, no Lurker, no mannequins
     G.ax = G.az = -999; G.amv = 0; G.ach = 0; G.bo = []; G.lr = [0,0,0,0,0]; G.mq = []; G.ls = [0,0,0,0,0];
     if (LK === 3){ hostElev188(dt); hostOutage188(dt); } if (LK === 4) hostMall852(dt, ps); if (LK === 5) hostPipe2(dt, ps); if (LK === 2) hostDay37(dt, alive, { x:-999, z:-999 }); if (LK === 0) hostLab(dt);
     H.ringT -= dt; if (G.ring < 0 && H.ringT <= 0 && level.phones.length){ const tgt = alive[Math.floor(Math.random()*alive.length)]; let best = 0, bd = 1e9; level.phones.forEach((ph,k)=>{ const d=Math.hypot(ph.x-tgt.x, ph.z-tgt.z); if (d<bd){ bd=d; best=k; } }); G.ring = best; H.ringEnd = nowS() + 16; }
@@ -6951,7 +6955,7 @@ function startRoundLocal(){
   sfx.init();
   if (role === 'monster'){
     if (G.ov && voice.stream) setTimeout(()=>msg('Your mic is on. Survivors near you hear a monster.', 5), 1500);
-    $('blacktext').textContent = 'YOU ARE THE OCCUPANT'; $('blacksub').textContent = (G.lv|0) === 0 && level.lab ? 'They start in a lab behind a portal at the edge of the halls. Its blast door shuts, but its power never lasts. Listen for them, and don\'t let them reach the exit.' : 'They wake up in the halls. You walk slowly, but you can run for a while (hold SHIFT / RUN). Listen for them, and don\'t let them reach the exit.';
+    $('blacktext').textContent = LK === 7 ? 'YOU ARE A PARTYGOER' : 'YOU ARE THE OCCUPANT'; $('blacksub').textContent = (G.lv|0) === 0 && level.lab ? 'They start in a lab behind a portal at the edge of the halls. Its blast door shuts, but its power never lasts. Listen for them, and don\'t let them reach the exit.' : 'They wake up in the halls. You walk slowly, but you can run for a while (hold SHIFT / RUN). Listen for them, and don\'t let them reach the exit.';
     $('black').style.transition='none'; $('black').style.opacity = 1; setTimeout(()=>{ $('black').style.transition=''; }, 50);
   } else if (G.ex) msg('EXPLORATION MODE. Nothing is hunting you. Take your time.', 5);
   else msg((G.lv|0) === 7 ? 'LEVEL FUN. Open the presents: one of them has the key to the EXIT. The rest are LOUD. Shut doors behind you: the Partygoers can\'t open them.' : (G.lv|0) === 6 ? 'LEVEL 52. When the bell rings, get to the classroom on your schedule before the tardy bell. Never be in the halls during class.' : (G.lv|0) === 0 && level.lab ? 'ASYNC LAB 4. The portal is open. Find 3 fuses out there. Something else is awake.' : (G.lv|0) === 5 ? 'Vent the 4 red pressure valves and find bolt cutters. The EXIT door is chained shut somewhere in these tunnels.' : (G.lv|0) === 4 ? 'Find the 4 receipts. Each one has a number of the security code. Three floors. Nobody is shopping.' : (G.lv|0) === 3 ? 'Find the keycard. The elevators work. Something else uses them too.' : (G.lv|0) === 2 ? 'Find the staircase. Something is in the water.' : (G.lv|0) === 1 ? 'Start the 5 generators. They are LOUD. Something else is awake.' : 'Find 3 fuses. Something else is awake.', 5);
@@ -7541,6 +7545,7 @@ let abCD = { blackout:0, shift:0, lure:0, disguise:0, dash:0 };
 const AB_CD = { blackout:45, shift:22, lure:20, disguise:40, dash:DASH_CD };
 function ability(k){
   if (mode!=='play' || role!=='monster' || G.grace>0 || abCD[k]>0) return;
+  if (LK === 7){ msg('Partygoers don\'t have tricks. Wait for the lights to go out.', 2.5); return; }
   if (k === 'disguise' && (G.stun > 0 || !survivorsAlive().length)) return;
   if (k === 'dash' && (G.stun > 0 || ventT > 0)) return;
   if (k === 'shift') return;   // the Occupant's Shift Walls ability was removed in v0.24 (Level 0 walls still shift on their own)
@@ -7888,7 +7893,7 @@ function contextAction(){
     if (LK >= 1 && G.gen){ const gi = level.gens.findIndex((gn,i)=>!G.gen[i] && Math.hypot(gn.x-me.x, gn.z-me.z) < 1.9); if (gi >= 0) return { label: LK === 2 ? 'TURN VALVE' : 'START GENERATOR', key:'E', fn:()=>{ crankK = gi; crankT = 0; crankS = 0; } }; }
   }
   if (role==='monster' && G.grace<=0 && G.stun<=0 && ventT<=0){ const c = elevCall188(); if (c) return c; }
-  if (role==='monster' && G.grace<=0 && LK === 7){ const c = funAction(); if (c) return c; }
+  if (role==='monster' && LK === 7){ const d = funDoorNear(me.x, me.z); if (d && (G.fd || [])[d.k]) return { label:'KNOCK', key:'E', fn:()=>{ lrSnd('pgKnock', d.x, d.z); } }; return null; }   // Partygoers can't open doors
   if (role==='monster' && G.grace<=0 && G.stun<=0 && ventT<=0){ const k = nearVent(1.5); if (k>=0 && ventCD<=0) return { label:'VENT', key:'E', fn:()=>enterVent(k) }; }
   return null;
 }
@@ -8041,10 +8046,10 @@ function updateMonsterDisplay(dt){
   } else if (G.mo === myPid){ mDisp.x=me.x; mDisp.z=me.z; mDisp.ry=me.yaw+Math.PI; mDisp.mv = me.moving ? (me.running?2:1) : 0; }
   else { const r = remotes.get(G.mo); if (r){ mDisp.x=r.x; mDisp.z=r.z; mDisp.ry=r.yaw+Math.PI; mDisp.mv=r.mv; if (r.vt || (LK === 2 && G.asub > 0)){ mDisp.x=-999; mDisp.z=-999; mDisp.mv=0; } } }
   useSkin(LK === 2 ? EEL : G.mo === 'AI' ? G.sk : G.mo === myPid ? mySkin : ((remotes.get(G.mo)||{}).sk|0));
-  if (G.ex || LK === 6){ mDisp.x = -999; mDisp.z = -999; mDisp.mv = 0; }
+  if (G.ex || LK === 6 || LK === 7){ mDisp.x = -999; mDisp.z = -999; mDisp.mv = 0; }
   { const jd = Math.hypot(mDisp.x - (mDisp.px ?? mDisp.x), mDisp.z - (mDisp.pz ?? mDisp.z)), v = jd > 3 || dt <= 0 ? (mDisp.sp||0) : Math.min(8, jd/Math.max(dt, 1e-3));   // v0.55: how fast it's really going (for the walk/run clips)
     mDisp.sp = (mDisp.sp||0) + (v - (mDisp.sp||0))*(1 - Math.exp(-5*dt)); mDisp.px = mDisp.x; mDisp.pz = mDisp.z; }
-  const showMon = !G.ex && LK !== 6 && G.mo !== myPid && myRound===G.r && (mode==='play'||mode==='spect'||mode==='deadAnim') && G.ph==='play';
+  const showMon = !G.ex && LK !== 6 && LK !== 7 && G.mo !== myPid && myRound===G.r && (mode==='play'||mode==='spect'||mode==='deadAnim') && G.ph==='play';
   const fooled = showMon && mode !== 'deadAnim' && disguisedFrom(camera.position.x, camera.position.z);
   MON.g.visible = showMon && !fooled;
   for (const [pid, f] of fakes) if (!fooled || pid !== G.dgp) f.g.visible = false;
@@ -8541,10 +8546,10 @@ function updateHUD(dt){
   const obj = $('obj');
   if (role === 'monster'){
     const left = allPlayers().filter(p=>p.pid!==G.mo && !isDead(p.pid) && !isEsc(p.pid)).length;
-    if (G.grace > 0 && mode==='play') { $('blacksub').textContent = LK === 2 ? `You are the thing in the water. By day you can't strike: stay unseen, get close without being looked at to bring the night sooner. At night, hunt. You can only leave the water to lunge.` : LK === 3 ? `They wake on another floor. The elevators are the only way between floors, and everyone hears the ding. Listen for them.` : LK === 7 ? `They wake at the party. Every room has a door. One of the presents holds the key to the EXIT; the rest are party horns, and you'll hear every one. Doors don't stop you: walk into them.` : LK === 6 ? `They start in the lobby, two floors below you. Every passing period each of them has to cross the school to their own classroom. When the tardy bell rings, anyone still in the halls belongs to the hall monitors. Find the rest sitting in their classrooms. Two stairwells join the floors.` : LK === 5 ? `They wake in the tunnels. They need to turn 4 pressure valves (you'll hear the scream of each one) and cut the chain on the EXIT door. Listen for them.` : LK === 4 ? `They wake at the entrance, two floors below you. Escalators and two stairwells join the floors. They need receipts, the security office and the loading dock. Listen for them.` : `You can't see them through walls. Listen. Running footsteps, voices and gasping give them away. Use the vents to get around.`; const c = String(Math.ceil(G.grace)); if ($('blackcount').textContent !== c) $('blackcount').textContent = c; }
+    if (G.grace > 0 && mode==='play') { $('blacksub').textContent = LK === 2 ? `You are the thing in the water. By day you can't strike: stay unseen, get close without being looked at to bring the night sooner. At night, hunt. You can only leave the water to lunge.` : LK === 3 ? `They wake on another floor. The elevators are the only way between floors, and everyone hears the ding. Listen for them.` : LK === 7 ? `You're a Partygoer. While the lights are on you can't hurt anyone: follow them and stare. When the lights go out, catch them. You can't open doors. One of the presents holds the key to the EXIT; the rest are party horns.` : LK === 6 ? `They start in the lobby, two floors below you. Every passing period each of them has to cross the school to their own classroom. When the tardy bell rings, anyone still in the halls belongs to the hall monitors. Find the rest sitting in their classrooms. Two stairwells join the floors.` : LK === 5 ? `They wake in the tunnels. They need to turn 4 pressure valves (you'll hear the scream of each one) and cut the chain on the EXIT door. Listen for them.` : LK === 4 ? `They wake at the entrance, two floors below you. Escalators and two stairwells join the floors. They need receipts, the security office and the loading dock. Listen for them.` : `You can't see them through walls. Listen. Running footsteps, voices and gasping give them away. Use the vents to get around.`; const c = String(Math.ceil(G.grace)); if ($('blackcount').textContent !== c) $('blackcount').textContent = c; }
     if (G.grace <= 0 && $('blackcount').textContent) $('blackcount').textContent = '';
     $('objLbl').textContent = 'THE OCCUPANT';
-    obj.textContent = G.grace > 0 ? `They wake in ${Math.ceil(G.grace)}…` : G.stun > 0 ? 'Blinded…' : ventT > 0 ? 'In the vents…' : G.dg > 0 ? `Disguised · ${Math.ceil(G.dg)}s · ${left} left` : G.lv === 2 ? (isNight() ? `Night. Hunt. ${left} left · dawn in ${mmss(dawnIn37())}` : `Daylight: stay unseen · anyone in the deep water is yours · stalk ${Math.round(G.stk||0)}% · dark in ${mmss(duskIn37())}`) : G.lv === 7 ? `Listen for them. ${left} left · ${G.open ? 'the EXIT is open' : G.fk && G.fk[0] === 1 ? 'they have the key' : 'the key is in one of the presents'} · ${funNight() ? 'lights out: the Partygoers hunt too' : 'lights on'}` : G.lv === 6 ? schoolMon52(left) : G.lv === 3 ? `Listen for them. ${left} left · ${G.open ? 'the room is open' : G.kc && G.kc[0] >= 1 ? 'they have the keycard' : 'the keycard is still out there'} · floor ${floorAt188(me.x, me.z)+2}` : G.open ? `The exit is open. ${left} left.` : ( G.lv === 1 ? `Listen for them. ${left} left · generators ${(G.gen||[]).filter(Boolean).length}/${(G.gen||[]).length}` : `Listen for them. ${left} left · fuses ${G.pl}/${FUSES}`);
+    obj.textContent = G.grace > 0 ? `They wake in ${Math.ceil(G.grace)}…` : G.stun > 0 ? 'Blinded…' : ventT > 0 ? 'In the vents…' : G.dg > 0 ? `Disguised · ${Math.ceil(G.dg)}s · ${left} left` : G.lv === 2 ? (isNight() ? `Night. Hunt. ${left} left · dawn in ${mmss(dawnIn37())}` : `Daylight: stay unseen · anyone in the deep water is yours · stalk ${Math.round(G.stk||0)}% · dark in ${mmss(duskIn37())}`) : G.lv === 7 ? (funNight() ? `LIGHTS OUT. Catch them. ${left} left · shut doors stop you` : `Lights on: you can't hurt them. Follow them, stare. Wait for the dark. ${left} left`) + (G.open ? ' · the EXIT is open' : G.fk && G.fk[0] === 1 ? ' · they have the key' : '') : G.lv === 6 ? schoolMon52(left) : G.lv === 3 ? `Listen for them. ${left} left · ${G.open ? 'the room is open' : G.kc && G.kc[0] >= 1 ? 'they have the keycard' : 'the keycard is still out there'} · floor ${floorAt188(me.x, me.z)+2}` : G.open ? `The exit is open. ${left} left.` : ( G.lv === 1 ? `Listen for them. ${left} left · generators ${(G.gen||[]).filter(Boolean).length}/${(G.gen||[]).length}` : `Listen for them. ${left} left · fuses ${G.pl}/${FUSES}`);
     if (G.grace <= 0 && $('black').style.opacity === '1' && mode==='play') $('black').style.opacity = 0;
     $('kit').style.display = 'none'; $('side').style.display = 'none';
     { const st = $('stam'), runMeter = LK !== 2 && G.grace <= 0; st.style.opacity = runMeter || me.stam < 99 ? 1 : 0; $('stamf').style.width = me.stam+'%'; st.classList.toggle('adr', false); st.classList.toggle('winded', !!me.winded); st.classList.toggle('mon', runMeter);   // v0.56: the player Occupant's run meter is always up

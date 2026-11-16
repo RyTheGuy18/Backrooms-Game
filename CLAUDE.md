@@ -6,7 +6,7 @@ First-person co-op Backrooms horror game for 1–4 players, played in the browse
 
 - Live: https://rytheguy18.github.io/Haunted-Pines/ (GitHub Pages, `main` branch, repo root)
 - Owner: Ryan (GitHub `rytheguy18` / `RyTheGuy18`). Plays it with friends and younger brothers, mostly on phones.
-- Current version: **v0.57.1** (shown bottom-right of the menu, `#ver`)
+- Current version: **v0.57.2** (shown bottom-right of the menu, `#ver`)
 
 ## Files
 
@@ -302,3 +302,5 @@ Controls (desktop): WASD, Shift sprint, C crouch, Left click / F flashlight, E h
 - Not done yet (Ryan's other ideas from that chat): the **School Halls as one fixed Blender map** — waiting for his .glb (he'll name `room_101`… floors and add empties `spawn`, `exit`, `monitor_post_1`, `locker_hide_1`, `door_101`, stairs, optional `col_` boxes).
 
 **v0.57.1 (Ryan: get rid of the normal Occupant in School Halls — the entire level):** no Occupant on Level 52 at all, only the hall monitors. Host: `hostTick` takes the exploration branch for `LK === 6` (`G.ax/az = -999`, no AI tick, no Occupant kills, no blackouts), no head start there (`advanceLevel` / `hostStartRound` grace 0); clients hide it (`updateMonsterDisplay`). A **player** Occupant plays the school as a survivor: `setupLevel(6)` stores them in `H.moKeep` and sets `G.mo = 'AI'`; the next `setupLevel` gives the role back if they're still in the room; `enterLevel` now re-derives `role` from `G.mo` on every level change (HUD, filter, battery) and tells them "You're a student today". `H.moKeep` is cleared in `hostStartRound`. Tested: 120 s of host ticks in the school, the Occupant stays at -999 and never catches anyone; 5 → 6 → 7 with a player Occupant: survivor in the school, Occupant again at Level Fun.
+
+**v0.57.2 (Ryan: get rid of the Occupant in Level Fun too, "maybe they can be a partygoer"):** no computer Occupant on Level Fun: `hostTick` takes the exploration branch for `LK === 7` too (`G.ax/az = -999`, no AI, no Occupant kills/blackouts, no head start when the computer would be it), `updateMonsterDisplay` hides MON. A **player Occupant plays as one more Partygoer**: the host appends them to `G.pg` as `[x, z, yaw, st, moving, 1]` (flag 1 = the player; their own client doesn't draw it), so everyone else sees a Partygoer; they catch on contact (< 0.95 m, host check in `hostPartygoers`, and the `bite` claim on LK 7 → `killSurvivor(v, 'pg')`) **only while the lights are out**; no abilities (`ability` says "Partygoers don't have tricks"); can't open doors (USE at a shut door = KNOCK). HUD/head start text: "YOU ARE A PARTYGOER", lights on = follow and stare, lights out = catch them. Tested: solo = no Occupant; a player Partygoer can't catch by day, catches at night.
