@@ -6,7 +6,7 @@ First-person co-op Backrooms horror game for 1–4 players, played in the browse
 
 - Live: https://rytheguy18.github.io/Haunted-Pines/ (GitHub Pages, `main` branch, repo root)
 - Owner: Ryan (GitHub `rytheguy18` / `RyTheGuy18`). Plays it with friends and younger brothers, mostly on phones.
-- Current version: **v0.59.5** (shown bottom-right of the menu, `#ver`)
+- Current version: **v0.59.6** (shown bottom-right of the menu, `#ver`)
 
 ## Files
 
@@ -321,3 +321,5 @@ Controls (desktop): WASD, Shift sprint, C crouch, Left click / F flashlight, E h
 **v0.59.4 (Ryan: the whole thing a tiny bit smaller):** `FP_BACK` 0.5 → 0.44 (on-screen size ×2.0 → ×1.79 of his poser framing, ~10% smaller, same spot on screen).
 
 **v0.59.5 (Ryan: 20% smaller than v0.59.4):** `FP_BACK` 0.44 → 0.3 (on-screen size ×1.79 → ×1.43 of his poser framing; size = 1/(1 − FP_BACK)).
+
+**v0.59.6 (Ryan: another 20% smaller and slightly down):** `FP_BACK` 0.3 → 0.125 (×1.43 → ×1.14 of his poser framing), `FP_DOWN` 0.035 = the arm group lowered that much in VM space afterwards.
