@@ -6,7 +6,7 @@ First-person co-op Backrooms horror game for 1–4 players, played in the browse
 
 - Live: https://rytheguy18.github.io/Haunted-Pines/ (GitHub Pages, `main` branch, repo root)
 - Owner: Ryan (GitHub `rytheguy18` / `RyTheGuy18`). Plays it with friends and younger brothers, mostly on phones.
-- Current version: **v0.57.0** (shown bottom-right of the menu, `#ver`)
+- Current version: **v0.57.1** (shown bottom-right of the menu, `#ver`)
 
 ## Files
 
@@ -300,3 +300,5 @@ Controls (desktop): WASD, Shift sprint, C crouch, Left click / F flashlight, E h
   - HUD `funObj()` / `#side` `funSide()` (LIGHTS ON / LIGHTS OUT), Occupant HUD + head-start text, intro card, round-start message, carpet footsteps, far giggles/balloon pops, `aiObjectives` (HARD+ = unopened presents → the key → the exit). No phones, no vents, no Lurker. Exploration mode: day/night runs, no Partygoers.
   - Tested: 8 levels start with no script errors; Level Fun flood fill (0.32 m, doors open) reaches every cell, present, battery and the exit; day: a Partygoer follows to 5 m and stares, loses you at 20 m, never kills; night: catches a standing survivor 20–40 m away in 5–19 s, never stuck > 0.55 s; shut doors keep it out (it waits at the door and knocks), opening the door → caught in ~1.6 s; dud → confetti, key → carried → exit opens → escape.
 - Not done yet (Ryan's other ideas from that chat): the **School Halls as one fixed Blender map** — waiting for his .glb (he'll name `room_101`… floors and add empties `spawn`, `exit`, `monitor_post_1`, `locker_hide_1`, `door_101`, stairs, optional `col_` boxes).
+
+**v0.57.1 (Ryan: get rid of the normal Occupant in School Halls — the entire level):** no Occupant on Level 52 at all, only the hall monitors. Host: `hostTick` takes the exploration branch for `LK === 6` (`G.ax/az = -999`, no AI tick, no Occupant kills, no blackouts), no head start there (`advanceLevel` / `hostStartRound` grace 0); clients hide it (`updateMonsterDisplay`). A **player** Occupant plays the school as a survivor: `setupLevel(6)` stores them in `H.moKeep` and sets `G.mo = 'AI'`; the next `setupLevel` gives the role back if they're still in the room; `enterLevel` now re-derives `role` from `G.mo` on every level change (HUD, filter, battery) and tells them "You're a student today". `H.moKeep` is cleared in `hostStartRound`. Tested: 120 s of host ticks in the school, the Occupant stays at -999 and never catches anyone; 5 → 6 → 7 with a player Occupant: survivor in the school, Occupant again at Level Fun.

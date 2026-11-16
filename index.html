@@ -367,7 +367,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.57.0</div>
+<div class="osd" id="ver">v0.57.1</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -6029,7 +6029,7 @@ function hostStartRound(){
   }
   const keepSl = G.sl ?? startOpt, keepEx = net.solo ? exOpt : (G.ex|0);
   if (keepEx) mo = 'AI';   // exploration: nobody is the monster
-  G = freshState(G.r + 1); G.sl = net.solo ? startOpt : keepSl; G.ex = keepEx;
+  G = freshState(G.r + 1); G.sl = net.solo ? startOpt : keepSl; G.ex = keepEx; H.moKeep = null;
   G.ph = 'play'; G.mo = mo; G.sk = mySkin;
   walls = level.base.slice(); G.w = wallsHex(); G.wv = 1;
   G.fz = level.fuses.map(f=>[0, +f[0].toFixed(2), +f[1].toFixed(2), '']);
@@ -6039,8 +6039,8 @@ function hostStartRound(){
   aiReset();
   H.shiftT = 26; H.ringT = 30; H.ringEnd = 0;
   // the host can start the round on a later level
-  const sl = clamp(G.sl ?? startOpt, 0, 7); if (sl > 0){ const gr = G.grace; setupLevel(sl); G.grace = gr; }
-  if (G.ex){ G.ax = G.az = -999; }
+  const sl = clamp(G.sl ?? startOpt, 0, 7); if (sl > 0){ const gr = G.grace; setupLevel(sl); G.grace = sl === 6 ? 0 : gr; }
+  if (G.ex || sl === 6){ G.ax = G.az = -999; }
   broadcastState(); afterState();
 }
 function applyUse(pid, m){
@@ -6291,6 +6291,8 @@ function aiTick(dt, alive){
   else if (D.bo && A.mode!=='wander' && A.boT <= 0){ A.boT = 45+Math.random()*30; G.bo.push([ax,az,15]); }
 }
 function setupLevel(k){
+  if (k === 6 && G.mo !== 'AI'){ H.moKeep = G.mo; G.mo = 'AI'; }   // v0.57.1 (Ryan): no Occupant in the school; a player Occupant runs it as a survivor
+  else if (k !== 6 && H.moKeep){ if (allPlayers().some(p=>p.pid === H.moKeep)) G.mo = H.moKeep; H.moKeep = null; }
   buildLevel(lvSeed(k), k); sfx.bindLevel();
   walls = level.base.slice(); G.w = wallsHex(); G.wv++;
   G.lv = k; G.esc = []; G.dead = [];   // everyone caught on the last level wakes up here too
@@ -6315,7 +6317,7 @@ function setupLevel(k){
 }
 function advanceLevel(){
   setupLevel(Math.min(7, (G.lv|0) + 1));
-  G.grace = G.ex ? 0 : G.mo === 'AI' ? 12 : 15; if (G.ex){ G.ax = G.az = -999; }
+  G.grace = G.ex || G.lv === 6 ? 0 : G.mo === 'AI' ? 12 : 15; if (G.ex || G.lv === 6){ G.ax = G.az = -999; }
   broadcastState(); afterState();
 }
 function hostTick(dt){
@@ -6341,7 +6343,7 @@ function hostTick(dt){
   if (LK === 7) hostFun(dt, alive, !!G.ex);
   if (LK === 3) hostOutage188(dt);
   if (LK === 0) hostLab(dt);
-  if (G.ex){   // exploration mode: no Occupant, no Lurker, no mannequins
+  if (G.ex || LK === 6){   // exploration mode (and the school, v0.57.1): no Occupant, no Lurker, no mannequins
     G.ax = G.az = -999; G.amv = 0; G.ach = 0; G.bo = []; G.lr = [0,0,0,0,0]; G.mq = []; G.ls = [0,0,0,0,0];
     if (LK === 3){ hostElev188(dt); hostOutage188(dt); } if (LK === 4) hostMall852(dt, ps); if (LK === 5) hostPipe2(dt, ps); if (LK === 2) hostDay37(dt, alive, { x:-999, z:-999 }); if (LK === 0) hostLab(dt);
     H.ringT -= dt; if (G.ring < 0 && H.ringT <= 0 && level.phones.length){ const tgt = alive[Math.floor(Math.random()*alive.length)]; let best = 0, bd = 1e9; level.phones.forEach((ph,k)=>{ const d=Math.hypot(ph.x-tgt.x, ph.z-tgt.z); if (d<bd){ bd=d; best=k; } }); G.ring = best; H.ringEnd = nowS() + 16; }
@@ -6969,6 +6971,8 @@ function enterLevel(){
   else if ((G.lv|0) === 3){ $('blacktext').textContent = 'LEVEL 188'; $('blacksub').textContent = 'THE HOTEL · find the keycard. It opens one room. The elevators work. So does something else.'; }
   else if ((G.lv|0) === 2){ $('blacktext').textContent = 'LEVEL 37'; $('blacksub').textContent = 'THE POOLROOMS · somewhere there is a staircase up to the sky. Find it. Stay out of the water at night.'; }
   else { $('blacktext').textContent = 'LEVEL 1'; $('blacksub').textContent = 'THE PARKING GARAGE · start all 5 generators, then find the exit'; }
+  { const nr = G.mo === myPid ? 'monster' : 'survivor'; if (nr !== role){ role = nr; me.bat = 100; me.light = false; me.hidden = -1; canvas.style.filter = monFilter(); $('bat').style.display = role === 'survivor' ? '' : 'none'; $('abil').style.display = role === 'monster' && !isTouch ? 'flex' : 'none'; amb.intensity = role === 'monster' ? 0.42 : 0.16;
+    if (role === 'survivor') msg('No Occupant in the school. Just the hall monitors. You\'re a student today: get to class.', 5); } }   // v0.57.1: the school has no Occupant
   if (role === 'monster'){ me.x = level.mspawn[0]; me.z = level.mspawn[1]; me.yaw = Math.random()*6; abCD.dash = Math.max(abCD.dash, 6); mode = 'play'; }
   else { const k = hashStr(myPid)%4, sp0 = level.spawn || [cc(1), cc(1)]; me.x = sp0[0] + [-0.8,0.8,-0.8,0.8][k]; me.z = sp0[1] + [-0.8,-0.8,0.8,0.8][k]; me.yaw = level.spawnYaw ?? Math.PI*0.75; me.pitch = 0;
     me.alive = true; me.esc = false; me.light = false; me.stam = 100; me.bat = Math.max(me.bat, 60); me.crouch = false; me.breath = 100; mode = 'play'; $('bat').style.display = ''; }
@@ -8037,10 +8041,10 @@ function updateMonsterDisplay(dt){
   } else if (G.mo === myPid){ mDisp.x=me.x; mDisp.z=me.z; mDisp.ry=me.yaw+Math.PI; mDisp.mv = me.moving ? (me.running?2:1) : 0; }
   else { const r = remotes.get(G.mo); if (r){ mDisp.x=r.x; mDisp.z=r.z; mDisp.ry=r.yaw+Math.PI; mDisp.mv=r.mv; if (r.vt || (LK === 2 && G.asub > 0)){ mDisp.x=-999; mDisp.z=-999; mDisp.mv=0; } } }
   useSkin(LK === 2 ? EEL : G.mo === 'AI' ? G.sk : G.mo === myPid ? mySkin : ((remotes.get(G.mo)||{}).sk|0));
-  if (G.ex){ mDisp.x = -999; mDisp.z = -999; mDisp.mv = 0; }
+  if (G.ex || LK === 6){ mDisp.x = -999; mDisp.z = -999; mDisp.mv = 0; }
   { const jd = Math.hypot(mDisp.x - (mDisp.px ?? mDisp.x), mDisp.z - (mDisp.pz ?? mDisp.z)), v = jd > 3 || dt <= 0 ? (mDisp.sp||0) : Math.min(8, jd/Math.max(dt, 1e-3));   // v0.55: how fast it's really going (for the walk/run clips)
     mDisp.sp = (mDisp.sp||0) + (v - (mDisp.sp||0))*(1 - Math.exp(-5*dt)); mDisp.px = mDisp.x; mDisp.pz = mDisp.z; }
-  const showMon = !G.ex && G.mo !== myPid && myRound===G.r && (mode==='play'||mode==='spect'||mode==='deadAnim') && G.ph==='play';
+  const showMon = !G.ex && LK !== 6 && G.mo !== myPid && myRound===G.r && (mode==='play'||mode==='spect'||mode==='deadAnim') && G.ph==='play';
   const fooled = showMon && mode !== 'deadAnim' && disguisedFrom(camera.position.x, camera.position.z);
   MON.g.visible = showMon && !fooled;
   for (const [pid, f] of fakes) if (!fooled || pid !== G.dgp) f.g.visible = false;
