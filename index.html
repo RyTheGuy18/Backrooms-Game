@@ -367,7 +367,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.59.1</div>
+<div class="osd" id="ver">v0.59.2</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -5573,24 +5573,57 @@ let fpHandSrc = null;
 // the heel of the hand), plus a little bend at the wrist toward the little finger. Glove frame: palm −y, fingers −z, index side −x; the handle runs along
 // d = (−cos beta, 0, −sin beta) through FPH.grip (lens toward the thumb/index end). W (the glove) is turned so d = forward and the back of the hand faces
 // right (FPH.roll tips it up); the sleeve (A) hangs off the wrist pivot with a bend of FPH.wr round the palm normal.
+// v0.59.2 (Ryan's pose from the Hand Poser artifact): models/fp-hand.glb is the FLAT glove; it's rigged here exactly like the poser does it
+// (wrist, thumb1–3, index/middle/ring/pinky 1–3), posed with FP_POSE, baked once into a static mesh, and placed in the view-model frame.
+// The pinky is hidden (Ryan: "hide or bend the pinky toward the flashlight" — it sits too far from the handle to reach it).
+const FP_POSE = {"v":1,"joints":{"wrist.x":1,"wrist.y":-15,"wrist.z":14,"thumb1.x":-21,"thumb1.y":12,"thumb1.z":15},"flashlight":{"p":[-0.2566,-0.2357,-1.5552],"q":[0.0279,0.795,-0.0145,0.6059],"s":9.2857},"arm":{"p":[0.0133,0.1604,0.1147],"q":[-0.0089,0.0277,-0.6125,0.79],"s":0.14}, hide:['pinky1'] };
+function rigFPGlove(geoSrc){
+  const FINGERS = [['index', -0.23], ['middle', 0.19], ['ring', 0.6], ['pinky', 1.03]], KN = -1.9, WRIST = new THREE.Vector3(0.35, 0, -0.3), THUMB_B = new THREE.Vector3(-0.22, -0.16, -0.72);
+  const geo = geoSrc.clone(), P = geo.attributes.position, n = P.count, v = new THREE.Vector3(), root = new THREE.Group(), bones = {}, list = [];
+  const isThumb = (x,y,z) => x < -0.38 && z > -1.78 && z < -0.5;
+  const nearestFinger = x => { let b = 0, bd = 9; FINGERS.forEach((f,k)=>{ const d = Math.abs(x - f[1]); if (d < bd){ bd = d; b = k; } }); return b; };
+  const tips = FINGERS.map(()=>KN), ys = FINGERS.map(()=>[0,0]);
+  for (let i=0;i<n;i++){ v.fromBufferAttribute(P, i); if (v.z > KN + 0.05 || isThumb(v.x,v.y,v.z)) continue; const k = nearestFinger(v.x); tips[k] = Math.min(tips[k], v.z); ys[k][0] += v.y; ys[k][1]++; }
+  let ttip = THUMB_B.clone(), td = 0; for (let i=0;i<n;i++){ v.fromBufferAttribute(P, i); if (!isThumb(v.x,v.y,v.z)) continue; const d = v.distanceTo(THUMB_B); if (d > td){ td = d; ttip = v.clone(); } }
+  const mk = (name, world, parent, parentWorld) => { const b = new THREE.Bone(); b.name = name; b.position.copy(world).sub(parentWorld); (parent || root).add(b); bones[name] = b; list.push(b); return b; };
+  const wrist = mk('wrist', WRIST, null, new THREE.Vector3()), chains = {};
+  FINGERS.forEach(([nm, x], k) => { const y = ys[k][1] ? ys[k][0]/ys[k][1] : 0.02, L = tips[k] - KN, J = [0, 0.42, 0.72].map(t => new THREE.Vector3(x, y, KN + L*t));
+    const b1 = mk(nm+'1', J[0], wrist, WRIST), b2 = mk(nm+'2', J[1], b1, J[0]), b3 = mk(nm+'3', J[2], b2, J[1]); chains[nm] = { J, tip:tips[k], b:[b1,b2,b3] }; });
+  { const J = [0, 0.45, 0.75].map(t => THUMB_B.clone().lerp(ttip, t)); const b1 = mk('thumb1', J[0], wrist, WRIST), b2 = mk('thumb2', J[1], b1, J[0]), b3 = mk('thumb3', J[2], b2, J[1]); chains.thumb = { J, tip:ttip, b:[b1,b2,b3] }; }
+  const si = new Uint16Array(n*4), sw = new Float32Array(n*4), idx = b => list.indexOf(b), BL = 0.09;
+  const along = (J, tip, p) => { const a = J[0], dir = tip.clone().sub(a), L = dir.length(); dir.normalize(); return p.clone().sub(a).dot(dir) / L; };
+  for (let i=0;i<n;i++){ v.fromBufferAttribute(P, i); let A = wrist, B = wrist, w = 0, C = null, t = 0;
+    if (isThumb(v.x, v.y, v.z)){ C = chains.thumb; t = along(C.J, C.tip, v); }
+    else if (v.z < KN + 0.12){ C = chains[FINGERS[nearestFinger(v.x)][0]]; t = (v.z - KN) / (C.tip - KN); }
+    if (C){ const L = C.tip.distanceTo ? C.tip.distanceTo(C.J[0]) : Math.abs(C.tip - KN), bw = BL / Math.max(0.3, L), ts = C === chains.thumb ? [0, 0.45, 0.75] : [0, 0.42, 0.72];
+      const seg = [wrist, ...C.b]; let s = 0; for (let q=0;q<3;q++) if (t >= ts[q]) s = q+1;
+      const prevJ = s > 0 ? ts[s-1] : null, nextJ = s < 3 ? ts[s] : null; A = seg[s]; B = A; w = 0;
+      if (nextJ != null && t > nextJ - bw){ B = seg[s+1]; w = 0.5*(t - (nextJ - bw))/bw; } else if (prevJ != null && t < prevJ + bw){ B = seg[s-1]; w = 0.5*((prevJ + bw) - t)/bw; } }
+    si[i*4] = idx(A); si[i*4+1] = idx(B); sw[i*4] = 1 - w; sw[i*4+1] = w; }
+  geo.setAttribute('skinIndex', new THREE.Uint16BufferAttribute(si, 4)); geo.setAttribute('skinWeight', new THREE.Float32BufferAttribute(sw, 4));
+  const mesh = new THREE.SkinnedMesh(geo, new THREE.MeshBasicMaterial()); root.add(mesh); root.updateMatrixWorld(true); mesh.bind(new THREE.Skeleton(list), mesh.matrixWorld);
+  return { root, mesh, bones, wrist };
+}
 function placeFPHand(){
   if (!fpHandSrc || !flSrc) return;
   if (VM.userData.hand) VM.remove(VM.userData.hand);
-  const V3 = (x,y,z) => new THREE.Vector3(x,y,z), b = FPH.beta, d = V3(-Math.cos(b), 0, -Math.sin(b)), yv = V3(0,1,0), e = d.clone().cross(yv);
-  const F = V3(...FPH.fwd).normalize(), H = V3(Math.cos(FPH.roll), Math.sin(FPH.roll), 0); H.addScaledVector(F, -H.dot(F)).normalize(); const FH = F.clone().cross(H);
-  const Mg = new THREE.Matrix4().makeBasis(d, yv, e), Mw = new THREE.Matrix4().makeBasis(F, H, FH), qW = new THREE.Quaternion().setFromRotationMatrix(Mw.multiply(Mg.transpose()));
-  const qA = qW.clone().multiply(new THREE.Quaternion().setFromAxisAngle(yv, -FPH.wr));
-  const A = new THREE.Group(); A.quaternion.copy(qA); A.scale.setScalar(FPH.s);
-  const src = fpHandSrc.clone(), sleeve = src.getObjectByName('sleeve'), glove = src.getObjectByName('glove');
-  const P = V3(...FPH.wrist), W = new THREE.Group(); W.position.copy(P); W.rotation.set(0, FPH.wr, 0); A.add(W);
-  if (sleeve){ sleeve.parent && sleeve.parent.remove(sleeve); A.add(sleeve); }
-  if (glove){ glove.parent && glove.parent.remove(glove); glove.position.sub(P); W.add(glove); }
-  const G = V3(...FPH.grip).sub(P), k = FPH.flS/FPH.s;   // the grip point in the wrist frame
+  const sleeveSrc = fpHandSrc.getObjectByName('sleeve'), gloveSrc = fpHandSrc.getObjectByName('glove'); if (!sleeveSrc || !gloveSrc) return;
+  const R = rigFPGlove(gloveSrc.geometry), pose = FP_POSE;
+  for (const k in pose.joints){ const [b, ax] = k.split('.'); if (R.bones[b]) R.bones[b].rotation[ax] = pose.joints[k]*Math.PI/180; }
+  for (const b of pose.hide || []) if (R.bones[b]) R.bones[b].scale.setScalar(0.001);
+  R.root.updateMatrixWorld(true); R.mesh.skeleton.update();
+  // bake the pose into a plain mesh (no skinning cost per frame)
+  const g0 = R.mesh.geometry, P = g0.attributes.position, pos = new Float32Array(P.count*3), v = new THREE.Vector3();
+  for (let i=0;i<P.count;i++){ v.fromBufferAttribute(P, i); R.mesh.applyBoneTransform(i, v); pos.set([v.x, v.y, v.z], i*3); }
+  const gb = new THREE.BufferGeometry(); gb.setAttribute('position', new THREE.BufferAttribute(pos, 3)); gb.setAttribute('uv', g0.attributes.uv); if (g0.index) gb.setIndex(g0.index); gb.computeVertexNormals();
+  const A = new THREE.Group(); A.position.fromArray(pose.arm.p); A.quaternion.fromArray(pose.arm.q); A.scale.setScalar(pose.arm.s);
+  const sleeve = new THREE.Mesh(sleeveSrc.geometry, sleeveSrc.material), glove = new THREE.Mesh(gb, gloveSrc.material); sleeve.frustumCulled = glove.frustumCulled = false; A.add(sleeve, glove);
+  // the flashlight rides the wrist bone: wrist matrix (in the arm frame) × the pose's flashlight transform
+  const holder = new THREE.Group(); holder.matrixAutoUpdate = false; R.wrist.updateMatrix(); holder.matrix.copy(R.wrist.matrix); A.add(holder);
   const fl = VM.userData.fl;
-  if (fl){ fl.parent && fl.parent.remove(fl); fl.quaternion.setFromUnitVectors(V3(1,0,0), d); fl.scale.setScalar(k); fl.position.copy(G).addScaledVector(d, FPH.flU*k); W.add(fl); }
-  const lens = VM.userData.lens; if (lens && fl){ lens.parent && lens.parent.remove(lens); lens.position.copy(fl.position).addScaledVector(d, 0.104*k); lens.quaternion.setFromUnitVectors(V3(0,0,1), d); lens.scale.setScalar(1/FPH.s); W.add(lens); }
-  VM.add(A); A.updateMatrixWorld(true); const gv = VM.worldToLocal(W.localToWorld(G.clone())); A.position.add(V3(...FPH.at).sub(gv));
-  VM.userData.hand = A;
+  if (fl){ fl.parent && fl.parent.remove(fl); fl.position.fromArray(pose.flashlight.p); fl.quaternion.fromArray(pose.flashlight.q); fl.scale.setScalar(pose.flashlight.s); fl.rotation.reorder && 0; holder.add(fl); }
+  const lens = VM.userData.lens; if (lens && fl){ lens.parent && lens.parent.remove(lens); lens.position.set(0.104, 0, 0); lens.rotation.set(0, Math.PI/2, 0); lens.scale.setScalar(1); fl.add(lens); }
+  VM.add(A); VM.userData.hand = A;
   if (VM.userData.arm) VM.userData.arm.visible = false; for (const c of VM.children) if (c.material === PM.seam || c.material === PM.glove) c.visible = false;
 }
 new GLTFLoader().load('models/fp-hand.glb', gl=>{ gl.scene.traverse(c=>{ if (c.isMesh){ const map = c.material.map; if (map){ map.magFilter = THREE.NearestFilter; map.colorSpace = THREE.SRGBColorSpace; } c.material = lam(0xffffff, { map, side:THREE.DoubleSide }); c.frustumCulled = false; } });
