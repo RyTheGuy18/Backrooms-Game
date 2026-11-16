@@ -367,7 +367,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.56.0</div>
+<div class="osd" id="ver">v0.57.0</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -543,7 +543,7 @@ function vibrate(p){ try{ navigator.vibrate && navigator.vibrate(p); }catch(e){}
 const CS = 4, WH = 2.8, EYE = 1.6;
 // the grid size changes per level (Level 0: 19x19 cells, Level 1: the big garage, 28x28)
 let N = 16, W = N*CS, VN = (N+1)*N, E = 2*VN;
-const GRID_N = k => k === 1 ? 28 : k === 3 ? HN : k === 0 ? 19 : k === 4 || k === 6 ? MALL_N : k === 5 ? P2_N : 16;   // v0.28: Level 0 grew from 16 to 19
+const GRID_N = k => k === 7 ? FUN_N : k === 1 ? 28 : k === 3 ? HN : k === 0 ? 19 : k === 4 || k === 6 ? MALL_N : k === 5 ? P2_N : 16;   // v0.28: Level 0 grew from 16 to 19
 function setGrid(n){ N = n; W = N*CS; VN = (N+1)*N; E = 2*VN; }
 const FUSES = 3;
 // v0.40 (Ryan, inspired by a Backrooms map): Level 0 gets a big field of + shaped pillars and two long winding hallways.
@@ -740,18 +740,18 @@ function nextStep(fi,fj,ti,tj,blk){
 /* ---- zones: 0 office (Level 0), 1 parking garage, 2 the pitfalls ---- */
 const ZS = 6;
 let LK = 0, baseSeed = 0;   // LK: 0 = Level 0 (the office), 1 = Level 1 (the parking garage), 2 = Level 37 (the poolrooms), 3 = Level 188 (the hotel)
-const lvSeed = k => k === 6 ? (Math.imul(baseSeed ^ 0x52c1a5, 2654435761) >>> 0) : k === 5 ? (Math.imul(baseSeed ^ 0x2b1e5, 2246822519) >>> 0) : k === 4 ? (Math.imul(baseSeed ^ 0x852a11, 2654435761) >>> 0) : k === 1 ? (Math.imul(baseSeed ^ 0x51ed, 2654435761) >>> 0) : k === 2 ? (Math.imul(baseSeed ^ 0x37b00, 2246822519) >>> 0) : k === 3 ? (Math.imul(baseSeed ^ 0x188f00d, 3266489917) >>> 0) : baseSeed;
-function zoneOf(i,j){ if (LK === 6) return 6; if (LK === 5) return 5; if (LK === 4) return 4; if (LK === 3) return 0; if (LK === 1) return 1; if (LK === 2) return 3; if (i>=N-ZS && j<ZS) return 1; if (i<ZS && j>=N-ZS) return 2; return 0; }
+const lvSeed = k => k === 7 ? (Math.imul(baseSeed ^ 0xf0f17, 2654435761) >>> 0) : k === 6 ? (Math.imul(baseSeed ^ 0x52c1a5, 2654435761) >>> 0) : k === 5 ? (Math.imul(baseSeed ^ 0x2b1e5, 2246822519) >>> 0) : k === 4 ? (Math.imul(baseSeed ^ 0x852a11, 2654435761) >>> 0) : k === 1 ? (Math.imul(baseSeed ^ 0x51ed, 2654435761) >>> 0) : k === 2 ? (Math.imul(baseSeed ^ 0x37b00, 2246822519) >>> 0) : k === 3 ? (Math.imul(baseSeed ^ 0x188f00d, 3266489917) >>> 0) : baseSeed;
+function zoneOf(i,j){ if (LK === 7) return 7; if (LK === 6) return 6; if (LK === 5) return 5; if (LK === 4) return 4; if (LK === 3) return 0; if (LK === 1) return 1; if (LK === 2) return 3; if (i>=N-ZS && j<ZS) return 1; if (i<ZS && j>=N-ZS) return 2; return 0; }
 const zoneAt = (x,z) => zoneOf(cellOf(x), cellOf(z));
 function floorY(x,z){ return LK === 2 ? h37(x,z) : LK === 4 || LK === 6 ? floorY852(x,z) : 0; }
 const poolBlock = () => null;
 function edgeCells(e){ if (e < VN){ const i=Math.floor(e/N), j=e%N; return [[i-1,j],[i,j]]; } const k=e-VN, j=Math.floor(k/N), i=k%N; return [[i,j-1],[i,j]]; }
-function edgeZoneOf(e){ if (LK === 6) return 6; if (LK === 5) return 5; if (LK === 4) return 4; if (LK === 2) return 3; const cs = edgeCells(e).filter(([i,j])=>inGrid(i,j)); if (cs.some(([i,j])=>zoneOf(i,j)===2)) return 2; if (cs.some(([i,j])=>zoneOf(i,j)===1)) return 1; return 0; }
+function edgeZoneOf(e){ if (LK === 7) return 7; if (LK === 6) return 6; if (LK === 5) return 5; if (LK === 4) return 4; if (LK === 2) return 3; const cs = edgeCells(e).filter(([i,j])=>inGrid(i,j)); if (cs.some(([i,j])=>zoneOf(i,j)===2)) return 2; if (cs.some(([i,j])=>zoneOf(i,j)===1)) return 1; return 0; }
 const ZH = [WH, WH, 3.8, 4.4, 3.6, 3.0, 3.0];
-const ZFOG = [new THREE.Color(0x15120a), new THREE.Color(0x0a0c0d), new THREE.Color(0x1a170c), new THREE.Color(0x9cb3aa), new THREE.Color(0x0e1014), new THREE.Color(0x110d09), new THREE.Color(0x15130e)];
-const ZDENS = [0.1, 0.12, 0.07, 0.02, 0.07, 0.085, 0.065];
-const ZSKY = [new THREE.Color(0x8a7a40), new THREE.Color(0x56626a), new THREE.Color(0x9a8c58), new THREE.Color(0xe4efe2), new THREE.Color(0x6a7488), new THREE.Color(0x7a6a50), new THREE.Color(0x8a826a)];
-const ZGND = [new THREE.Color(0x1a1608), new THREE.Color(0x101214), new THREE.Color(0x221c0c), new THREE.Color(0x9fbdae), new THREE.Color(0x16140f), new THREE.Color(0x1a140c), new THREE.Color(0x1c1a14)];
+const ZFOG = [new THREE.Color(0x15120a), new THREE.Color(0x0a0c0d), new THREE.Color(0x1a170c), new THREE.Color(0x9cb3aa), new THREE.Color(0x0e1014), new THREE.Color(0x110d09), new THREE.Color(0x15130e), new THREE.Color(0x1a150a)];
+const ZDENS = [0.1, 0.12, 0.07, 0.02, 0.07, 0.085, 0.065, 0.075];
+const ZSKY = [new THREE.Color(0x8a7a40), new THREE.Color(0x56626a), new THREE.Color(0x9a8c58), new THREE.Color(0xe4efe2), new THREE.Color(0x6a7488), new THREE.Color(0x7a6a50), new THREE.Color(0x8a826a), new THREE.Color(0x9a8448)];
+const ZGND = [new THREE.Color(0x1a1608), new THREE.Color(0x101214), new THREE.Color(0x221c0c), new THREE.Color(0x9fbdae), new THREE.Color(0x16140f), new THREE.Color(0x1a140c), new THREE.Color(0x1c1a14), new THREE.Color(0x221408)];
 const ZNAME = ['', 'PARKING LEVEL', 'THE PITFALLS', '', '', '', ''];
 const concWallTex = canvasTex(128,128,(g,w,h)=>{
   g.fillStyle='#7a7c76'; g.fillRect(0,0,w,h);
@@ -2695,6 +2695,394 @@ function hostPipe2(dt, ps){
     if (lit.length) G.po.push([lit[Math.floor(Math.random()*lit.length)], +(10 + Math.random()*16).toFixed(1)]); }
 }
 
+/* ===== v0.57 Level Fun (Ryan): party rooms with doors, the Partygoers, presents.
+   Grid level (FUN_N×FUN_N cells of 4 m), LK 7 / G.lv 7, after School Halls. Every cell belongs to a little room (1–3 cells a side); neighbouring
+   rooms are joined by ONE doorway with a door (a spanning tree + some loops). A door is an edge in `walls`: shut = 1 on every client (updateFun),
+   so collision, sight and BFS all respect it. Survivors open/close doors with USE (`{k:'fdoor', i}`, G.fd = 0/1 per door).
+   LIGHTS (G.fn = [0 day / 1 night, seconds left]): long periods of lights on and lights out, flipped with NO warning (day FUN_DAY s, night FUN_NIGHT s).
+   THE PARTYGOERS (host `hostPartygoers`, H.pg; everyone draws G.pg = [[x, z, yaw, state, moving]…]): PG_N per difficulty. Lights on: harmless,
+   they follow anyone who comes within PG_SEE m and stand PG_GAP m away staring (you lose them by walking off or shutting a door). Lights out: they
+   hunt (PG_RUN, under a sprint) whoever they know about — the one they were following, anyone near, or the party horn. They CAN'T go through shut
+   doors: they wait outside and knock. Contact = caught (G.pgk). The Occupant (computer) just shoves doors open.
+   GOAL: FUN_GIFTS wrapped presents; hold USE to unwrap (rustles). One has the KEY (G.pk, host only knows), every other one is a dud: confetti and a
+   LOUD party horn (noise 3, calls the computer, wakes the Partygoers at night). The key (G.fk = [0 lying / 1 carried / 2 used, x, z, holder]) opens
+   the EXIT door; G.open → escape at level.exitPos. Wardrobes = hide spots. Placeholder Partygoer model (makePartygoer): swap in Ryan's later. */
+const FUN_N = 16, FUN_H = 2.8, FUN_GIFTS = 12, FUN_GIFT_T = 2.2, FUN_DOORW = 1.3;
+const FUN_DAY = [75, 130], FUN_NIGHT = [55, 85];
+const PG_N = [2, 2, 3, 3], PG_DAY = 2.3, PG_RUN = [3.6, 4.1, 4.5, 4.9], PG_SEE = 9, PG_LOSE = 15, PG_GAP = 5.5, PG_REACH = 0.85, PG_NIGHT_R = 30;
+const funNight = () => LK === 7 && G.ph === 'play' && !!G.fn && G.fn[0] === 1;
+const funPaperTex = canvasTex(64, 64, (g,w,h)=>{ g.fillStyle = '#d9c35e'; g.fillRect(0,0,w,h);
+  for (let x=0;x<w;x+=16){ g.fillStyle = 'rgba(255,240,170,.35)'; g.fillRect(x, 0, 6, h); g.fillStyle = 'rgba(150,110,40,.18)'; g.fillRect(x+6, 0, 1, h); }
+  const cols = ['#d8483c','#3c72c8','#4aa858','#e08ad0','#f0a030'];
+  for (let k=0;k<14;k++){ const x = texR()*w, y = texR()*h*0.8; g.fillStyle = cols[k%5]; g.beginPath(); g.ellipse(x, y, 2.2, 2.8, 0, 0, 7); g.fill(); g.strokeStyle = 'rgba(60,40,20,.5)'; g.beginPath(); g.moveTo(x, y+3); g.lineTo(x+(texR()-0.5)*3, y+8); g.stroke(); }
+  for (let i=0;i<300;i++){ g.fillStyle = texR() < 0.5 ? 'rgba(90,70,20,.15)' : 'rgba(255,250,210,.12)'; g.fillRect(texR()*w|0, texR()*h|0, 1, 1); }
+  g.fillStyle = 'rgba(90,60,20,.18)'; g.fillRect(0, h-6, w, 6); });
+const funRugTex = canvasTex(64, 64, (g,w,h)=>{ g.fillStyle = '#8a2a30'; g.fillRect(0,0,w,h);
+  for (let i=0;i<500;i++){ g.fillStyle = texR() < 0.5 ? 'rgba(40,8,10,.3)' : 'rgba(180,70,70,.18)'; g.fillRect(texR()*w|0, texR()*h|0, 1, 1); }
+  const cols = ['#e8d040','#3c90e0','#50c060','#f070c0','#f0f0f0']; for (let k=0;k<40;k++){ g.fillStyle = cols[k%5]; g.fillRect(texR()*w|0, texR()*h|0, 2, 1); } });
+const funCeilTex = canvasTex(32, 32, (g,w,h)=>{ g.fillStyle = '#d8d2c0'; g.fillRect(0,0,w,h); g.fillStyle = '#9a9282'; g.fillRect(0,0,w,1); g.fillRect(0,0,1,h); g.fillRect(0,h/2,w,1); g.fillRect(w/2,0,1,h);
+  for (let i=0;i<120;i++){ g.fillStyle = 'rgba(110,100,80,.25)'; g.fillRect(texR()*w|0, texR()*h|0, 1, 1); } });
+const funWrapTex = canvasTex(16, 16, (g,w,h)=>{ g.fillStyle = '#ffffff'; g.fillRect(0,0,w,h); g.fillStyle = 'rgba(0,0,0,.18)'; for (let k=-16;k<16;k+=4){ g.beginPath(); g.moveTo(k,0); g.lineTo(k+2,0); g.lineTo(k+18,16); g.lineTo(k+16,16); g.fill(); } });
+const funGrinTex = canvasTex(64, 64, (g,w,h)=>{ g.fillStyle = '#f4e8c8'; g.fillRect(0,0,w,h);
+  g.fillStyle = '#0a0806'; g.beginPath(); g.ellipse(21, 24, 4, 6, 0, 0, 7); g.fill(); g.beginPath(); g.ellipse(43, 24, 4, 6, 0, 0, 7); g.fill();
+  g.beginPath(); g.moveTo(8, 36); g.quadraticCurveTo(32, 62, 56, 36); g.quadraticCurveTo(32, 50, 8, 36); g.fill();
+  g.fillStyle = '#f4e8c8'; for (let x=14;x<52;x+=5){ g.fillRect(x, 39 + Math.abs(x-32)*-0.15 + 1, 2, 3); } });
+let funSeen = { fd:'', fn:-1, pr:0, open:0, fk:'' }, funBed = null;
+function funConf(){ return level && level.fun; }
+
+function buildLevelFun(seed){
+  const rng = rngFrom(seed), g = new THREE.Group(); scene.add(g);
+  const L = level = { seed, lk:7, group:g, gens:[], slotLeds:[], fuses:[], fuseMeshes:[], breaker:[-99,-99], rooms:[], halls:[], kind:new Uint8Array(N*N), fixed:new Uint8Array(E).fill(1), slabs:[], base:null, shown:new Uint8Array(E), circles:[], pillarSet:new Set(), sounds:[], used:new Set(), wet:[], drips:[], tvs:[], phones:[], lockers:[], cn:[], cnM:[], bt:[], btM:[], aw:[], awM:[], vents:[], holes:[], offhook:[], high:[], panels:[], panelAt:new Int16Array(N*N).fill(-1), edgeZ:new Uint8Array(E), wallMeshes:[], floats:[], lamps:[], cleanDesk:null, roller:null, red:{i0:-1,j0:-1,i1:-1,j1:-1}, clean:null,
+    fun:{ room:new Int16Array(N*N).fill(-1), rooms:[], doors:[], doorAt:new Map(), gifts:[], conf:[], key:null, exit:null }, diags:[], diagAt:new Int16Array(N*N).fill(-1) };
+  const F = L.fun, K = (i,j) => i*N+j, inG = (i,j) => i>=0 && j>=0 && i<N && j<N;
+  const C = (x, z, r) => L.circles.push({ x, z, r });
+  const slab = (x0, x1, z0, z1) => L.slabs.push([Math.min(x0,x1), Math.max(x0,x1), Math.min(z0,z1), Math.max(z0,z1)]);
+  const grp = (x, z, ry, y=0) => { const r = new THREE.Group(); r.position.set(x, y, z); r.rotation.y = ry; g.add(r); return r; };
+  const eOf = (i,j,ni,nj) => ni === i+1 ? vIdx(i+1,j) : ni === i-1 ? vIdx(i,j) : nj === j+1 ? hIdx(i,j+1) : hIdx(i,j);
+  const sideE = (i,j,a,b) => a > 0 ? vIdx(i+1,j) : a < 0 ? vIdx(i,j) : b > 0 ? hIdx(i,j+1) : hIdx(i,j);
+  // ---- little rooms: every cell belongs to one (1–3 cells a side, mostly 2)
+  for (let i=0;i<N;i++) for (let j=0;j<N;j++){ if (F.room[K(i,j)] >= 0) continue;
+    const pick = () => { const r = rng(); return r < 0.2 ? 1 : r < 0.8 ? 2 : 3; };
+    let w = pick(), h = pick(); if (w === 1 && h === 1 && rng() < 0.75) w = 2;
+    let ww = 0; while (ww < w && inG(i+ww, j) && F.room[K(i+ww, j)] < 0) ww++;
+    let hh2 = 0; out: while (hh2 < h && j+hh2 < N){ for (let a=0;a<ww;a++) if (F.room[K(i+a, j+hh2)] >= 0) break out; hh2++; }
+    const r = { id:F.rooms.length, i0:i, j0:j, w:ww, h:hh2, cells:[], kind:'party' };
+    for (let a=0;a<ww;a++) for (let b=0;b<hh2;b++){ F.room[K(i+a, j+b)] = r.id; r.cells.push([i+a, j+b]); }
+    r.cx = (i + ww/2)*CS; r.cz = (j + hh2/2)*CS; F.rooms.push(r); }
+  const roomOf = (i,j) => F.room[K(i,j)];
+  walls = new Uint8Array(E).fill(1);
+  for (let i=0;i<N;i++) for (let j=0;j<N;j++) for (const [a,b] of [[1,0],[0,1]]) if (inG(i+a,j+b) && roomOf(i,j) === roomOf(i+a,j+b)) walls[eOf(i,j,i+a,j+b)] = 0;
+  // ---- doorways: a random spanning tree over the rooms, plus some loops; one door per connection
+  const shared = new Map();   // "ra,rb" -> [edges]
+  for (let i=0;i<N;i++) for (let j=0;j<N;j++) for (const [a,b] of [[1,0],[0,1]]){ if (!inG(i+a,j+b)) continue; const ra = roomOf(i,j), rb = roomOf(i+a,j+b); if (ra === rb) continue;
+    const key = Math.min(ra,rb) + ',' + Math.max(ra,rb); if (!shared.has(key)) shared.set(key, []); shared.get(key).push([i, j, a, b]); }
+  const pairs = shuffle188([...shared.keys()], rng), par = F.rooms.map((r,k)=>k), find = k => par[k] === k ? k : (par[k] = find(par[k]));
+  const nDoors = F.rooms.map(()=>0), doorEdge = (key) => { const list = shared.get(key), [i, j, a, b] = list[Math.floor(rng()*list.length)], e = eOf(i,j,i+a,j+b); walls[e] = 0;
+    F.doorAt.set(e, F.doors.length); F.doors.push({ k:F.doors.length, e, i, j, a, b, x:0, z:0, along: a ? 'z' : 'x' }); const [ra, rb] = key.split(',').map(Number); nDoors[ra]++; nDoors[rb]++; };
+  for (const key of pairs){ const [ra, rb] = key.split(',').map(Number); if (find(ra) !== find(rb)){ par[find(ra)] = find(rb); doorEdge(key); } }
+  for (const key of pairs){ const [ra, rb] = key.split(',').map(Number); if (F.doors.some(d=>{ const r1 = roomOf(d.i,d.j), r2 = roomOf(d.i+d.a, d.j+d.b); return Math.min(r1,r2) === ra && Math.max(r1,r2) === rb; })) continue;
+    if (nDoors[ra] < 4 && nDoors[rb] < 4 && rng() < 0.22) doorEdge(key); }
+  for (const d of F.doors){ [d.x, d.z] = edgeMid(d.e); }
+  // the spawn room (the corner), the exit far away
+  const sr = F.rooms[roomOf(0,0)]; sr.kind = 'lobby';
+  L.start = [0, 0]; L.spawn = [sr.cx, sr.cz]; L.spawnYaw = Math.PI*0.75;
+  const D0 = bfsFrom(0, 0);
+  // ---- materials
+  const paperM = lam(0xffffff, { map:funPaperTex }), rugM = lam(0xffffff, { map:funRugTex }), ceilM = lam(0xffffff, { map:funCeilTex }), trimM = lam(0xe8e0c8), darkM = lam(0x1a1612);
+  const woodM = lam(0x8a5a32), doorM = lam(0xc89a5a), clothM = lam(0xf2ece0), cakeM = lam(0xf4e0e8), frostM = lam(0xe86a9a), flameM = new THREE.MeshBasicMaterial({ color:0xffc040 });
+  const balM = [0xd83a30, 0x3468d0, 0xe8c830, 0x40a850, 0xe070c0, 0xf08a28].map(c=>lam(c, { emissive:new THREE.Color(c).multiplyScalar(0.12) })), strM = lam(0xdddddd);
+  const flagM = [0xd83a30, 0x3468d0, 0xe8c830, 0x40a850, 0xe070c0].map(c=>lam(c, { side:THREE.DoubleSide }));
+  const wrapM = [0xd83a30, 0x3468d0, 0x40a850, 0xb050d0, 0xf0a030, 0x30b8c8].map(c=>lam(c, { map:funWrapTex })), ribM = [0xf4e070, 0xf0f0f0, 0xe83a3a].map(c=>lam(c));
+  // ---- floors + ceilings
+  { const fl = [], cl = []; for (let i=0;i<N;i++) for (let j=0;j<N;j++){ fl.push([cc(i), 0, cc(j)]); cl.push([cc(i), FUN_H, cc(j)]); }
+    const inst = (geo, mat, list) => { const m = new THREE.InstancedMesh(geo, mat, list.length); list.forEach((p,k)=>{ tmpM.makeTranslation(p[0], p[1], p[2]); m.setMatrixAt(k, tmpM); }); m.frustumCulled = false; g.add(m); return m; };
+    inst(cellPlane(2,false), rugM, fl); inst(cellPlane(2,true), ceilM, cl); }
+  // ---- walls: a box on every closed edge; a doorway (two pieces, a header, a frame, the door) on every door edge
+  const spots = [];   // wall faces inside rooms, for furniture
+  for (let i=0;i<N;i++) for (let j=0;j<N;j++) for (const [a,b] of nbr4){ const ni = i+a, nj = j+b, inside = inG(ni,nj), e = sideE(i,j,a,b);
+    if (inside && roomOf(ni,nj) === roomOf(i,j)) continue;
+    const [ex, ez] = edgeMid(e), along = a ? 'z' : 'x', di = F.doorAt.get(e);
+    if (inside && K(ni,nj) < K(i,j)) continue;   // the other cell draws it (and records both faces)
+    if (di == null){ p2Box(g, along === 'x' ? CS : 0.2, FUN_H, along === 'x' ? 0.2 : CS, ex, FUN_H/2, ez, paperM, 2, FUN_H);
+      bx(g, along === 'x' ? CS : 0.24, 0.12, along === 'x' ? 0.24 : CS, ex, 0.06, ez, trimM);
+      spots.push({ r:roomOf(i,j), i, j, a, b, x:ex - a*0.1, z:ez - b*0.1, ry:Math.atan2(-a, -b), edge:!inside });
+      if (inside) spots.push({ r:roomOf(ni,nj), i:ni, j:nj, a:-a, b:-b, x:ex + a*0.1, z:ez + b*0.1, ry:Math.atan2(a, b), edge:false }); continue; }
+    const d = F.doors[di], w = grp(ex, ez, along === 'x' ? 0 : Math.PI/2), half = (CS - FUN_DOORW)/2;
+    for (const s of [-1,1]) p2Box(w, half, FUN_H, 0.2, s*(FUN_DOORW/2 + half/2), FUN_H/2, 0, paperM, 2, FUN_H);
+    p2Box(w, FUN_DOORW, FUN_H - 2.15, 0.2, 0, 2.15 + (FUN_H - 2.15)/2, 0, paperM, 2, FUN_H);
+    for (const s of [-1,1]) bx(w, 0.08, 2.15, 0.28, s*FUN_DOORW/2, 1.075, 0, trimM); bx(w, FUN_DOORW + 0.16, 0.08, 0.28, 0, 2.17, 0, trimM);
+    if (along === 'x'){ slab(ex - CS/2, ex - FUN_DOORW/2, ez - 0.1, ez + 0.1); slab(ex + FUN_DOORW/2, ex + CS/2, ez - 0.1, ez + 0.1); } else { slab(ex - 0.1, ex + 0.1, ez - CS/2, ez - FUN_DOORW/2); slab(ex - 0.1, ex + 0.1, ez + FUN_DOORW/2, ez + CS/2); }
+    // the door on a hinge (kept out of the baking, it swings)
+    const piv = new THREE.Group(); piv.position.set(ex + (along === 'x' ? -FUN_DOORW/2 + 0.04 : 0), 0, ez + (along === 'x' ? 0 : -FUN_DOORW/2 + 0.04)); piv.rotation.y = along === 'x' ? 0 : -Math.PI/2; g.add(piv);
+    const leaf = new THREE.Group(); piv.add(leaf); bx(leaf, FUN_DOORW - 0.08, 2.08, 0.05, (FUN_DOORW - 0.08)/2, 1.04, 0, doorM); bx(leaf, 0.06, 0.06, 0.12, FUN_DOORW - 0.22, 1.0, 0, lam(0xd0b060));
+    for (let q=0;q<2;q++) bx(leaf, FUN_DOORW - 0.4, 0.7, 0.07, (FUN_DOORW - 0.08)/2, 0.55 + q*0.95, 0, lam(0xb4864a));
+    d.piv = piv; d.ang = 1.5; d.base = piv.rotation.y; }   // starts open
+  F.nWallSlabs = L.slabs.length;   // up to here: doorway walls only (the Partygoers' wall-only collision)
+  // ---- room kinds + furniture
+  const roomSpots = r => shuffle188(spots.filter(s=>s.r === r.id && !s.used), rng);
+  const nearDoor = (x, z, m=1.4) => F.doors.some(d=>Math.hypot(d.x-x, d.z-z) < m);
+  const balloons = (x, z, n) => { for (let k=0;k<n;k++){ const bx0 = x + (rng()-0.5)*0.5, bz0 = z + (rng()-0.5)*0.5, by = 1.95 + rng()*0.55, s = new THREE.Mesh(new THREE.SphereGeometry(0.2, 8, 6), balM[Math.floor(rng()*balM.length)]);
+      s.scale.set(1, 1.2, 1); s.position.set(bx0, by, bz0); g.add(s); const st = new THREE.Mesh(new THREE.BoxGeometry(0.008, by - 0.2, 0.008), strM); st.position.set((bx0 + x)/2, (by - 0.24)/2, (bz0 + z)/2); g.add(st); }
+    bx(g, 0.08, 0.06, 0.08, x, 0.03, z, darkM); };
+  const flags = (s) => { const along = s.a ? 'z' : 'x'; for (let k=0;k<7;k++){ const t = -1.6 + k*0.53, x = s.x - s.a*0.02 + (along === 'x' ? t : 0), z = s.z - s.b*0.02 + (along === 'z' ? t : 0), y = 2.45 - Math.sin(k/6*Math.PI)*0.18;
+      const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute([-0.18,0,0, 0.18,0,0, 0,-0.3,0], 3)); geo.computeVertexNormals();
+      const f = new THREE.Mesh(geo, flagM[k % flagM.length]); f.position.set(x, y, z); f.rotation.y = s.ry; g.add(f); } };
+  const signTex = t => textTex(t, 256, 48, (c,w2,h2,tt)=>{ c.fillStyle = '#f4ecd8'; c.fillRect(0,0,w2,h2); const cols = ['#d8483c','#3c72c8','#4aa858','#e070c0','#f0a030']; c.font = 'bold 30px monospace'; c.textAlign = 'center';
+    const sw = c.measureText(tt).width, x0 = w2/2 - sw/2; let x = x0; for (let q=0;q<tt.length;q++){ c.fillStyle = cols[q % 5]; const cw = c.measureText(tt[q]).width; c.fillText(tt[q], x + cw/2, 35); x += cw; } });
+  const SIGNS = ['HAPPY BIRTHDAY', 'PARTY TIME!', 'YOU ARE INVITED', 'DON\'T LEAVE', 'STAY FOREVER', 'HAVE FUN :)', 'HAPPY BIRTHDAY'];
+  const table = (x, z, ry) => { const t = grp(x, z, ry); bx(t, 1.6, 0.05, 0.8, 0, 0.74, 0, clothM); bx(t, 1.64, 0.25, 0.84, 0, 0.62, 0, clothM); for (const sx of [-0.7, 0.7]) for (const sz of [-0.32, 0.32]) bx(t, 0.05, 0.72, 0.05, sx, 0.36, sz, woodM);
+    const ck = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.16, 12), cakeM); ck.position.set(0.1, 0.85, 0); t.add(ck); const fr = new THREE.Mesh(new THREE.CylinderGeometry(0.205, 0.205, 0.03, 12), frostM); fr.position.set(0.1, 0.93, 0); t.add(fr);
+    for (let q=0;q<5;q++){ const a = q/5*6.28; bx(t, 0.015, 0.08, 0.015, 0.1 + Math.cos(a)*0.12, 0.98, Math.sin(a)*0.12, balM[q % 6]); bx(t, 0.012, 0.02, 0.012, 0.1 + Math.cos(a)*0.12, 1.03, Math.sin(a)*0.12, flameM); }
+    for (let q=0;q<3;q++){ const h = new THREE.Mesh(new THREE.ConeGeometry(0.07, 0.18, 8), balM[Math.floor(rng()*6)]); h.position.set(-0.5 + q*0.2, 0.86, (rng()-0.5)*0.4); t.add(h); }
+    for (let q=0;q<4;q++){ const p = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.01, 10), lam(0xf8f8f8)); p.position.set(-0.6 + q*0.4, 0.77, q%2 ? 0.28 : -0.28); t.add(p); }
+    const along = Math.abs(Math.sin(ry)) > 0.5; slab(x - (along ? 0.45 : 0.85), x + (along ? 0.45 : 0.85), z - (along ? 0.85 : 0.45), z + (along ? 0.85 : 0.45)); };
+  const chair = (x, z, ry) => { const c = grp(x, z, ry); bx(c, 0.42, 0.05, 0.42, 0, 0.45, 0, balM[Math.floor(rng()*6)]); bx(c, 0.42, 0.45, 0.05, 0, 0.7, -0.2, balM[Math.floor(rng()*6)]); for (const sx of [-0.18,0.18]) for (const sz of [-0.18,0.18]) bx(c, 0.03, 0.45, 0.03, sx, 0.22, sz, darkM); C(x, z, 0.28); };
+  for (const r of F.rooms){ if (r === sr) continue; const sp = roomSpots(r), n = r.cells.length, rr = rng();
+    if (n >= 2 && rr < 0.55){ const tz = r.cells.length >= 4 || rng() < 0.5; const tx = r.cx + (rng()-0.5)*0.8, tzz = r.cz + (rng()-0.5)*0.8;
+      if (!nearDoor(tx, tzz, 2.2)){ table(tx, tzz, tz ? 0 : Math.PI/2); for (let q=0;q<3;q++){ const a = rng()*6.28; const x = tx + Math.cos(a)*1.4, z = tzz + Math.sin(a)*1.1; if (!nearDoor(x, z, 1.3)) chair(x, z, a + Math.PI); } r.table = [tx, tzz]; } }
+    for (let q=0; q < Math.min(3, n); q++){ const [ci, cj] = r.cells[Math.floor(rng()*n)], x = cc(ci) + (rng()-0.5)*2.4, z = cc(cj) + (rng()-0.5)*2.4; if (!nearDoor(x, z, 1.2) && !(r.table && Math.hypot(x - r.table[0], z - r.table[1]) < 1.2)) balloons(x, z, 2 + Math.floor(rng()*4)); }
+    const s1 = sp.find(s=>!nearDoor(s.x, s.z, 2.3)); if (s1 && rng() < 0.7){ flags(s1); s1.used = true; }
+    const s2 = sp.find(s=>!s.used && !nearDoor(s.x, s.z, 2.0)); if (s2 && rng() < 0.4){ const pl = new THREE.Mesh(new THREE.PlaneGeometry(1.9, 0.36), new THREE.MeshLambertMaterial({ map:signTex(SIGNS[Math.floor(rng()*SIGNS.length)]) }));
+      pl.position.set(s2.x - s2.a*0.02, 2.0, s2.z - s2.b*0.02); pl.rotation.y = s2.ry; pl.material.polygonOffset = true; pl.material.polygonOffsetFactor = -2; g.add(pl); s2.used = true; } }
+  // spawn room: a welcome banner, balloons
+  { const s = roomSpots(sr).find(s=>!nearDoor(s.x, s.z, 2.0)); if (s){ const pl = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 0.45), new THREE.MeshLambertMaterial({ map:signTex('WELCOME TO THE PARTY') })); pl.position.set(s.x - s.a*0.02, 2.1, s.z - s.b*0.02); pl.rotation.y = s.ry; g.add(pl); s.used = true; }
+    balloons(sr.cx + 1.2, sr.cz - 1.2, 4); }
+  // ---- the exit: a door on the outer wall, far from the spawn room
+  { let best = null, bd = -1; for (const s of spots){ if (!s.edge || s.used || nearDoor(s.x, s.z, 2.0)) continue; const dd = D0[K(s.i, s.j)] + rng()*2; if (dd > bd){ bd = dd; best = s; } }
+    const s = best; s.used = true; const w = grp(s.x + s.a*0.1, s.z + s.b*0.1, s.ry);   // on the wall line, facing into the room
+    for (const sx of [-1,1]) bx(w, 0.1, 2.3, 0.12, sx*0.7, 1.15, 0.15, trimM); bx(w, 1.5, 0.1, 0.12, 0, 2.3, 0.15, trimM);
+    const dark = bx(w, 1.3, 2.25, 0.02, 0, 1.12, 0.115, new THREE.MeshBasicMaterial({ color:0x060504 }));
+    const lf = new THREE.Group(); lf.position.set(-0.64, 0, 0.16); w.add(lf); bx(lf, 1.28, 2.24, 0.06, 0.64, 1.12, 0, lam(0x3a6a44)); bx(lf, 0.06, 0.1, 0.14, 1.12, 1.05, 0.05, lam(0xd0b060));
+    const lock = bx(w, 0.12, 0.16, 0.08, 0.45, 1.05, 0.24, lam(0xb89a40));
+    const sg = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.3), new THREE.MeshBasicMaterial({ map:textTex('EXIT', 128, 40, (c,w2,h2,t)=>{ c.fillStyle = '#0a3a18'; c.fillRect(0,0,w2,h2); c.fillStyle = '#5aff7a'; c.font = 'bold 30px monospace'; c.textAlign = 'center'; c.fillText(t, w2/2, 31); }) }));
+    sg.position.set(0, 2.52, 0.13); w.add(sg);
+    const tx = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.22), new THREE.MeshLambertMaterial({ map:signTex('THANKS FOR COMING') })); tx.position.set(0.64, 1.75, 0.04); tx.scale.set(0.7, 0.7, 1); lf.add(tx);   // on the door itself
+    F.exit = { w, lf, dark, lock, ang:0 }; L.door = dark; L.doorMatLocked = dark.material; L.doorMatOpen = new THREE.MeshBasicMaterial({ color:0xf4f0e2 }); L.exitPos = [s.x - s.a*0.85, s.z - s.b*0.85]; exitLight.position.set(s.x - s.a*0.5, 1.6, s.z - s.b*0.5); exitLight.intensity = 0; L.exitCell = [s.i, s.j]; }
+  // ---- the Occupant starts far away
+  { let best = -1, bk = 0; for (let k=0;k<N*N;k++){ const i = Math.floor(k/N), j = k%N; if (D0[k] < 0 || roomOf(i,j) === sr.id) continue; const v = D0[k] + rng()*3 - (Math.hypot(cc(i) - L.exitPos[0], cc(j) - L.exitPos[1]) < 16 ? 20 : 0); if (v > best){ best = v; bk = k; } }
+    L.mspawn = [cc(Math.floor(bk/N)), cc(bk%N)]; }
+  // ---- wardrobes (hide spots), presents, batteries
+  { const cand = shuffle188(spots.filter(s=>!s.used && !s.edge && s.r !== sr.id && !nearDoor(s.x, s.z, 1.6)), rng); const usedR = new Set();
+    const sb = (x, z, m) => L.slabs.some(q=>x > q[0]-m && x < q[1]+m && z > q[2]-m && z < q[3]+m) || L.circles.some(c=>Math.hypot(c.x-x, c.z-z) < c.r + m);
+    for (const s of cand){ if (L.lockers.length >= 7) break; if (usedR.has(s.r)) continue; const x = s.x - s.a*0.32, z = s.z - s.b*0.32; if (sb(x - s.a*0.75, z - s.b*0.75, 0.55) || sb(x, z, 0.1)) continue; usedR.add(s.r); s.used = true; const lk = grp(x, z, s.ry);
+      bx(lk, 0.95, 2.05, 0.58, 0, 1.025, 0, woodM); bx(lk, 0.02, 1.85, 0.01, 0, 1.0, 0.295, darkM); for (const sx of [-0.08, 0.08]) bx(lk, 0.03, 0.12, 0.04, sx, 1.05, 0.31, lam(0xd0b060)); bx(lk, 1.0, 0.08, 0.62, 0, 2.06, 0, lam(0x6a4224));
+      L.lockers.push({ x, z, ry:s.ry, fx: x - s.a*0.75, fz: z - s.b*0.75 }); slab(x - (s.a ? 0.3 : 0.5), x + (s.a ? 0.3 : 0.5), z - (s.b ? 0.3 : 0.5), z + (s.b ? 0.3 : 0.5)); } }
+  { const rooms = shuffle188(F.rooms.filter(r=>r !== sr), rng); let k = 0;
+    while (F.gifts.length < FUN_GIFTS && k < rooms.length*3){ const r = rooms[k % rooms.length]; k++; const [ci, cj] = r.cells[Math.floor(rng()*r.cells.length)];
+      let x = cc(ci) + (rng()-0.5)*2.4, z = cc(cj) + (rng()-0.5)*2.4, onT = false; if (r.table && !r.gotGift && rng() < 0.5){ x = r.table[0] - 0.45; z = r.table[1]; onT = true; }
+      if (!onT && (nearDoor(x, z, 1.5) || (r.table && Math.hypot(x-r.table[0], z-r.table[1]) < 1.3) || L.circles.some(c=>Math.hypot(c.x-x, c.z-z) < 0.7))) continue;
+      if (F.gifts.some(q=>Math.hypot(q.x-x, q.z-z) < 6)) continue; r.gotGift = true;
+      const sz = 0.32 + rng()*0.22, y0 = onT ? 0.77 : 0, gp = new THREE.Group(); gp.position.set(x, y0, z); gp.rotation.y = rng()*6.28; g.add(gp); const wm = wrapM[F.gifts.length % wrapM.length], rm = ribM[Math.floor(rng()*3)];
+      bx(gp, sz, sz*0.8, sz, 0, sz*0.4, 0, wm); bx(gp, sz*0.18, sz*0.81, sz*1.01, 0, sz*0.4, 0, rm); bx(gp, sz*1.01, sz*0.81, sz*0.18, 0, sz*0.4, 0, rm);
+      const lid = new THREE.Group(); gp.add(lid); bx(lid, sz*1.08, sz*0.16, sz*1.08, 0, sz*0.86, 0, wm); bx(lid, sz*0.2, sz*0.17, sz*1.1, 0, sz*0.86, 0, rm); bx(lid, sz*1.1, sz*0.17, sz*0.2, 0, sz*0.86, 0, rm);
+      for (const s of [-1,1]){ const bw = bx(lid, sz*0.3, sz*0.18, sz*0.08, s*sz*0.14, sz*1.0, 0, rm); bw.rotation.z = s*0.5; }
+      const torn = new THREE.Group(); torn.visible = false; gp.add(torn); for (let q=0;q<6;q++){ const p = bx(torn, 0.12 + rng()*0.1, 0.01, 0.1 + rng()*0.08, (rng()-0.5)*sz*2.2, 0.01 + q*0.002 - y0*0, (rng()-0.5)*sz*2.2, wm); p.rotation.y = rng()*3; }
+      F.gifts.push({ k:F.gifts.length, x, z, y:y0, sz, g:gp, lid, torn, onT }); if (!onT) C(x, z, sz*0.6); } }
+  { const pool = shuffle188(F.rooms.flatMap(r=>r.cells), rng); for (const [i,j] of pool){ if (L.bt.length >= 13) break; const x = cc(i) + (rng()-0.5)*2.4, z = cc(j) + (rng()-0.5)*2.4; if (nearDoor(x, z, 1.3) || L.circles.some(c=>Math.hypot(c.x-x, c.z-z) < 0.8) || L.bt.some(b=>Math.hypot(b[0]-x, b[1]-z) < 9)) continue; L.bt.push([x, z]); } }
+  for (const p of L.bt){ const m = new THREE.Group(); const b = new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.08,0.3,8), lam(0xb8a640)); b.rotation.z = Math.PI/2; b.position.y = 0.08; m.add(b);
+    const cp = new THREE.Mesh(new THREE.CylinderGeometry(0.081,0.081,0.1,8), lam(0x222222)); cp.rotation.z = Math.PI/2; cp.position.set(0.1,0.08,0); m.add(cp); m.position.set(p[0], 0, p[1]); m.rotation.y = rng()*6; g.add(m); L.btM.push(m); }
+  // ---- the key (shown once someone unwraps it and drops it)
+  { const k = new THREE.Group(), km = new THREE.MeshLambertMaterial({ color:0xe0b840, emissive:0x302008 }); const ring = new THREE.Mesh(new THREE.TorusGeometry(0.05, 0.015, 6, 12), km); ring.rotation.x = Math.PI/2; k.add(ring);
+    bx(k, 0.16, 0.02, 0.025, 0.12, 0, 0, km); bx(k, 0.02, 0.02, 0.05, 0.18, 0, 0.03, km); bx(k, 0.02, 0.02, 0.04, 0.14, 0, 0.025, km); const tag = bx(k, 0.08, 0.005, 0.05, -0.08, 0, 0.04, lam(0xe83a3a)); tag.rotation.y = 0.3;
+    k.visible = false; g.add(k); F.key = k; }
+  // ---- lights: one fixture per cell
+  for (let i=0;i<N;i++) for (let j=0;j<N;j++){ const r = F.rooms[roomOf(i,j)]; if (r.cells.length > 2 && rng() < 0.25) continue;
+    const p = { idx:L.panels.length, i, j, t:0, x:cc(i), z:cc(j), y:FUN_H - 0.05, sx:1.1, sy:0.06, sz:0.55, faulty: rng() < 0.08, dead:false, red:false, ph:rng()*10, b:1, gk:-1, col:0xfff0d4, dist:8 };
+    if (L.panelAt[K(i,j)] < 0) L.panelAt[K(i,j)] = p.idx; L.panels.push(p); }
+  for (const r of F.rooms) for (const [i,j] of r.cells) if (L.panelAt[K(i,j)] < 0){ const near = L.panels.find(p=>F.room[K(p.i,p.j)] === r.id); if (near) L.panelAt[K(i,j)] = near.idx; }
+  L.panelMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1), new THREE.MeshBasicMaterial({ color:0xffffff }), Math.max(1, L.panels.length));
+  L.panels.forEach(p=>{ tmpV.set(p.x, p.y, p.z); tmpS.set(p.sx, p.sy, p.sz); tmpQ.identity(); tmpM.compose(tmpV, tmpQ, tmpS); L.panelMesh.setMatrixAt(p.idx, tmpM); L.panelMesh.setColorAt(p.idx, tmpC.setRGB(1,1,1)); });
+  L.panelMesh.frustumCulled = false; g.add(L.panelMesh);
+  // ---- confetti particles (pooled; spawned by the party horn)
+  { const geo = new THREE.BufferGeometry(), n = 160, pos = new Float32Array(n*3), col = new Float32Array(n*3); const cs = [[0.9,0.25,0.2],[0.2,0.45,0.9],[0.95,0.85,0.2],[0.3,0.75,0.35],[0.9,0.45,0.8],[1,1,1]];
+    for (let k=0;k<n;k++){ pos[k*3+1] = -10; const c = cs[k % cs.length]; col.set(c, k*3); }
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3)); geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+    const pts = new THREE.Points(geo, new THREE.PointsMaterial({ size:0.05, vertexColors:true })); pts.frustumCulled = false; g.add(pts); F.confPts = pts; F.confV = new Float32Array(n*3); F.confN = 0; }
+  L.base = walls.slice(); L.kind = new Uint8Array(N*N);
+  L.slabCell = Array.from({ length:N*N }, ()=>[]); F.slabW = Array.from({ length:N*N }, ()=>[]);
+  for (const s of L.slabs.slice(0, F.nWallSlabs)) for (let i=Math.max(0, Math.floor((s[0]-0.6)/CS)); i<=Math.min(N-1, Math.floor((s[1]+0.6)/CS)); i++) for (let j=Math.max(0, Math.floor((s[2]-0.6)/CS)); j<=Math.min(N-1, Math.floor((s[3]+0.6)/CS)); j++) F.slabW[K(i,j)].push(s);
+  for (const s of L.slabs){ for (let i=Math.max(0, Math.floor((s[0]-0.6)/CS)); i<=Math.min(N-1, Math.floor((s[1]+0.6)/CS)); i++) for (let j=Math.max(0, Math.floor((s[2]-0.6)/CS)); j<=Math.min(N-1, Math.floor((s[3]+0.6)/CS)); j++) L.slabCell[K(i,j)].push(s); }
+  bakeStatic852(g, new Set([L.panelMesh, ...L.btM, ...F.doors.map(d=>d.piv), ...F.gifts.map(q=>q.g), F.key, F.exit.w, F.confPts].filter(Boolean)));
+  funSeen = { fd:'', fn:-1, pr:0, open:0, fk:'' };
+}
+
+/* ---- every client, every frame: doors into `walls`, door swings, presents, the key, the exit, confetti, the party music, lights out/on ---- */
+function funDoorsToWalls(open){ const F = funConf(); if (!F) return; const fd = G.fd || []; for (const d of F.doors) walls[d.e] = open ? 0 : fd[d.k] ? 1 : 0; }
+function updateFun(dt){
+  const on = LK === 7 && funConf() && G.ph === 'play' && mode !== 'menu';
+  if (funBed) funBed.g.gain.value = lerp(funBed.g.gain.value, on && !funNight() && !silenced() ? 0.05 : 0, 1 - Math.exp(-(funNight() ? 40 : 1.5)*dt));
+  if (!on) return;
+  const L = level, F = L.fun, fd = G.fd || [], t = nowS();
+  funDoorsToWalls(false);
+  for (const d of F.doors){ const tgt = fd[d.k] ? 0 : 1.5; d.ang = lerp(d.ang, tgt, 1 - Math.exp(-7*dt)); d.piv.rotation.y = d.base + d.ang; }
+  const fs = fd.join('');
+  if (fs !== funSeen.fd){ if (funSeen.fd) for (const d of F.doors) if ((fd[d.k]|0) !== (+funSeen.fd[d.k]|0)) funDoorSnd(d.x, d.z, fd[d.k]); funSeen.fd = fs; }
+  // the presents
+  const pr = G.pr|0; for (const q of F.gifts){ const op = !!(pr & (1<<q.k)); q.lid.visible = !op; q.torn.visible = op; if (op && !q.done){ q.done = true; q.g.children[0].scale.y = 0.35; q.g.children[0].position.y = q.sz*0.14; } }
+  funSeen.pr = pr;
+  // the key
+  const fk = G.fk; F.key.visible = !!fk && fk[0] === 0; if (F.key.visible){ F.key.position.set(fk[1], 0.03 + Math.sin(t*2)*0.01, fk[2]); F.key.rotation.y = t*0.8; }
+  // the exit
+  const X = F.exit; X.ang = lerp(X.ang, G.open ? 1.7 : 0, 1 - Math.exp(-1.6*dt)); X.lf.rotation.y = -X.ang; X.lock.visible = !G.open; if (G.open && X.dark.material !== L.doorMatOpen) X.dark.material = L.doorMatOpen;
+  // lights out / lights on: no warning, just a thunk and the music stops
+  const nt = G.fn ? G.fn[0] : 0; if (funSeen.fn !== nt){ if (funSeen.fn >= 0 && sfx.ctx){ if (nt) sfx.sample('pout', null, 0.8); else sfx.lightsOn(null, 0.5); }
+    if (funSeen.fn >= 0) msg(nt ? (role === 'monster' ? 'The lights went out. The Partygoers stopped smiling politely.' : 'The lights went out.') : 'The lights are back on.', 3); funSeen.fn = nt; }
+  // confetti
+  if (F.confN > 0){ const a = F.confPts.geometry.attributes.position.array, v = F.confV; let live = 0;
+    for (let k=0;k<a.length/3;k++){ if (a[k*3+1] <= 0.01) continue; live++; v[k*3+1] -= dt*2.2; v[k*3] *= Math.exp(-1.6*dt); v[k*3+2] *= Math.exp(-1.6*dt); v[k*3+1] = Math.max(v[k*3+1], -0.7);
+      a[k*3] += v[k*3]*dt + Math.sin(t*9 + k)*0.004; a[k*3+1] = Math.max(0.005, a[k*3+1] + v[k*3+1]*dt); a[k*3+2] += v[k*3+2]*dt + Math.cos(t*8 + k)*0.004; }
+    F.confPts.geometry.attributes.position.needsUpdate = true; if (!live) F.confN = 0; }
+  // the party music (a tinny music-box loop), only while the lights are on
+  if (!funBed && sfx.ctx){ const c = sfx.ctx, g = c.createGain(); g.gain.value = 0; const f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 2400; g.connect(f); f.connect(sfx.master); funBed = { g, next:0, i:0 }; }
+  if (funBed && sfx.ctx && !funNight()){ const c = sfx.ctx; while (funBed.next < c.currentTime + 0.3){ if (funBed.next < c.currentTime) funBed.next = c.currentTime + 0.05;
+      const MEL = [67,67,69,67,72,71,-1,-1, 67,67,69,67,74,72,-1,-1, 67,67,79,76,72,71,69,-1, 77,77,76,72,74,72,-1,-1], n = MEL[funBed.i % MEL.length]; funBed.i++;
+      if (n > 0){ const o = c.createOscillator(), og = c.createGain(); o.type = 'triangle'; o.frequency.value = 440*Math.pow(2, (n-69)/12)*(1 + Math.sin(funBed.i*0.7)*0.004); og.gain.setValueAtTime(0.0001, funBed.next); og.gain.exponentialRampToValueAtTime(0.5, funBed.next + 0.01); og.gain.exponentialRampToValueAtTime(0.0001, funBed.next + 0.42);
+        o.connect(og).connect(funBed.g); o.start(funBed.next); o.stop(funBed.next + 0.45); }
+      funBed.next += 0.27; } }
+}
+function funConfetti(x, z, y=0.6){ const F = funConf(); if (!F) return; const a = F.confPts.geometry.attributes.position.array, v = F.confV, n = a.length/3;
+  for (let k=0;k<n;k++){ a[k*3] = x + (Math.random()-0.5)*0.2; a[k*3+1] = y + Math.random()*0.2; a[k*3+2] = z + (Math.random()-0.5)*0.2; const ang = Math.random()*6.28, sp = 0.5 + Math.random()*2.2; v[k*3] = Math.cos(ang)*sp; v[k*3+1] = 2 + Math.random()*3; v[k*3+2] = Math.sin(ang)*sp; }
+  F.confPts.geometry.attributes.position.needsUpdate = true; F.confN = n; }
+function funDoorSnd(x, z, shut){ if (!sfx.ctx) return; const o = sfx.panner(x, 1.1, z, 3); if (shut){ sfx.noise(o,{ dur:0.18, type:'lowpass', freq:300, gain:0.8, at:0.15 }); sfx.tone(o,{ f:90, to:55, dur:0.2, gain:0.15, at:0.15 }); }
+  sfx.tone(o,{ f:shut ? 520 : 380, to:shut ? 300 : 620, type:'sawtooth', dur:0.35, gain:0.02 }); sfx.noise(o,{ dur:0.3, type:'bandpass', freq:1400, q:6, gain:0.08 }); }
+function funSound(k, x, z){
+  if (!sfx.ctx) return;
+  if (k === 'giftHorn'){ funConfetti(x, z); const o = sfx.panner(x, 0.8, z, 8); sfx.noise(o,{ dur:0.12, type:'highpass', freq:1500, gain:0.6 });   // the pop, then the horn
+    for (const [f, at] of [[440, 0.1], [440, 0.42]]){ sfx.tone(o,{ f, to:f*0.98, type:'sawtooth', dur:0.32, gain:0.22, at }); sfx.tone(o,{ f:f*1.5, type:'square', dur:0.3, gain:0.06, at }); }
+    sfx.tone(o,{ f:520, to:330, type:'sawtooth', dur:0.9, gain:0.25, at:0.75 }); sfx.tone(o,{ f:780, to:500, type:'square', dur:0.9, gain:0.07, at:0.75 }); return; }
+  if (k === 'giftKey'){ const o = sfx.panner(x, 0.8, z, 3); for (let q=0;q<4;q++) sfx.tone(o,{ f:1600 + q*400, dur:0.08, gain:0.06, at:q*0.06 }); sfx.noise(o,{ dur:0.1, type:'bandpass', freq:3000, q:3, gain:0.2 }); return; }
+  if (k === 'pgKnock'){ const o = sfx.panner(x, 1.2, z, 4); for (let q=0;q<3;q++) sfx.noise(o,{ dur:0.08, type:'lowpass', freq:420, gain:0.85, at:q*0.22 }); return; }
+  if (k === 'pgKill'){ const o = sfx.panner(x, 1.4, z, 6); funGiggle(x, z, 1, 1.4); sfx.noise(o,{ dur:0.4, type:'lowpass', freq:500, gain:0.9, at:0.3 }); sfx.tone(o,{ f:520, to:330, type:'sawtooth', dur:0.9, gain:0.2, at:0.5 }); return; }
+  if (k === 'pgSpot'){ funGiggle(x, z, 1, 1.1); return; }
+  if (k === 'fdoorBang'){ const o = sfx.panner(x, 1.1, z, 6); sfx.noise(o,{ dur:0.25, type:'lowpass', freq:380, gain:1.0 }); sfx.tone(o,{ f:70, to:40, dur:0.3, gain:0.25 }); return; }
+}
+// a giggle: a few quick high wobbling notes (fast = a hunting Partygoer)
+function funGiggle(x, z, fast, g0=0.6){ if (!sfx.ctx) return; const o = sfx.panner(x, 1.6, z, 3); const n = 4 + Math.floor(Math.random()*3), f0 = 600 + Math.random()*250;
+  for (let q=0;q<n;q++) sfx.tone(o,{ f:f0*(1 - q*0.04)*(fast ? 1.15 : 1), to:f0*(0.82 - q*0.04), type:'triangle', dur:0.09, gain:0.07*g0, at:q*(fast ? 0.09 : 0.13) }); }
+
+/* ---- survivors: unwrapping, the key, the exit; context actions for everyone (doors) ---- */
+function funDoorNear(x, z, r=1.7){ const F = funConf(); if (!F) return null; let best = null, bd = r; for (const d of F.doors){ const q = Math.hypot(d.x-x, d.z-z); if (q < bd){ bd = q; best = d; } } return best; }
+function funSurvivor(dt){
+  const L = level, F = L.fun; if (!F) return; const fk = G.fk;
+  if (fk && fk[0] === 0 && Math.hypot(fk[1]-me.x, fk[2]-me.z) < 1.2){ fk[0] = 1; fk[3] = myPid; useReq({ k:'fk' }); sfx.pickup(); msg('You have the key. It has a red tag: EXIT.', 4); }
+  if (fk && fk[0] === 1 && fk[3] === myPid && !G.open && Math.hypot(L.exitPos[0]-me.x, L.exitPos[1]-me.z) < 1.9){ useReq({ k:'fkuse' }); if (!amHost()){ fk[0] = 2; } }
+  if (mallHold && mallHold.k === 'gift'){ const H0 = mallHold;
+    if (Math.hypot(H0.x-me.x, H0.z-me.z) > 1.8 || me.hidden >= 0 || !me.alive || ((G.pr|0) & (1<<H0.i))){ mallHold = null; return; }
+    H0.t += dt; H0.s -= dt;
+    if (H0.s <= 0){ H0.s = 0.3; const q = F.gifts[H0.i]; if (sfx.ctx && q){ const o = sfx.panner(q.x, 0.5, q.z, 2); sfx.noise(o,{ dur:0.22, type:'bandpass', freq:2200 + Math.random()*1800, q:1.2, gain:0.25 }); } vibrate(8); }
+    if (H0.t >= H0.T){ mallHold = null; useReq({ k:'gift', i:H0.i }); } }
+}
+function funAction(){
+  if (LK !== 7 || !funConf()) return null;
+  if (mallHold && mallHold.k === 'gift') return { label:'STOP', key:'E', fn:()=>{ mallHold = null; } };
+  const L = level, F = L.fun, pr = G.pr|0;
+  if (role === 'survivor'){ let best = null, bd = 1.4; for (const q of F.gifts){ if (pr & (1<<q.k)) continue; const d = Math.hypot(q.x-me.x, q.z-me.z); if (d < bd){ bd = d; best = q; } }
+    if (best) return { label:'OPEN THE PRESENT', key:'E', fn:()=>{ mallHold = { k:'gift', i:best.k, t:0, T:FUN_GIFT_T, x:me.x, z:me.z, s:0 }; } };
+    if (!G.open && Math.hypot(L.exitPos[0]-me.x, L.exitPos[1]-me.z) < 1.9) return { label:'THE EXIT', key:'E', fn:()=>msg('EXIT. Locked. One of the presents has the key in it.', 3.5) }; }
+  const d = funDoorNear(me.x, me.z); if (d){ const shut = (G.fd || [])[d.k]; return { label: shut ? 'OPEN DOOR' : 'CLOSE DOOR', key:'E', fn:()=>{ useReq({ k:'fdoor', i:d.k }); } }; }
+  return null;
+}
+function funObj(){
+  const fk = G.fk, n = [...Array(FUN_GIFTS).keys()].filter(k=>(G.pr|0) & (1<<k)).length, who = p => p === myPid ? 'You have' : ((allPlayers().find(q=>q.pid === p)||{}).n || 'Someone') + ' has';
+  if (G.open) return 'The EXIT is open · GET OUT';
+  if (fk && fk[0] === 1) return `${who(fk[3])} the key · unlock the EXIT door`;
+  if (fk && fk[0] === 0) return 'The key was dropped · pick it up · unlock the EXIT door';
+  return `Open the presents: one has the key to the EXIT · ${n}/${FUN_GIFTS} opened`;
+}
+function funSide(){ return funNight() ? 'LIGHTS OUT' : 'LIGHTS ON'; }
+function funTarget(){ const fk = G.fk, F = funConf(), pr = G.pr|0;
+  if (G.open || (fk && fk[0] === 1 && fk[3] === myPid)) return [level.exitPos[0], level.exitPos[1], 'the exit'];
+  if (fk && fk[0] === 0) return [fk[1], fk[2], 'the key'];
+  const c = F.gifts.filter(q=>!(pr & (1<<q.k))).sort((a,b)=>Math.hypot(a.x-me.x, a.z-me.z) - Math.hypot(b.x-me.x, b.z-me.z)); return c.length ? [c[0].x, c[0].z, 'a present'] : [level.exitPos[0], level.exitPos[1], 'the exit']; }
+
+/* ---- host: doors, presents, the key, day/night, the Partygoers ---- */
+function funUse(pid, m){   // from applyUse
+  const F = funConf(); if (!F || LK !== 7) return;
+  if (m.k === 'fdoor'){ const d = F.doors[m.i|0]; if (!d) return; G.fd = G.fd || F.doors.map(()=>0);
+    if (!G.fd[d.k]){ const ps = allPlayers(); if (ps.some(p=>!isDead(p.pid) && Math.hypot(p.x-d.x, p.z-d.z) < 0.45) || (H.pg && H.pg.list.some(q=>Math.hypot(q.x-d.x, q.z-d.z) < 0.6))) return; }   // something's in the doorway
+    G.fd[d.k] = G.fd[d.k] ? 0 : 1; }
+  else if (m.k === 'gift'){ const q = F.gifts[m.i|0]; if (!q || ((G.pr|0) & (1<<q.k)) || isDead(pid)) return; G.pr = (G.pr|0) | (1<<q.k);
+    if (q.k === G.pk && !G.fk){ G.fk = [1, +q.x.toFixed(2), +q.z.toFixed(2), pid]; lrSnd('giftKey', q.x, q.z); }
+    else { lrSnd('giftHorn', q.x, q.z); funNoise(q.x, q.z);
+      if (G.mo === 'AI' && H.ai && H.ai.mode !== 'chase'){ H.ai.mode = 'hunt'; H.ai.lx = q.x; H.ai.lz = q.z; H.ai.lt = 18; H.ai.rp = 0; } } }
+  else if (m.k === 'fk'){ if (G.fk && G.fk[0] === 0 && !isDead(pid)){ G.fk[0] = 1; G.fk[3] = pid; } }
+  else if (m.k === 'fkuse'){ if (G.fk && G.fk[0] === 1 && G.fk[3] === pid){ G.fk[0] = 2; G.open = 1; } }
+}
+function funNoise(x, z){ const R = H.pg; if (!R || !funNight()) return; for (const q of R.list) if (Math.hypot(q.x-x, q.z-z) < 40 && !q.tg){ q.hx = x; q.hz = z; q.st = 3; } }
+function hostFun(dt, alive, ex){
+  if (LK !== 7 || !funConf()) return;
+  const F = level.fun;
+  if (!G.fd || G.fd.length !== F.doors.length) G.fd = F.doors.map(()=>0);
+  // lights on / lights out: long stretches, no warning
+  if (!G.fn) G.fn = [0, FUN_DAY[0] + Math.random()*(FUN_DAY[1]-FUN_DAY[0])];
+  if (G.grace <= 0){ G.fn[1] = +(G.fn[1] - dt).toFixed(2); if (G.fn[1] <= 0){ const n = G.fn[0] ? 0 : 1, R = n ? FUN_NIGHT : FUN_DAY; G.fn = [n, +(R[0] + Math.random()*(R[1]-R[0])).toFixed(1)]; } }
+  // the key: back in its present if whoever had it left
+  const ps = allPlayers(); if (G.fk && G.fk[0] === 1 && !ps.some(p=>p.pid === G.fk[3])){ const q = F.gifts[G.pk]; G.fk = [0, +q.x.toFixed(2), +q.z.toFixed(2), '']; }
+  // the computer Occupant shoves doors open
+  if (G.mo === 'AI' && !ex){ const d = funDoorNear(G.ax, G.az, 1.5); if (d && G.fd[d.k]){ G.fd[d.k] = 0; lrSnd('fdoorBang', d.x, d.z); } }
+  if (ex){ G.pg = []; return; }
+  hostPartygoers(dt, alive);
+}
+function pgSpot(alive, far){ for (let t=0;t<300;t++){ const i = Math.floor(Math.random()*N), j = Math.floor(Math.random()*N), x = cc(i) + (Math.random()-0.5)*1.6, z = cc(j) + (Math.random()-0.5)*1.6;
+    if (Math.hypot(x - level.spawn[0], z - level.spawn[1]) < 22) continue; if (alive.some(p=>Math.hypot(p.x-x, p.z-z) < far)) continue; return [x, z]; } return null; }
+// lrMove, but a Partygoer that gets wedged on furniture (tables sit across the cell-to-cell lines) slips past it for a moment (walls and doors still hold)
+function pgMove(q, tx, tz, sp, dt){ const L = level, ox = q.x, oz = q.z; let r;
+  if (q.ghost > 0){ q.ghost -= dt; const sc = L.slabCell, ci = L.circles, c2 = L.circCell; L.slabCell = L.fun.slabW; L.circles = []; L.circCell = undefined; try { r = lrMove(q, tx, tz, sp, dt); } finally { L.slabCell = sc; L.circles = ci; L.circCell = c2; } }
+  else r = lrMove(q, tx, tz, sp, dt);
+  if (r){ const pr = Math.hypot(q.x-ox, q.z-oz), far = Math.hypot(tx-q.x, tz-q.z) > 0.5; q.stk = far && pr < sp*dt*0.25 ? (q.stk || 0) + dt : 0; if (q.stk > 0.5){ q.ghost = 1.2; q.stk = 0; } }
+  return r; }
+function hostPartygoers(dt, alive){
+  const key = G.r + '.' + (G.lv|0), df = G.df|0, night = funNight(), F = level.fun;
+  if (!H.pg || H.pg.key !== key) H.pg = { key, list:[], on:0 };
+  const R = H.pg;
+  if (!R.on){ if (G.grace > 0 || !alive.length){ G.pg = []; return; }
+    for (let k=0;k<PG_N[df];k++){ const s = pgSpot(alive, 26); if (s) R.list.push({ x:s[0], z:s[1], y:Math.random()*6, st:1, mv:0, tg:null, hx:0, hz:0, wx:0, wz:0, pause:Math.random()*6, knock:0, lc:-1, tc:-1, rp:0, nx:null, cd:0 }); }
+    R.on = 1; }
+  const ok = alive.filter(p=>!p.hd);
+  for (const q of R.list){ q.mv = 0; q.cd -= dt; q.knock -= dt;
+    const tgP = q.tg ? ok.find(p=>p.pid === q.tg) : null; if (q.tg && !tgP) q.tg = null;
+    if (!night){
+      if (q.st >= 3){ q.st = q.tg ? 2 : 1; }
+      if (!q.tg){ let best = null, bd = PG_SEE; for (const p of ok){ const d = Math.hypot(p.x-q.x, p.z-q.z); if (d < bd && losClear(q.x, q.z, p.x, p.z)){ bd = d; best = p; } } if (best){ q.tg = best.pid; q.st = 2; if (q.cd <= 0){ lrSnd('pgSpot', q.x, q.z); q.cd = 25; } } }
+      const T = q.tg ? ok.find(p=>p.pid === q.tg) : null;
+      if (T){ const d = Math.hypot(T.x-q.x, T.z-q.z);
+        if (d > PG_LOSE){ q.tg = null; q.st = 1; q.pause = 4 + Math.random()*6; }
+        else if (d > PG_GAP){ if (!pgMove(q, T.x, T.z, PG_DAY, dt)){ q.tg = null; q.st = 1; q.pause = 3; } }   // a shut door: lost you
+        else { q.y = Math.atan2(T.x-q.x, T.z-q.z); } }   // stand there and stare
+      else { if (q.pause > 0) q.pause -= dt; else { if (!q.wx || Math.hypot(q.wx-q.x, q.wz-q.z) < 0.6){ if (q.wx){ q.pause = 5 + Math.random()*10; q.wx = 0; } else { const ci = cellOf(q.x), cj = cellOf(q.z); q.wx = cc(clamp(ci + Math.floor(Math.random()*5) - 2, 0, N-1)); q.wz = cc(clamp(cj + Math.floor(Math.random()*5) - 2, 0, N-1)); } }
+          if (q.wx && !pgMove(q, q.wx, q.wz, 0.9, dt)) q.wx = 0; } }
+    } else {
+      // lights out: hunt whoever it knows about; noises bring it
+      if (!q.tg){ let best = null, bd = PG_NIGHT_R; for (const p of ok){ const d = Math.hypot(p.x-q.x, p.z-q.z), heard = p.m >= 2 || p.vn; if ((heard && d < bd) || d < 9){ if (d < bd){ bd = d; best = p; } } } if (best){ q.tg = best.pid; if (q.cd <= 0){ lrSnd('pgSpot', q.x, q.z); q.cd = 12; } } }
+      const T = q.tg ? ok.find(p=>p.pid === q.tg) : null;
+      if (T){ q.st = 3; q.hx = T.x; q.hz = T.z;
+        if (!pgMove(q, T.x, T.z, PG_RUN[df], dt)){ q.st = 4;   // behind a shut door: wait right outside it, knock
+          if (!q.wait || (q.wtT -= dt) <= 0){ q.wtT = 1.5; q.wait = null; const d0 = bfsFrom(cellOf(q.x), cellOf(q.z)), tr = F.room[cellOf(T.x)*N + cellOf(T.z)], fd = G.fd || []; let bv = 1e9;
+            for (const d of F.doors){ if (!fd[d.k]) continue; const A = d.i*N + d.j, B = (d.i+d.a)*N + (d.j+d.b), out = F.room[A] === tr && d0[B] >= 0 ? B : F.room[B] === tr && d0[A] >= 0 ? A : -1; if (out < 0) continue;
+              const s = out === A ? -1 : 1, v = d0[out] + Math.hypot(d.x - T.x, d.z - T.z)*0.1; if (v < bv){ bv = v; q.wait = { d, x:d.x + d.a*s*0.9, z:d.z + d.b*s*0.9 }; } } }
+          if (q.wait){ const W0 = q.wait; if (Math.hypot(W0.x-q.x, W0.z-q.z) > 0.35) pgMove(q, W0.x, W0.z, PG_RUN[df]*0.7, dt);
+            else { q.y = Math.atan2(W0.d.x-q.x, W0.d.z-q.z); if (q.knock <= 0){ q.knock = 2.5 + Math.random()*4; lrSnd('pgKnock', W0.d.x, W0.d.z); } } } }
+        else q.wait = null; }
+      else if (q.st === 3 && q.hx){ if (Math.hypot(q.hx-q.x, q.hz-q.z) < 1 || !pgMove(q, q.hx, q.hz, PG_RUN[df]*0.8, dt)){ q.st = 1; q.hx = 0; } }
+      else { q.st = 1; if (q.pause > 0) q.pause -= dt; else { if (!q.wx || Math.hypot(q.wx-q.x, q.wz-q.z) < 0.6){ const ci = cellOf(q.x), cj = cellOf(q.z); q.wx = cc(clamp(ci + Math.floor(Math.random()*7) - 3, 0, N-1)); q.wz = cc(clamp(cj + Math.floor(Math.random()*7) - 3, 0, N-1)); } if (!pgMove(q, q.wx, q.wz, 1.6, dt)) q.wx = 0; } }
+      for (const p of ok) if (Math.hypot(p.x-q.x, p.z-q.z) < PG_REACH){ killSurvivor(p, 'pg'); lrSnd('pgKill', p.x, p.z); q.tg = null; q.st = 1; q.pause = 6; break; }
+    } }
+  G.pg = R.list.map(q=>[+q.x.toFixed(2), +q.z.toFixed(2), +q.y.toFixed(2), q.st, q.mv ? (q.st === 3 ? 2 : 1) : 0]);
+}
+
+/* ---- the Partygoers on screen. PLACEHOLDER model (Ryan will send one): a yellow cylinder body, a round head with a painted grin ---- */
+function makePartygoer(k){
+  const g = new THREE.Group(), P = {}, body = lam([0xe8c840, 0xe0a030, 0xd8d050][k % 3]), grin = new THREE.MeshBasicMaterial({ map:funGrinTex });
+  const bd = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.34, 1.45, 10), body); bd.position.y = 0.72; g.add(bd); P.body = bd;
+  const head = new THREE.Group(); head.position.y = 1.62; g.add(head); P.head = head;
+  const hd = new THREE.Mesh(new THREE.SphereGeometry(0.24, 12, 10), body); head.add(hd);
+  const face = new THREE.Mesh(new THREE.CircleGeometry(0.2, 16), grin); face.position.set(0, 0, 0.235); head.add(face);
+  const hat = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.34, 10), lam([0xd83a30, 0x3468d0, 0x40a850][k % 3])); hat.position.set(0.04, 0.32, 0); hat.rotation.z = -0.25; head.add(hat);
+  for (const s of [-1,1]){ const arm = new THREE.Group(); arm.position.set(s*0.33, 1.3, 0); g.add(arm); bx(arm, 0.08, 0.7, 0.08, 0, -0.35, 0, body); P[s < 0 ? 'armL' : 'armR'] = arm; }
+  g.traverse(o=>{ if (o.isMesh) o.frustumCulled = false; });
+  return { g, P, headY:1.62 };
+}
+function animPartygoer(m, ph, sp, st, t){ const P = m.P, a = sp > 0.1 ? Math.min(0.6, 0.15 + sp*0.1) : 0;
+  P.body.position.y = 0.72 + Math.abs(Math.sin(ph))*a*0.12; P.body.rotation.z = Math.sin(ph)*a*0.15;
+  const hunt = st >= 3; P.armL.rotation.x = hunt ? -1.4 + Math.sin(ph)*0.2 : Math.sin(ph)*a; P.armR.rotation.x = hunt ? -1.4 - Math.sin(ph)*0.2 : -Math.sin(ph)*a;
+  P.head.rotation.z = st === 2 && sp < 0.1 ? Math.sin(t*0.7)*0.25 + 0.2 : hunt ? Math.sin(t*13)*0.12 : Math.sin(t*1.3)*0.08; }
+const PGV = []; let PGJ = null, scarePg = false, pgGig = 6;
+function updatePartygoers(dt){
+  const list = (LK === 7 && G.ph === 'play' && G.pg) || [];
+  if (mode === 'deadAnim' && scarePg) return;
+  while (PGV.length < list.length){ const m = makePartygoer(PGV.length); scene.add(m.g); PGV.push({ m, x:0, z:0, sp:0, ph:0, st:0, init:false, stepT:0 }); }
+  const cx = camera.position.x, cz = camera.position.z;
+  PGV.forEach((v, k)=>{ const q = list[k]; if (!q){ v.m.g.visible = false; v.init = false; return; }
+    const jump = !v.init || Math.hypot(q[0]-v.x, q[1]-v.z) > 4, kk = jump ? 1 : 1 - Math.exp(-12*dt), ox = v.x, oz = v.z; v.init = true;
+    v.x = lerp(v.x, q[0], kk); v.z = lerp(v.z, q[1], kk); const s = jump ? 0 : Math.hypot(v.x-ox, v.z-oz)/Math.max(dt, 1e-3); v.sp = lerp(v.sp, q[4] ? s : 0, 1 - Math.exp(-10*dt)); v.st = q[3];
+    v.m.g.visible = true; v.m.g.position.set(v.x, 0, v.z); let dy = q[2] - v.m.g.rotation.y; dy = Math.atan2(Math.sin(dy), Math.cos(dy)); v.m.g.rotation.y += jump ? dy : dy*(1 - Math.exp(-8*dt));
+    v.ph += dt*v.sp*3.2; animPartygoer(v.m, v.ph, v.sp, v.st, nowS());
+    const d = Math.hypot(v.x-cx, v.z-cz);
+    if (q[4] && d < 24 && sfx.ctx){ v.stepT -= dt; if (v.stepT <= 0){ v.stepT = v.st >= 3 ? 0.2 : 0.45; sfx.lurkTap(v.x, v.z, v.st >= 3); } } });
+  // giggles now and then from the nearest one (more often in the dark)
+  pgGig -= dt; if (pgGig <= 0 && list.length){ pgGig = funNight() ? 3 + Math.random()*5 : 9 + Math.random()*14; let best = null, bd = 18; for (const v of PGV) if (v.m.g.visible){ const d = Math.hypot(v.x-cx, v.z-cz); if (d < bd){ bd = d; best = v; } } if (best) funGiggle(best.x, best.z, best.st >= 3); }
+}
+
 function buildLevel(seed, kind=0){
   if (level && level.seed === seed && level.lk === kind) return;
   LK = kind; if (kind === 0) baseSeed = seed;
@@ -2705,6 +3093,7 @@ function buildLevel(seed, kind=0){
   if (kind === 4){ M37 = null; setPoolVisible(false); buildLevel852(seed); return; }
   if (kind === 5){ M37 = null; setPoolVisible(false); buildLevel2p(seed); return; }
   if (kind === 6){ M37 = null; setPoolVisible(false); buildLevel52(seed); return; }
+  if (kind === 7){ M37 = null; setPoolVisible(false); buildLevelFun(seed); return; }
   if (kind === 2){ walls = new Uint8Array(E); setPoolVisible(true); buildLevel37(seed); return; }
   M37 = null;
   const rng = rngFrom(seed);
@@ -5008,6 +5397,7 @@ const STEP_SLOT = 0.42, STEP_GAIN = { stepC:0.28, stepK:0.45, stepT:0.3, stepW:0
 function stepSurf(x, z){
   if (LK === 0) return inLab(x, z) ? 'stepK' : 'stepC';
   if (LK === 5) return 'stepK';   // Level 2: concrete
+  if (LK === 7) return 'stepC';   // Level Fun: carpet
   if (LK === 4){ const t = level.mall && level.mall.M[cellOf(x)*N+cellOf(z)]; return t === MT.STORE ? 'stepC' : (t === MT.LAND || t === MT.STAIR || t === MT.DOCK) ? 'stepK' : 'stepT'; }   // the mall: tile, carpet in the stores, concrete in the stairwells and the dock
   if (LK === 6){ const S = level.s52; if (!S) return 'stepT'; const k = cellOf(x)*N+cellOf(z); if (S.M[k] === S52T.STAIR) return 'stepK'; const r = S.rooms[S.R[k]]; return r && (r.kind === 'library' || r.kind === 'office') ? 'stepC' : 'stepT'; }   // the school: polished tile, carpet in the library + office, concrete stairs
   if (LK === 1) return 'stepK';
@@ -5072,6 +5462,7 @@ $('name').value = myName;
 let roundT0 = 0;
 const me = { hidden:-1, cans:0, breath:100, adren:false, x:0, z:0, yaw:0, pitch:0, bat:100, light:false, stam:100, alive:true, esc:false, crouch:false, moving:false, running:false, bob:0, step:0, san:100, loudT:0 };
 let role = 'none';
+const FL_DRAIN = 0.8;   // v0.57 (Ryan: too much battery life): %/s, was 0.55 (≈2 min of light per full battery, was 3)
 const lightOn = () => role==='survivor' && me.alive && !me.esc && me.light && me.bat > 0;
 const remotes = new Map();
 const jackets = [0x4a2a20, 0x203a4a, 0x3a4a22, 0x4a4220, 0x3a2a4a];
@@ -5561,8 +5952,8 @@ let scareLurk = false, seenLkd = 0;
 
 /* ================= shared state ================= */
 let monVoiceOpt = 0; try { monVoiceOpt = +(localStorage.getItem('lvl0_monvoice')||0) ? 1 : 0; } catch(e){}
-let startOpt = 0; try { startOpt = clamp(+(localStorage.getItem('lvl0_start')||0)|0, 0, 6); } catch(e){}
-const LV_NAMES = ['LEVEL 0', 'LEVEL 1', 'LEVEL 37', 'LEVEL 188', 'LEVEL 852', 'LEVEL 2', 'LEVEL 52'];
+let startOpt = 0; try { startOpt = clamp(+(localStorage.getItem('lvl0_start')||0)|0, 0, 7); } catch(e){}
+const LV_NAMES = ['LEVEL 0', 'LEVEL 1', 'LEVEL 37', 'LEVEL 188', 'LEVEL 852', 'LEVEL 2', 'LEVEL 52', 'LEVEL FUN'];
 let exOpt = 0; try { exOpt = +(localStorage.getItem('lvl0_explore')||0) ? 1 : 0; } catch(e){}   // v0.41: exploration mode = no monster at all
 let diffOpt = 1; try { const v = localStorage.getItem('lvl0_diff'); if (v !== null) diffOpt = clamp(+v|0, 0, 3); } catch(e){}
 // how the computer Occupant plays at each difficulty. It is never faster than a sprinting survivor (5.0), and the flashlight always works on it.
@@ -5588,7 +5979,7 @@ const AI_DIFF = [
   { name:'HARD',       hear:1.6, see:19, near:7, spd:1.04, wander:1.5, hunt:3.2, drift:1,    persist:1.5, spr:1, dash:1, stun:0.8,  bo:1, vent:1, lead:0.6, obj:1 },
   { name:'IMPOSSIBLE', hear:2.2,  see:24, near:8, spd:1.08, wander:1.5, hunt:3.5, drift:1,    persist:2.2, spr:1, dash:1, stun:0.6,  bo:1, vent:2, lead:1.4, obj:2 },
 ];
-function freshState(r=0){ return { ph:'lobby', r, mo:'AI', ax:0, az:0, ay:0, amv:0, w:'', wv:0, fz:[], pl:0, open:0, ring:-1, aw:[], bt:[], bo:[], dead:[], esc:[], grace:0, sk:0, cn:[], stun:0, t0:0, dg:0, dgp:'', lv:0, gen:[], ads:0, kl:[], ov:monVoiceOpt, df:diffOpt, sl:startOpt, ach:0, avt:0, tod:0, asub:0, stk:0, lr:[0,0,0,0,0], lkd:[], ld:0, lp:100, lbo:0, ex:exOpt, fl:[], lsk:[], ls:[0,0,0,0,0] }; }
+function freshState(r=0){ return { ph:'lobby', r, mo:'AI', ax:0, az:0, ay:0, amv:0, w:'', wv:0, fz:[], pl:0, open:0, ring:-1, aw:[], bt:[], bo:[], dead:[], esc:[], grace:0, sk:0, cn:[], stun:0, t0:0, dg:0, dgp:'', lv:0, gen:[], ads:0, kl:[], ov:monVoiceOpt, df:diffOpt, sl:startOpt, ach:0, avt:0, tod:0, asub:0, stk:0, lr:[0,0,0,0,0], lkd:[], ld:0, lp:100, lbo:0, ex:exOpt, fl:[], lsk:[], ls:[0,0,0,0,0], pgk:[], pg:[] }; }
 let G = freshState();
 const H = { ai:{}, shiftT:30, ringT:25, ringEnd:0 };
 let mode = 'menu';
@@ -5600,8 +5991,8 @@ const amHost = () => net.solo || net.hostFlag;
 const isDead = pid => G.dead.includes(pid);
 const isEsc = pid => G.esc.includes(pid);
 function allPlayers(){
-  const out = [{ pid:myPid, n:myName, x:me.x, z:me.z, yaw:me.yaw, pitch:me.pitch, l:lightOn()?1:0, a:me.alive?1:0, m:noiseLevel(), hd:me.hidden+1, c:me.crouch?1:0, vt:ventT>0?1:0, ds:dashT>0?1:0 }];
-  for (const r of remotes.values()) out.push({ pid:r.pid, n:r.n, x:r.tx, z:r.tz, yaw:r.tyaw, pitch:r.tp, l:r.l, a:r.a, m:r.m, hd:r.hd|0, c:r.c|0, vt:r.vt|0, ds:r.ds|0 });
+  const out = [{ pid:myPid, n:myName, x:me.x, z:me.z, yaw:me.yaw, pitch:me.pitch, l:lightOn()?1:0, a:me.alive?1:0, m:noiseLevel(), vn:voiceNoise(), hd:me.hidden+1, c:me.crouch?1:0, vt:ventT>0?1:0, ds:dashT>0?1:0 }];
+  for (const r of remotes.values()) out.push({ pid:r.pid, n:r.n, x:r.tx, z:r.tz, yaw:r.tyaw, pitch:r.tp, l:r.l, a:r.a, m:r.m, vn:r.vn|0, hd:r.hd|0, c:r.c|0, vt:r.vt|0, ds:r.ds|0 });
   return out;
 }
 function noiseLevel(){ return Math.max(noiseMove(), voiceNoise()); }
@@ -5609,7 +6000,7 @@ function noiseMove(){
   if (role !== 'survivor' || !me.alive || me.esc) return 0;
   if (me.loudT > 0) return 3;
   if (crankK >= 0) return LK === 1 ? 3 : 2;   // starting a generator is LOUD
-  if (mallHold) return mallHold.k === 'gate' ? 3 : mallHold.k === 'code' || mallHold.k === 'cut' ? 1 : 2;   // the mall: the dock gate is LOUD, the claw and the outfitters gate rattle
+  if (mallHold) return mallHold.k === 'gate' ? 3 : mallHold.k === 'code' || mallHold.k === 'cut' || mallHold.k === 'gift' ? 1 : 2;   // the mall: the dock gate is LOUD, the claw and the outfitters gate rattle
   if (me.hidden >= 0) return 0;
   if (!me.moving) return 0;
   if (me.crouch) return 0;
@@ -5648,7 +6039,7 @@ function hostStartRound(){
   aiReset();
   H.shiftT = 26; H.ringT = 30; H.ringEnd = 0;
   // the host can start the round on a later level
-  const sl = clamp(G.sl ?? startOpt, 0, 6); if (sl > 0){ const gr = G.grace; setupLevel(sl); G.grace = gr; }
+  const sl = clamp(G.sl ?? startOpt, 0, 7); if (sl > 0){ const gr = G.grace; setupLevel(sl); G.grace = gr; }
   if (G.ex){ G.ax = G.az = -999; }
   broadcastState(); afterState();
 }
@@ -5682,6 +6073,7 @@ function applyUse(pid, m){
   else if (m.k === 'bf'){ if (G.og && !G.bf) G.bf = pid; }
   else if (m.k === 'ecall' || m.k === 'ego'){ const el = G.el && G.el[m.i|0], f = m.f|0; if (el && f >= 0 && f <= 2) el.q |= 1<<f; }
   else if (m.k === 'ldoor') labUse(pid);
+  else if (m.k === 'fdoor' || m.k === 'gift' || m.k === 'fk' || m.k === 'fkuse') funUse(pid, m);
   else if (m.k === 'esc'){ if (G.open && !isDead(pid) && !isEsc(pid)) G.esc.push(pid); }
   else if (m.k === 'cn'){ G.cn[m.i|0] = 1; }
   else if (m.k === 'stun'){
@@ -5710,7 +6102,8 @@ function killSurvivor(p, byLurker){
   if (isDead(p.pid)) return;
   // v0.52 (Ryan): their flashlight stays where they were caught, still on (G.fl = [x, z, yaw])
   (G.fl = G.fl || []).push([+p.x.toFixed(2), +p.z.toFixed(2), +((p.yaw || 0) + (Math.random()-0.5)*1.2).toFixed(2)]);
-  G.dead.push(p.pid); if (byLurker === 'ls') (G.lsk = G.lsk || []).push(p.pid); else if (byLurker === 'hm') (G.hmk = G.hmk || []).push(p.pid); else if (byLurker === 'mq') (G.mqk = G.mqk || []).push(p.pid); else if (byLurker) (G.lkd = G.lkd || []).push(p.pid); else G.kl.push(p.pid);
+  G.dead.push(p.pid); if (byLurker === 'ls') (G.lsk = G.lsk || []).push(p.pid); else if (byLurker === 'hm') (G.hmk = G.hmk || []).push(p.pid); else if (byLurker === 'mq') (G.mqk = G.mqk || []).push(p.pid); else if (byLurker === 'pg') (G.pgk = G.pgk || []).push(p.pid); else if (byLurker) (G.lkd = G.lkd || []).push(p.pid); else G.kl.push(p.pid);
+  if (G.fk && G.fk[0] === 1 && G.fk[3] === p.pid){ G.fk = [0, +p.x.toFixed(2), +p.z.toFixed(2), '']; }   // Level Fun: the key falls where they were caught
   if (G.kc && G.kc[0] === 1 && G.kc[3] === p.pid){ G.kc[0] = 0; G.kc[1] = +p.x.toFixed(2); G.kc[2] = +p.z.toFixed(2); G.kc[3] = ''; }   // the keycard falls where they were caught
   for (const f of G.fz) if (f[0]===1 && f[3]===p.pid){ f[0]=0; f[1]=+p.x.toFixed(2); f[2]=+p.z.toFixed(2); f[3]=''; }
   for (const a of [G.mk, G.td, G.bc]) if (a && a[0] === 1 && a[3] === p.pid){ a[0] = 0; a[1] = +p.x.toFixed(2); a[2] = +p.z.toFixed(2); a[3] = ''; }   // the mall: keys / teddy fall where they were caught
@@ -5757,6 +6150,7 @@ const aiD = () => AI_DIFF[clamp(G.df ?? 1, 0, 3)];
 function aiObjectives(){
   if ((G.lv|0) === 3){ const out = []; if (G.kc) out.push(G.kc[0] === 0 ? [G.kc[1], G.kc[2]] : level.exitPos); const f = floorAt188(G.ax, G.az); return out.filter(o=>floorAt188(o[0], o[1]) === f); }
   if ((G.lv|0) === 2) return [level.stairBase || level.exitPos];
+  if ((G.lv|0) === 7 && level.fun){ const fk = G.fk; if (G.open || (fk && fk[0] === 1)) return [level.exitPos]; if (fk && fk[0] === 0) return [[fk[1], fk[2]]]; return level.fun.gifts.filter(q=>!((G.pr|0) & (1<<q.k))).map(q=>[q.x, q.z]); }
   if ((G.lv|0) === 6 && level.s52){ if (G.open) return [level.exitPos]; const out = [], f = floorAt852(G.ax, G.az); if (G.bl52 && G.bl52[1] === 0) for (const k of Object.values(G.as52 || {})){ const r = level.s52.rooms[k]; if (r && r.f === f && r.hx != null) out.push([r.hx, r.hz]); } return out; }   // the school (HARD+): wait outside their next classroom
   if ((G.lv|0) === 5 && level.p2){ const L = level, out = [], bc = G.bc || [0], pv = G.pv|0;
     if (G.open || bc[0] === 1) out.push(L.exitPos); for (const v of L.p2.valves) if (!(pv & (1 << v.v))) out.push([v.fx, v.fz]); if (bc[0] === 0) out.push([bc[1], bc[2]]); return out; }
@@ -5914,10 +6308,13 @@ function setupLevel(k){
   else { G.bc = null; G.pv = 0; G.pc = 0; G.po = []; }
   if (k === 6){ G.w = ''; G.bl52 = [1, 0, S52_PASS[0]]; G.as52 = {}; H.as52prev = null; }   // Level 52: walls never shift; period 1, passing
   else { G.bl52 = null; G.as52 = null; }
+  if (k === 7){ G.w = ''; const F = level.fun; G.fd = F.doors.map(()=>0); G.fn = [0, +(FUN_DAY[0] + Math.random()*(FUN_DAY[1]-FUN_DAY[0])).toFixed(1)]; G.pr = 0; G.pk = Math.floor(Math.random()*F.gifts.length); G.fk = null; G.pg = []; H.pg = null; }   // Level Fun: doors, lights, presents
+  else { G.fd = null; G.fn = null; G.pr = 0; G.pk = -1; G.fk = null; G.pg = []; H.pg = null; }
+  G.pgk = [];
   G.hb = 0; H.hbT = null;   // v0.36: Level 188 power outages
 }
 function advanceLevel(){
-  setupLevel(Math.min(6, (G.lv|0) + 1));
+  setupLevel(Math.min(7, (G.lv|0) + 1));
   G.grace = G.ex ? 0 : G.mo === 'AI' ? 12 : 15; if (G.ex){ G.ax = G.az = -999; }
   broadcastState(); afterState();
 }
@@ -5932,7 +6329,7 @@ function hostTick(dt){
   if (!surv.length){ G.ph = 'end'; return; }
   if (!alive.length){
     // everyone left alive got out of Level 0: a few seconds later, the whole room drops into Level 1
-    if ((G.lv|0) < 6 && G.esc.length){ if (H.advT == null) H.advT = 3.5; H.advT -= dt; if (H.advT <= 0){ H.advT = null; advanceLevel(); } return; }
+    if ((G.lv|0) < 7 && G.esc.length){ if (H.advT == null) H.advT = 3.5; H.advT -= dt; if (H.advT <= 0){ H.advT = null; advanceLevel(); } return; }
     G.ph = 'end'; return;
   }
   let mp;
@@ -5941,6 +6338,7 @@ function hostTick(dt){
   if (LK === 4) hostMall852(dt, ps);
   if (LK === 5) hostPipe2(dt, ps);
   if (LK === 6) hostSchool52(dt, alive, !!G.ex);
+  if (LK === 7) hostFun(dt, alive, !!G.ex);
   if (LK === 3) hostOutage188(dt);
   if (LK === 0) hostLab(dt);
   if (G.ex){   // exploration mode: no Occupant, no Lurker, no mannequins
@@ -5951,7 +6349,8 @@ function hostTick(dt){
     H.shiftT -= dt; if (H.shiftT <= 0 && (G.lv|0) === 0){ H.shiftT = 20+Math.random()*15; doShift(null, 0, 0, 9); }
     return; }
   if (G.mo === 'AI') darkHunt(dt, alive);
-  if (G.mo === 'AI'){ (LK === 2 ? aiTick37 : LK === 3 ? aiTick188 : LK === 4 || LK === 6 ? aiTick852 : aiTick)(dt, alive); mp = { x:G.ax, z:G.az }; }
+  if (G.mo === 'AI' && LK === 7) funDoorsToWalls(true);   // the computer just shoves doors open (hostFun), so it plans through them
+  if (G.mo === 'AI'){ (LK === 2 ? aiTick37 : LK === 3 ? aiTick188 : LK === 4 || LK === 6 ? aiTick852 : aiTick)(dt, alive); mp = { x:G.ax, z:G.az }; if (LK === 7) funDoorsToWalls(false); }
   else {
     const m = ps.find(p=>p.pid===G.mo);
     if (!m){ G.dg = 0; G.mo = 'AI'; aiReset('hunt'); return; }
@@ -5984,7 +6383,7 @@ function safe(fn){ try { const r = fn(); if (r && r.catch) r.catch(e=>console.wa
 function broadcastState(){ if (net.solo || !net.room || !net.hostFlag) return; safe(()=>net.room.emit('state', G)); }
 function sendPresence(){
   if (net.solo || !net.room) return;
-  safe(()=>net.room.presence({ pid:myPid, n:myName, h:net.hostFlag?1:0, x:+me.x.toFixed(2), z:+me.z.toFixed(2), y:+me.yaw.toFixed(3), p:+me.pitch.toFixed(3), l:lightOn()?1:0, a:me.alive?1:0, m:noiseLevel(), mv:me.moving?(me.running?2:1):0, sk:mySkin, hd:me.hidden+1, c:me.crouch?1:0, vt:ventT>0?1:0, ds:dashT>0?1:0, vid:(net.room && net.room.peer && net.room.peer.id) || '', vo:voice.stream ? 1 : 0 }));
+  safe(()=>net.room.presence({ pid:myPid, n:myName, h:net.hostFlag?1:0, x:+me.x.toFixed(2), z:+me.z.toFixed(2), y:+me.yaw.toFixed(3), p:+me.pitch.toFixed(3), l:lightOn()?1:0, a:me.alive?1:0, m:noiseLevel(), vn:voiceNoise(), mv:me.moving?(me.running?2:1):0, sk:mySkin, hd:me.hidden+1, c:me.crouch?1:0, vt:ventT>0?1:0, ds:dashT>0?1:0, vid:(net.room && net.room.peer && net.room.peer.id) || '', vo:voice.stream ? 1 : 0 }));
 }
 function useReq(m){ if (amHost()) applyUse(myPid, m); else safe(()=>net.room.emit('use', { ...m, pid:myPid })); }
 function onPeers(list){
@@ -5997,7 +6396,7 @@ function onPeers(list){
     let r = remotes.get(d.pid);
     if (!r){ const av = makeAvatar(d.pid); r = { pid:d.pid, x:+d.x||0, z:+d.z||0, yaw:+d.y||0, pitch:+d.p||0, step:0, mesh:av.g, av, ping:0 }; remotes.set(d.pid, r); }
     r.n = String(d.n||'Someone').slice(0,12); r.h = !!d.h;
-    r.tx = +d.x||0; r.tz = +d.z||0; r.tyaw = +d.y||0; r.tp = +d.p||0; r.l = d.l?1:0; r.a = d.a?1:0; r.m = d.m|0; r.mv = d.mv|0; r.sk = (d.sk|0)%SKN; r.hd = d.hd|0; r.c = d.c|0; r.vt = d.vt|0; r.ds = d.ds|0; r.vid = String(d.vid||''); r.vo = d.vo|0;
+    r.tx = +d.x||0; r.tz = +d.z||0; r.tyaw = +d.y||0; r.tp = +d.p||0; r.l = d.l?1:0; r.a = d.a?1:0; r.m = d.m|0; r.vn = d.vn|0; r.mv = d.mv|0; r.sk = (d.sk|0)%SKN; r.hd = d.hd|0; r.c = d.c|0; r.vt = d.vt|0; r.ds = d.ds|0; r.vid = String(d.vid||''); r.vo = d.vo|0;
   }
   for (const [pid,r] of remotes) if (!seen.has(pid)){ scene.remove(r.mesh); sfx.stopWade(r); remotes.delete(pid); }
   voiceSync();
@@ -6471,7 +6870,7 @@ function renderLobby(){
   $('bMon').style.display = host ? '' : 'none';
   $('bMonVoice').textContent = 'OCCUPANT VOICE: ' + (G.ov ? 'MONSTER' : 'OFF') + (host ? '' : ' (host picks)'); $('bMonVoice').disabled = !host;
   $('bMon').textContent = 'THE OCCUPANT: ' + monLabel();
-  $('bLv').textContent = 'START AT: ' + LV_NAMES[clamp(G.sl ?? startOpt, 0, 6)] + (host ? '' : ' (host picks)'); $('bLv').disabled = !host;
+  $('bLv').textContent = 'START AT: ' + LV_NAMES[clamp(G.sl ?? startOpt, 0, 7)] + (host ? '' : ' (host picks)'); $('bLv').disabled = !host;
   $('bDiff').textContent = 'COMPUTER: ' + AI_DIFF[clamp(G.df ?? diffOpt, 0, 3)].name + (host ? '' : ' (host picks)'); $('bDiff').disabled = !host;
   $('bEx').textContent = 'MODE: ' + (G.ex ? 'EXPLORATION (NO MONSTER)' : 'NORMAL') + (host ? '' : ' (host picks)'); $('bEx').disabled = !host;
   $('monText').textContent = host ? (remotes.size ? 'Tap to choose who hunts.' : 'Alone? The computer will hunt you.') : 'The host picks who becomes the Occupant.';
@@ -6553,7 +6952,7 @@ function startRoundLocal(){
     $('blacktext').textContent = 'YOU ARE THE OCCUPANT'; $('blacksub').textContent = (G.lv|0) === 0 && level.lab ? 'They start in a lab behind a portal at the edge of the halls. Its blast door shuts, but its power never lasts. Listen for them, and don\'t let them reach the exit.' : 'They wake up in the halls. You walk slowly, but you can run for a while (hold SHIFT / RUN). Listen for them, and don\'t let them reach the exit.';
     $('black').style.transition='none'; $('black').style.opacity = 1; setTimeout(()=>{ $('black').style.transition=''; }, 50);
   } else if (G.ex) msg('EXPLORATION MODE. Nothing is hunting you. Take your time.', 5);
-  else msg((G.lv|0) === 6 ? 'LEVEL 52. When the bell rings, get to the classroom on your schedule before the tardy bell. Never be in the halls during class.' : (G.lv|0) === 0 && level.lab ? 'ASYNC LAB 4. The portal is open. Find 3 fuses out there. Something else is awake.' : (G.lv|0) === 5 ? 'Vent the 4 red pressure valves and find bolt cutters. The EXIT door is chained shut somewhere in these tunnels.' : (G.lv|0) === 4 ? 'Find the 4 receipts. Each one has a number of the security code. Three floors. Nobody is shopping.' : (G.lv|0) === 3 ? 'Find the keycard. The elevators work. Something else uses them too.' : (G.lv|0) === 2 ? 'Find the staircase. Something is in the water.' : (G.lv|0) === 1 ? 'Start the 5 generators. They are LOUD. Something else is awake.' : 'Find 3 fuses. Something else is awake.', 5);
+  else msg((G.lv|0) === 7 ? 'LEVEL FUN. Open the presents: one of them has the key to the EXIT. The rest are LOUD. Shut doors behind you: the Partygoers can\'t open them.' : (G.lv|0) === 6 ? 'LEVEL 52. When the bell rings, get to the classroom on your schedule before the tardy bell. Never be in the halls during class.' : (G.lv|0) === 0 && level.lab ? 'ASYNC LAB 4. The portal is open. Find 3 fuses out there. Something else is awake.' : (G.lv|0) === 5 ? 'Vent the 4 red pressure valves and find bolt cutters. The EXIT door is chained shut somewhere in these tunnels.' : (G.lv|0) === 4 ? 'Find the 4 receipts. Each one has a number of the security code. Three floors. Nobody is shopping.' : (G.lv|0) === 3 ? 'Find the keycard. The elevators work. Something else uses them too.' : (G.lv|0) === 2 ? 'Find the staircase. Something is in the water.' : (G.lv|0) === 1 ? 'Start the 5 generators. They are LOUD. Something else is awake.' : 'Find 3 fuses. Something else is awake.', 5);
   if ((G.lv|0) > 0){ seenZones.add(1); seenZones.add(2); }
 }
 function monFilter(){ return role==='monster' ? `sepia(.85) saturate(2.6) hue-rotate(-38deg) contrast(1.1) brightness(${LK === 1 ? .86 : LK === 2 ? 1.0 : LK === 3 || LK === 4 || LK === 6 ? .82 : .64})` : ''; }
@@ -6563,7 +6962,8 @@ function enterLevel(){
   $('locker').style.display='none'; me.hidden = -1; $('white').style.transition='none'; $('white').style.opacity = 0; $('flash').style.opacity = 0; $('spec').style.display = 'none';
   setTimeout(()=>{ $('white').style.transition=''; }, 50);
   const b = $('black'); b.style.transition = 'none'; b.style.opacity = 1;
-  if ((G.lv|0) === 6){ $('blacktext').textContent = 'LEVEL 52'; $('blacksub').textContent = 'SCHOOL HALLS · two floors round a courtyard. Follow the bell schedule: be in your classroom before the tardy bell, every period. The hall monitors are strict.'; }
+  if ((G.lv|0) === 7){ $('blacktext').textContent = 'LEVEL FUN'; $('blacksub').textContent = 'THE PARTY · =) Somebody here has the key to the EXIT, wrapped up in a present. Close the doors behind you. Don\'t let the lights go out.'; }
+  else if ((G.lv|0) === 6){ $('blacktext').textContent = 'LEVEL 52'; $('blacksub').textContent = 'SCHOOL HALLS · two floors round a courtyard. Follow the bell schedule: be in your classroom before the tardy bell, every period. The hall monitors are strict.'; }
   else if ((G.lv|0) === 5){ $('blacktext').textContent = 'LEVEL 2'; $('blacksub').textContent = 'PIPE DREAMS · maintenance tunnels. The pipes are hot and the machines never stop. Vent the pressure valves, cut the chain on the EXIT door.'; }
   else if ((G.lv|0) === 4){ $('blacktext').textContent = 'LEVEL 852'; $('blacksub').textContent = 'THE MALL · three floors, closed for decades. Find the receipts, open the security office, take the master keys down to the loading dock. The music is still playing.'; }
   else if ((G.lv|0) === 3){ $('blacktext').textContent = 'LEVEL 188'; $('blacksub').textContent = 'THE HOTEL · find the keycard. It opens one room. The elevators work. So does something else.'; }
@@ -6586,7 +6986,8 @@ function triggerDeath(){
   $('white').style.transition = 'none';
   if (me.hidden >= 0){ me.hidden = -1; $('locker').style.display='none'; }
   me.alive = false; mode = 'deadAnim'; deathT = 0; PHANTOM.g.visible = false; VM.visible = false;
-  scareLurk = !!LRK && (G.lkd || []).includes(myPid); scareMq = (G.mqk || []).includes(myPid); scareHm = (G.hmk || []).includes(myPid); scareLs = (G.lsk || []).includes(myPid);
+  scareLurk = !!LRK && (G.lkd || []).includes(myPid); scareMq = (G.mqk || []).includes(myPid); scareHm = (G.hmk || []).includes(myPid); scareLs = (G.lsk || []).includes(myPid); scarePg = (G.pgk || []).includes(myPid);
+  if (scarePg){ sfx.screech(); funSound('pgKill', me.x, me.z); }
   if (scareLs){ sfx.screech(); playEventSound('lsShriek', me.x, me.z); }
   else if (scareHm){ sfx.screech(); whistle37(me.x, me.z); }
   else if (scareMq){ sfx.screech(); playEventSound('mqKill', me.x, me.z); }
@@ -6597,6 +6998,7 @@ function triggerDeath(){
 }
 function powerOn(){
   if (LK === 2) return;
+  if (LK === 7){ exitLight.intensity = 9; sfx.clunk(level.exitPos[0], level.exitPos[1]); msg(role === 'monster' ? 'The EXIT door is open. They\'re leaving the party. STOP THEM.' : 'The key turns. THE EXIT IS OPEN. GET OUT.', 5); return; }
   if (LK === 6){ exitLight.intensity = 9; const S = level.s52; if (S){ for (const p of S.frontDoors) p.material = new THREE.MeshBasicMaterial({ color:0xf2f0e6 }); for (const c of S.chains) c.visible = false; }
     msg(role === 'monster' ? 'The last bell. School\'s out: the front doors are open. They\'re going for the lobby. STOP THEM.' : 'The last bell. SCHOOL\'S OUT. The front doors are open: floor 1, the main entrance. GET OUT.', 6); return; }
   if (LK === 5){ exitLight.intensity = 9; sfx.clunk(level.exitPos[0], level.exitPos[1]); if (sfx.ctx){ const o = sfx.panner(level.exitPos[0], 1.5, level.exitPos[1], 10); sfx.noise(o,{ dur:2.2, type:'highpass', freq:1500, gain:0.6 }); sfx.tone(o,{ f:60, to:35, dur:1.4, gain:0.4 }); sfx.noise(o,{ dur:0.6, type:'lowpass', freq:250, gain:0.8 }); }
@@ -6965,6 +7367,7 @@ function lureBehind(){
 }
 function playEventSound(k, x, z, m){
   if (!sfx.ctx) return;
+  if (k === 'giftHorn' || k === 'giftKey' || k === 'pgKnock' || k === 'pgKill' || k === 'pgSpot' || k === 'fdoorBang'){ funSound(k, x, z); return; }
   if (k === 'lsShriek'){ const o = sfx.panner(x, 2.0, z, 6); const f = sfx.noise(o,{ dur:1.1, type:'bandpass', freq:700, q:6, gain:0.9, attack:0.05 }); try { f.frequency.exponentialRampToValueAtTime(2600, sfx.ctx.currentTime + 0.9); } catch(e){}
     sfx.tone(o,{ f:420, to:1300, type:'sawtooth', dur:0.9, gain:0.06 }); for (let i=0;i<6;i++) sfx.noise(o,{ dur:0.012, type:'bandpass', freq:3400, q:5, gain:0.5, at:0.9 + i*0.06 }); return; }
   if (k === 'lsKill'){ const o = sfx.panner(x, 1.5, z, 3); sfx.noise(o,{ dur:0.5, type:'bandpass', freq:1600, q:1.4, gain:1.0 }); sfx.noise(o,{ dur:0.35, type:'lowpass', freq:300, gain:0.9 }); sfx.tone(o,{ f:110, to:30, dur:0.8, gain:0.45 }); return; }
@@ -7170,7 +7573,8 @@ const LV_INFO = [['LEVEL 0','THE OFFICE','Endless yellow rooms that move when yo
   ['LEVEL 188','THE HOTEL','A silent hotel round a courtyard, one keycard, and elevators something else rides too.'],
   ['LEVEL 852','THE MALL','A dead three-floor mall where the music never stops and the mannequins never stay put.'],
   ['LEVEL 2','PIPE DREAMS','Hot, cramped maintenance tunnels full of pipes, steam and dying lights.'],
-  ['LEVEL 52','SCHOOL HALLS','Get to class before the tardy bell: the hall monitors don\'t give second chances.']];
+  ['LEVEL 52','SCHOOL HALLS','Get to class before the tardy bell: the hall monitors don\'t give second chances.'],
+  ['LEVEL FUN','THE PARTY','Balloons, cake and presents. The Partygoers only watch you while the lights are on.']];
 function menuSub(id){ for (const k of ['pLevels','pJoin','pInfo']) $(k).classList.toggle('show', k === id); $('menu').classList.toggle('sub', !!id); }
 $('lvgrid').innerHTML = LV_INFO.map((v,k)=>`<button class="tile" data-lv="${k}"><div class="th" style="background-image:url(menu/lv${k}.jpg)"></div><div class="tt"><b>${v[0]}</b><em>${v[1]}</em><p>${v[2]}</p></div></button>`).join('');
 for (const t of document.querySelectorAll('#lvgrid .tile')) t.onclick = ()=>{ startOpt = +t.dataset.lv; try { localStorage.setItem('lvl0_start', startOpt); } catch(e){} lvLabel(); $('bSolo').click(); };
@@ -7312,7 +7716,7 @@ function updateCRT(dt){ updateTVfx(dt);
   const e = Math.floor(performance.now()/1000); $('tvtime').textContent = `${Math.floor(e/3600)}:${String(Math.floor(e/60)%60).padStart(2,'0')}:${String(e%60).padStart(2,'0')}`; }
 function lvLabel(){ $('bLv1').textContent = 'START AT: ' + LV_NAMES[startOpt]; }
 lvLabel();
-$('bLv1').onclick = ()=>{ startOpt = (startOpt + 1) % 7; try { localStorage.setItem('lvl0_start', startOpt); } catch(e){} lvLabel(); };
+$('bLv1').onclick = ()=>{ startOpt = (startOpt + 1) % 8; try { localStorage.setItem('lvl0_start', startOpt); } catch(e){} lvLabel(); };
 $('bDiff1').onclick = ()=>{ diffOpt = (diffOpt + 1) % 4; try { localStorage.setItem('lvl0_diff', diffOpt); } catch(e){} diffLabel(); };
 $('bSolo').onclick = ()=>{
   readName(); sfx.init(); if (isTouch) goFull();
@@ -7441,7 +7845,7 @@ function updateMe(dt){
     else { crankT += dt; crankS -= dt; if (gn.wheel) gn.wheel.rotation.y -= dt*2.2; if (crankS <= 0){ crankS = 0.55; if (LK === 2) sfx.valve(gn.x, gn.z); else if (!sfx.samples.genStart) sfx.crank(gn.x, gn.z); vibrate(15); }
       if (crankT >= GEN_T){ useReq({ k:'gen', i:crankK }); me.loudT = 1.2; crankDone = crankK; crankK = -1; } } }
   G.cn.forEach((t,i)=>{ if (!t && Math.hypot(level.cn[i][0]-me.x, level.cn[i][1]-me.z) < 1.1){ G.cn[i]=1; useReq({k:'cn',i}); me.cans++; sfx.pickup(); msg('Picked up a can. Throw it to make noise.', 2.5); } });
-  if (lightOn()) me.bat = Math.max(0, me.bat - dt*0.55*(LK === 4 && G.bf === myPid ? 0.45 : 1));
+  if (lightOn()) me.bat = Math.max(0, me.bat - dt*FL_DRAIN*(LK === 4 && G.bf === myPid ? 0.45 : 1));
   if (me.bat <= 0 && me.light){ me.light=false; msg('Your flashlight died.', 3); }
   // fuses
   G.fz.forEach((f,i)=>{ if (f[0]===0 && Math.hypot(f[1]-me.x, f[2]-me.z) < 1.2){ f[0]=1; f[3]=myPid; pickT = nowS(); useReq({k:'fuse',i}); me.loudT = 0.8; sfx.pickup(); const n=G.fz.filter(q=>q[0]>=1).length; msg(`You found a fuse. ${n}/${FUSES}`, 3); } });
@@ -7451,6 +7855,7 @@ function updateMe(dt){
     if (kc[0] === 1 && kc[3] === myPid && !G.open && Math.hypot(level.exitPos[0]-me.x, level.exitPos[1]-me.z) < 1.9){ useReq({ k:'kcuse' }); if (!amHost()) kc[0] = 2; } }
   if (LK === 4) mallSurvivor852(dt);
   if (LK === 5) pipeSurvivor2(dt);
+  if (LK === 7) funSurvivor(dt);
   const carrying = G.fz.filter(f=>f[0]===1 && f[3]===myPid).length;
   if (carrying && Math.hypot(level.breaker[0]-me.x, level.breaker[1]-me.z) < 1.8){
     if (amHost()) applyUse(myPid,{k:'place'});
@@ -7470,6 +7875,7 @@ function contextAction(){
     if (crankK >= 0) return { label:'STOP', key:'E', fn:()=>{ crankK = -1; } };
     if (hatchT > 0) return null;
     { const c = labAction(); if (c) return c; }
+    { const c = funAction(); if (c) return c; }
     { const c = doorAction37(); if (c) return c; }
     const k = nearLocker(1.3); if (k>=0 && !lockerTaken(k)) return { label:'HIDE', key:'E', fn:()=>hide(k) };
     { const c = elevCall188(); if (c) return c; }
@@ -7478,6 +7884,7 @@ function contextAction(){
     if (LK >= 1 && G.gen){ const gi = level.gens.findIndex((gn,i)=>!G.gen[i] && Math.hypot(gn.x-me.x, gn.z-me.z) < 1.9); if (gi >= 0) return { label: LK === 2 ? 'TURN VALVE' : 'START GENERATOR', key:'E', fn:()=>{ crankK = gi; crankT = 0; crankS = 0; } }; }
   }
   if (role==='monster' && G.grace<=0 && G.stun<=0 && ventT<=0){ const c = elevCall188(); if (c) return c; }
+  if (role==='monster' && G.grace<=0 && LK === 7){ const c = funAction(); if (c) return c; }
   if (role==='monster' && G.grace<=0 && G.stun<=0 && ventT<=0){ const k = nearVent(1.5); if (k>=0 && ventCD<=0) return { label:'VENT', key:'E', fn:()=>enterVent(k) }; }
   return null;
 }
@@ -7648,6 +8055,7 @@ function panelBright(p, t, mx, mz){
   if (LK === 3 && G.hb > 0) return G.hb < 1.6 && h01(p.idx*5+Math.floor(t*14)) < (1 - G.hb/1.6)*0.9 ? 0.9 : 0;   // hotel outage: everything, elevator cars too; stutters back on at the end
   if (p.car != null){ const el = G.el && G.el[p.car]; return el && el.a === p.L ? 1 : 0; }   // Level 188: the light in an elevator car
   if (p.dead) return 0;
+  if (LK === 7 && funNight()) return 0;   // Level Fun: lights out
   if (p.circ != null && G.po && G.po.some(q=>q[0] === p.circ)) return 0;   // Level 2: a whole series circuit is out
   if (LK === 1 && !G.open && (p.gk < 0 || !G.gen || !G.gen[p.gk])) return 0;
   let b = 1;
@@ -7746,7 +8154,7 @@ function updateZoneEnv(dt){
     _fogT.setHex(role==='monster' ? 0x2a1e14 : 0x1a140d); if (role !== 'monster') _fogT.multiplyScalar((0.45 + 0.55*o)*(1 - bk*0.85)); scene.fog.color.lerp(_fogT, k); scene.background.copy(scene.fog.color);
     scene.fog.density = lerp(scene.fog.density, role==='monster' ? 0.02 + bk*0.02 : lerp(lerp(0.085, 0.024, o), 0.1, bk), k);
     amb.intensity = lerp(amb.intensity, role==='monster' ? 1.0 - bk*0.45 : lerp(lerp(0.06, 0.42, o), 0.012, bk), k); amb.color.lerp(H188_SKY, k); amb.groundColor.lerp(H188_GND, k); return; }
-  const boDark = G.ph === 'play' && LK !== 2 && LK !== 3 && boT() > 0.4;   // v0.52: map-wide Occupant blackout
+  const boDark = G.ph === 'play' && LK !== 2 && LK !== 3 && (boT() > 0.4 || funNight());   // v0.52: map-wide Occupant blackout
   if (LK === 0 && level && level.lab){ const lb = G.ph === 'play' && (G.lbo > 0.4 || boDark), inL = inLab(camera.position.x, camera.position.z);
     if (lb || inL){
       _fogT.setHex(lb ? 0x030303 : role === 'monster' ? 0x2a1e18 : 0x242524); scene.fog.color.lerp(_fogT, k); scene.background.copy(scene.fog.color);
@@ -7803,7 +8211,8 @@ function updateAmbience(dt){
   if (G.ph !== 'play') return;
   // distant events
   if (!silenced()) farT -= dt;
-  if (farT <= 0 && LK === 6){ farT = 10+Math.random()*20; const a=Math.random()*6, d=12+Math.random()*20; schoolFar52(Math.floor(Math.random()*5), {x:camera.position.x+Math.cos(a)*d, y:1.2, z:camera.position.z+Math.sin(a)*d}); }
+  if (farT <= 0 && LK === 7){ farT = 12+Math.random()*22; const a=Math.random()*6, d=12+Math.random()*20, x = camera.position.x+Math.cos(a)*d, z = camera.position.z+Math.sin(a)*d; if (Math.random() < 0.55) funGiggle(x, z, funNight(), 0.5); else if (sfx.ctx){ const o = sfx.panner(x, 2.2, z, 4); sfx.noise(o,{ dur:0.06, type:'highpass', freq:1200, gain:0.5 }); } }
+  else if (farT <= 0 && LK === 6){ farT = 10+Math.random()*20; const a=Math.random()*6, d=12+Math.random()*20; schoolFar52(Math.floor(Math.random()*5), {x:camera.position.x+Math.cos(a)*d, y:1.2, z:camera.position.z+Math.sin(a)*d}); }
   else if (farT <= 0 && LK === 5){ farT = 8+Math.random()*16; const a=Math.random()*6, d=14+Math.random()*24; sfx.pipeFar(Math.floor(Math.random()*5), {x:camera.position.x+Math.cos(a)*d, y:1.5, z:camera.position.z+Math.sin(a)*d}); }
   else if (farT <= 0 && LK === 2){ farT = 10+Math.random()*20; const a=Math.random()*6, d=12+Math.random()*22; sfx.poolFar(Math.floor(Math.random()*5), {x:camera.position.x+Math.cos(a)*d, y:0.5, z:camera.position.z+Math.sin(a)*d}); }
   else if (farT <= 0){ farT = 14+Math.random()*28; const a=Math.random()*6, d=14+Math.random()*16;
@@ -7876,7 +8285,10 @@ function updateExtras(dt){
    crouch, stop talking, hide in a locker) and it loses you: it stands there listening, then wanders off. Flashlights and looking do nothing.
    Contact (< 0.9 m) = caught (G.lsk). Its tell: dry clicking, faster when it's after something. G.ls = [x, z, yaw, state 1 wander / 2 look / 3 hunt, moving].
    **Placeholder model** (makeListener): Ryan will send a real one — swap it in there (P = parts, headY = head height for the catch scare). */
-const LS_HEAR = [0.75, 1, 1.2, 1.45], LS_HUNT = [3.5, 4.0, 4.4, 4.75], LS_INV = [2.0, 2.3, 2.6, 2.9], LS_WALK = 1.25, LS_RNG = [0, 9, 28, 52];
+/* v0.57 (Ryan): walking never wakes it (you can walk right past it); running, valves, loud things and ANY talking above a whisper send it SPRINTING
+   (LS_HUNT, faster than you) to the spot it heard; while it's hunting, anyone still moving within LS_CLOSE m is heard and gets it instead. */
+const LS_CLOSE = 7, LS_HUNT = [5.6, 6.0, 6.4, 6.8];
+const LS_HEAR = [0.75, 1, 1.2, 1.45], LS_HUNT_OLD = [3.5, 4.0, 4.4, 4.75], LS_INV = [2.0, 2.3, 2.6, 2.9], LS_WALK = 1.25, LS_RNG = [0, 9, 28, 52];
 function lsAlert(x, z, lvl){   // a level event made a noise (a valve venting, a can, etc.)
   const R = H.ls; if (!R || !R.on || LK !== 5) return; const d = Math.hypot(x-R.x, z-R.z);
   if (d < LS_RNG[Math.min(3, lvl)]*LS_HEAR[G.df|0]*1.2){ R.hx = x; R.hz = z; R.hT = 0; if (R.st !== 3 && lvl >= 2){ R.st = 3; if (R.cd <= 0){ lrSnd('lsShriek', R.x, R.z); R.cd = 8; } } else if (R.st < 2) R.st = 2; }
@@ -7897,10 +8309,11 @@ function hostListener(dt, alive){
   R.hT += dt; R.cd -= dt; R.t += dt;
   R.ck -= dt;
   if (R.ck <= 0){ R.ck = 0.25; let best = null, bs = -9;
-    for (const p of ok){ if (!p.m) continue; const d = Math.hypot(p.x-R.x, p.z-R.z); let rng = LS_RNG[Math.min(3, p.m)]*LS_HEAR[df]; if (d > rng) continue;
-      if (!losClear(R.x, R.z, p.x, p.z)) rng *= 0.65; if (d < rng){ const sc = p.m - d/rng; if (sc > bs){ bs = sc; best = p; } } }
-    if (best){ const d = Math.hypot(best.x-R.x, best.z-R.z); R.hx = best.x; R.hz = best.z; R.hT = 0;
-      if ((best.m >= 2 || d < 6) && R.st !== 3){ R.st = 3; if (R.cd <= 0){ lrSnd('lsShriek', R.x, R.z); R.cd = 8; } } else if (R.st < 2) R.st = 2; } }
+    for (const p of ok){ const d = Math.hypot(p.x-R.x, p.z-R.z), vm = p.vn ? 3 : 0, lv = Math.max(p.m >= 2 ? p.m : 0, vm, R.st === 3 && p.m && d < LS_CLOSE ? 2 : 0);   // walking alone is never heard; voice above a whisper = loud
+      if (!lv) continue; let rng = (lv === 2 && p.m === 1 ? LS_CLOSE : LS_RNG[Math.min(3, lv)]*LS_HEAR[df]); if (d > rng) continue;
+      if (!losClear(R.x, R.z, p.x, p.z) && !(p.m === 1 && lv === 2)) rng *= 0.65; if (d < rng){ const sc = lv - d/rng; if (sc > bs){ bs = sc; best = p; } } }
+    if (best){ R.hx = best.x; R.hz = best.z; R.hT = 0;
+      if (R.st !== 3){ R.st = 3; if (R.cd <= 0){ lrSnd('lsShriek', R.x, R.z); R.cd = 8; } } } }
   for (const p of ok) if (Math.hypot(p.x-R.x, p.z-R.z) < 0.9){ killSurvivor(p, 'ls'); lrSnd('lsKill', p.x, p.z); R.st = 1; R.pause = 5; R.hT = 99; R.wx = 0; break; }
   if (R.st >= 2){
     const arrived = Math.hypot(R.hx-R.x, R.hz-R.z) < 1.0;
@@ -8036,7 +8449,7 @@ function updateTension(dt){
   let threat = fooled ? 0 : G.ach && md < 40 ? 1 : clamp(1 - (md - 6)/22, 0, 1);
   if (LK === 5 && G.ls && G.ls[3]){ const ld = Math.hypot(G.ls[0]-me.x, G.ls[1]-me.z); threat = Math.max(threat, G.ls[3] === 3 && ld < 30 ? 1 : clamp(1 - (ld - 4)/18, 0, 1)); }
   TD.t = Math.max(TD.t - dt*0.035, threat, boT() > 0 ? 0.65 : 0);
-  { const nk = (G.kl||[]).length + (G.lkd||[]).length + (G.mqk||[]).length + (G.hmk||[]).length + (G.lsk||[]).length; if (nk > (TD.nk ?? nk)) TD.t = 1; TD.nk = nk; }   // a teammate was just caught
+  { const nk = (G.kl||[]).length + (G.lkd||[]).length + (G.mqk||[]).length + (G.hmk||[]).length + (G.lsk||[]).length + (G.pgk||[]).length; if (nk > (TD.nk ?? nk)) TD.t = 1; TD.nk = nk; }   // a teammate was just caught
   if (TD.t > 0.55){ TD.calm = Math.max(TD.calm, 30 + Math.random()*25); TD.quiet = 0; }   // something just happened: a breather after it
   // a fake-out in progress
   const f = TD.fake;
@@ -8124,10 +8537,10 @@ function updateHUD(dt){
   const obj = $('obj');
   if (role === 'monster'){
     const left = allPlayers().filter(p=>p.pid!==G.mo && !isDead(p.pid) && !isEsc(p.pid)).length;
-    if (G.grace > 0 && mode==='play') { $('blacksub').textContent = LK === 2 ? `You are the thing in the water. By day you can't strike: stay unseen, get close without being looked at to bring the night sooner. At night, hunt. You can only leave the water to lunge.` : LK === 3 ? `They wake on another floor. The elevators are the only way between floors, and everyone hears the ding. Listen for them.` : LK === 6 ? `They start in the lobby, two floors below you. Every passing period each of them has to cross the school to their own classroom. When the tardy bell rings, anyone still in the halls belongs to the hall monitors. Find the rest sitting in their classrooms. Two stairwells join the floors.` : LK === 5 ? `They wake in the tunnels. They need to turn 4 pressure valves (you'll hear the scream of each one) and cut the chain on the EXIT door. Listen for them.` : LK === 4 ? `They wake at the entrance, two floors below you. Escalators and two stairwells join the floors. They need receipts, the security office and the loading dock. Listen for them.` : `You can't see them through walls. Listen. Running footsteps, voices and gasping give them away. Use the vents to get around.`; const c = String(Math.ceil(G.grace)); if ($('blackcount').textContent !== c) $('blackcount').textContent = c; }
+    if (G.grace > 0 && mode==='play') { $('blacksub').textContent = LK === 2 ? `You are the thing in the water. By day you can't strike: stay unseen, get close without being looked at to bring the night sooner. At night, hunt. You can only leave the water to lunge.` : LK === 3 ? `They wake on another floor. The elevators are the only way between floors, and everyone hears the ding. Listen for them.` : LK === 7 ? `They wake at the party. Every room has a door. One of the presents holds the key to the EXIT; the rest are party horns, and you'll hear every one. Doors don't stop you: walk into them.` : LK === 6 ? `They start in the lobby, two floors below you. Every passing period each of them has to cross the school to their own classroom. When the tardy bell rings, anyone still in the halls belongs to the hall monitors. Find the rest sitting in their classrooms. Two stairwells join the floors.` : LK === 5 ? `They wake in the tunnels. They need to turn 4 pressure valves (you'll hear the scream of each one) and cut the chain on the EXIT door. Listen for them.` : LK === 4 ? `They wake at the entrance, two floors below you. Escalators and two stairwells join the floors. They need receipts, the security office and the loading dock. Listen for them.` : `You can't see them through walls. Listen. Running footsteps, voices and gasping give them away. Use the vents to get around.`; const c = String(Math.ceil(G.grace)); if ($('blackcount').textContent !== c) $('blackcount').textContent = c; }
     if (G.grace <= 0 && $('blackcount').textContent) $('blackcount').textContent = '';
     $('objLbl').textContent = 'THE OCCUPANT';
-    obj.textContent = G.grace > 0 ? `They wake in ${Math.ceil(G.grace)}…` : G.stun > 0 ? 'Blinded…' : ventT > 0 ? 'In the vents…' : G.dg > 0 ? `Disguised · ${Math.ceil(G.dg)}s · ${left} left` : G.lv === 2 ? (isNight() ? `Night. Hunt. ${left} left · dawn in ${mmss(dawnIn37())}` : `Daylight: stay unseen · anyone in the deep water is yours · stalk ${Math.round(G.stk||0)}% · dark in ${mmss(duskIn37())}`) : G.lv === 6 ? schoolMon52(left) : G.lv === 3 ? `Listen for them. ${left} left · ${G.open ? 'the room is open' : G.kc && G.kc[0] >= 1 ? 'they have the keycard' : 'the keycard is still out there'} · floor ${floorAt188(me.x, me.z)+2}` : G.open ? `The exit is open. ${left} left.` : ( G.lv === 1 ? `Listen for them. ${left} left · generators ${(G.gen||[]).filter(Boolean).length}/${(G.gen||[]).length}` : `Listen for them. ${left} left · fuses ${G.pl}/${FUSES}`);
+    obj.textContent = G.grace > 0 ? `They wake in ${Math.ceil(G.grace)}…` : G.stun > 0 ? 'Blinded…' : ventT > 0 ? 'In the vents…' : G.dg > 0 ? `Disguised · ${Math.ceil(G.dg)}s · ${left} left` : G.lv === 2 ? (isNight() ? `Night. Hunt. ${left} left · dawn in ${mmss(dawnIn37())}` : `Daylight: stay unseen · anyone in the deep water is yours · stalk ${Math.round(G.stk||0)}% · dark in ${mmss(duskIn37())}`) : G.lv === 7 ? `Listen for them. ${left} left · ${G.open ? 'the EXIT is open' : G.fk && G.fk[0] === 1 ? 'they have the key' : 'the key is in one of the presents'} · ${funNight() ? 'lights out: the Partygoers hunt too' : 'lights on'}` : G.lv === 6 ? schoolMon52(left) : G.lv === 3 ? `Listen for them. ${left} left · ${G.open ? 'the room is open' : G.kc && G.kc[0] >= 1 ? 'they have the keycard' : 'the keycard is still out there'} · floor ${floorAt188(me.x, me.z)+2}` : G.open ? `The exit is open. ${left} left.` : ( G.lv === 1 ? `Listen for them. ${left} left · generators ${(G.gen||[]).filter(Boolean).length}/${(G.gen||[]).length}` : `Listen for them. ${left} left · fuses ${G.pl}/${FUSES}`);
     if (G.grace <= 0 && $('black').style.opacity === '1' && mode==='play') $('black').style.opacity = 0;
     $('kit').style.display = 'none'; $('side').style.display = 'none';
     { const st = $('stam'), runMeter = LK !== 2 && G.grace <= 0; st.style.opacity = runMeter || me.stam < 99 ? 1 : 0; $('stamf').style.width = me.stam+'%'; st.classList.toggle('adr', false); st.classList.toggle('winded', !!me.winded); st.classList.toggle('mon', runMeter);   // v0.56: the player Occupant's run meter is always up
@@ -8136,14 +8549,15 @@ function updateHUD(dt){
     const found = G.fz.filter(f=>f[0]>=1).length, mine = G.fz.filter(f=>f[0]===1 && f[3]===myPid).length;
     $('objLbl').textContent = me.hidden >= 0 ? 'HIDING' : 'OBJECTIVE';
     const gOn = (G.gen||[]).filter(Boolean).length;
-    if (G.lv === 6) obj.textContent = schoolObj52();
+    if (G.lv === 7) obj.textContent = funObj();
+    else if (G.lv === 6) obj.textContent = schoolObj52();
     else if (G.lv === 5) obj.textContent = pipeObj2();
     else if (G.lv === 4) obj.textContent = mallObj852();
     else if (G.lv === 3){ const kc = G.kc || [0], f = floorAt188(me.x, me.z) + 2, ef = level.exitFloor + 2, who = kc[3] === myPid ? 'You have' : ((allPlayers().find(p=>p.pid === kc[3])||{}).n || 'Someone') + ' has';
       obj.textContent = G.open ? `ROOM ${level.roomNo} is open · floor ${ef} · you're on ${f}` : kc[0] === 0 ? `Find the keycard · you're on floor ${f}` : `${who} the keycard · ROOM ${level.roomNo}, floor ${ef} · you're on ${f}`; }
     else obj.textContent = G.lv === 2 ? `Reach the stairs (the green EXIT sign) · ${isNight() ? 'NIGHT' : duskIn37() < WARN37 ? 'the pool is closing' : 'DAY'}` : G.open ? 'The exit is open. Find the door.' : G.lv === 1 ? `Start the generators · ${gOn}/${G.gen.length}` : found >= FUSES ? `Bring the fuses to the breaker · ${G.pl}/${FUSES}` : `Find the fuses · ${found}/${FUSES}` + (mine ? ` · carrying ${mine}` : '');
     $('kit').style.display = '';
-    { const sd = $('side'), want = LK === 6 && G.lv === 6 ? schoolSide52() : LK === 4 && G.lv === 4 ? mallSide852() : LK === 0 && inLab(me.x, me.z) ? labStatus() : ''; if (sd.textContent !== want) sd.textContent = want; sd.style.display = want ? 'block' : 'none'; }
+    { const sd = $('side'), want = LK === 7 && G.lv === 7 ? funSide() : LK === 6 && G.lv === 6 ? schoolSide52() : LK === 4 && G.lv === 4 ? mallSide852() : LK === 0 && inLab(me.x, me.z) ? labStatus() : ''; if (sd.textContent !== want) sd.textContent = want; sd.style.display = want ? 'block' : 'none'; }
     $('batfill').style.width = me.bat+'%'; $('batfill').style.background = me.bat < 20 ? '#e25a44' : '#e8de9e';
     const st = $('stam'); st.style.opacity = me.stam < 99 && me.hidden < 0 ? 1 : 0; $('stamf').style.width = me.stam+'%'; st.classList.toggle('adr', !!me.adren); st.classList.toggle('winded', !!me.winded);
     const cranking = crankK >= 0 || !!mallHold, showStun = stunCharge > 0.05 || cranking; $('stun').style.display = showStun ? 'block' : 'none'; $('stunTxt').style.display = showStun ? 'block' : 'none';
@@ -8176,7 +8590,11 @@ function placeCamera(dt){
     const face = deathT < 1.35, lunge = Math.max(0, 1.4 - deathT*14);
     $('msg').style.opacity = 0;
     const fy = floorY(me.x, me.z);
-    if (scareLs){ MON.g.visible = false; if (LSV.m) LSV.m.g.visible = false; if (!LSJ){ LSJ = makeListener(); scene.add(LSJ.g); } const J = LSJ; J.g.visible = face; animListener(J, deathT*10, 0, 3, nowS());
+    if (scarePg){ MON.g.visible = false; for (const v of PGV) v.m.g.visible = false; if (!PGJ){ PGJ = makePartygoer(0); scene.add(PGJ.g); } const J = PGJ; J.g.visible = face; animPartygoer(J, deathT*12, 0, 3, nowS());
+      J.P.head.rotation.z = Math.sin(deathT*30)*0.4;
+      J.g.position.set(me.x, fy, me.z); J.g.rotation.y = Math.atan2(-lx, -lz) + R()*0.08; J.g.updateMatrixWorld(true); const hp = J.P.head.getWorldPosition(_jv);
+      J.g.position.x += me.x + lx*(0.55+lunge) - hp.x; J.g.position.y += fy + EYE - 0.05 + R()*0.04 - hp.y; J.g.position.z += me.z + lz*(0.55+lunge) - hp.z; }
+    else if (scareLs){ MON.g.visible = false; if (LSV.m) LSV.m.g.visible = false; if (!LSJ){ LSJ = makeListener(); scene.add(LSJ.g); } const J = LSJ; J.g.visible = face; animListener(J, deathT*10, 0, 3, nowS());
       J.P.head.rotation.z = Math.sin(deathT*40)*0.35; J.P.head.rotation.x = 0.1; J.P.torso.rotation.x = 0.35;
       J.g.position.set(me.x, fy, me.z); J.g.rotation.y = Math.atan2(-lx, -lz) + R()*0.08; J.g.updateMatrixWorld(true); const hp = J.P.head.getWorldPosition(_jv);
       J.g.position.x += me.x + lx*(0.62+lunge) - hp.x; J.g.position.y += fy + EYE - 0.12 + R()*0.04 - hp.y; J.g.position.z += me.z + lz*(0.62+lunge) - hp.z; }
@@ -8213,7 +8631,7 @@ function placeCamera(dt){
     $('flash').style.opacity = face ? (Math.random() < 0.35 ? 0.6 : 0.12) : 0;
     $('scare').style.opacity = face ? (0.55 + Math.random()*0.45) : deathT < 1.6 ? 1 : 0;
     if (!face){ $('blacktext').textContent = ''; $('blacksub').textContent = ''; $('black').style.transition = 'none'; $('black').style.opacity = 1;
-      tapeEnd(deathT - 1.35, 'YOU WERE FOUND', scareLs ? 'THE LISTENER HEARD YOU' : scareHm ? 'THE HALL MONITOR CAUGHT YOU' : scareMq ? 'A MANNEQUIN GOT YOU' : scareLurk ? 'THE LURKER GOT YOU' : 'THE OCCUPANT FOUND YOU'); }
+      tapeEnd(deathT - 1.35, 'YOU WERE FOUND', scarePg ? 'A PARTYGOER GOT YOU' : scareLs ? 'THE LISTENER HEARD YOU' : scareHm ? 'THE HALL MONITOR CAUGHT YOU' : scareMq ? 'A MANNEQUIN GOT YOU' : scareLurk ? 'THE LURKER GOT YOU' : 'THE OCCUPANT FOUND YOU'); }
     if (deathT > 4.1) toSpectate();
   } else if (mode==='fallAnim'){
     fallT += dt; fallV += 13*dt; fallY -= fallV*dt;
@@ -8270,7 +8688,7 @@ function tapeSnd(ph){ if (!sfx.ctx) return; const o = sfx.outG;
   else { sfx.noise(o,{ dur:0.1, type:'lowpass', freq:600, gain:0.55 }); sfx.noise(o,{ dur:0.18, type:'bandpass', freq:1800, q:3, gain:0.25, at:0.12 }); sfx.tone(o,{ f:70, to:30, dur:0.3, gain:0.25, at:0.05 }); } }   // eject
 function toSpectate(){
   tapeEndOff();
-  $('white').style.transition = ''; $('black').style.transition = ''; $('scare').style.opacity = 0; camera.fov = SET.fov; camera.updateProjectionMatrix(); scareLurk = false; scareMq = false; scareHm = false; scareLs = false; if (LSJ) LSJ.g.visible = false;
+  $('white').style.transition = ''; $('black').style.transition = ''; $('scare').style.opacity = 0; camera.fov = SET.fov; camera.updateProjectionMatrix(); scareLurk = false; scareMq = false; scareHm = false; scareLs = false; scarePg = false; if (LSJ) LSJ.g.visible = false; if (PGJ) PGJ.g.visible = false;
   $('locker').style.display='none'; $('stun').style.display='none'; $('stunTxt').style.display='none'; $('prompt').style.display='none'; $('stam').style.opacity=0;
   vhsK = 0; $('vhs').style.opacity = 0;
   VM.visible = false; $('flash').style.opacity = 0; canvas.style.filter=''; canvas.style.transform=''; $('elev').style.display = 'none';
@@ -8353,7 +8771,7 @@ function frame(now){
   } else {
     updateRemotes(dt);
     updateMonsterDisplay(dt);
-    updateLurker(dt); updateDroppedFL(dt); updateListener(dt);
+    updateLurker(dt); updateDroppedFL(dt); updateListener(dt); updatePartygoers(dt);
     placeCamera(dt);
     updateZoneEnv(dt);
     updatePanels(t);
@@ -8363,7 +8781,7 @@ function frame(now){
     if (sees) lastSeen = t;
     updateVHS(dt);
     updateZoom(dt); updateLowRes(dt, sees);
-    updateCans(dt); updateVent(dt); update37(dt); updateRadio37(dt); update188(dt); updateLab(dt); updateMall(dt); updateMallMap(dt); updateMannequins852(dt); update2p(dt); updateSchool52(dt);
+    updateCans(dt); updateVent(dt); update37(dt); updateRadio37(dt); update188(dt); updateLab(dt); updateMall(dt); updateMallMap(dt); updateMannequins852(dt); update2p(dt); updateSchool52(dt); updateFun(dt);
     updateCamFx(dt);
     updateMonsterSenses(dt);
     updateAmbience(dt);
@@ -8385,7 +8803,7 @@ function frame(now){
 }
 requestAnimationFrame(frame);
 
-window.__hp = { updateLab, hostTick, nextStep, isDead, killSurvivor, get remotes(){ return remotes; }, setRole:(r)=>{ role = r; }, get MON_WALK(){ return MON_WALK; }, get MONS(){ return MONS; }, get LSJ(){ return LSJ; }, get deathT(){ return deathT; }, get scareLs(){ return scareLs; }, hostListener, lsAlert, get LSV(){ return LSV; }, TD, updateTension, tdFakeSteps, DFL, boT, panelBright, collide, gen52, hostSchool52, hostMonitors52, assign52, tardy52, roomAt52, schoolObj52, schoolTarget52, myRoom52, MV52, get HMJ(){ return HMJ; }, S52_LANES, get radio37(){ return radio37; }, get fig37(){ return fig37; }, get zLevel(){ return zLevel; }, get zK(){ return zK; }, deepDay37, deep37, forceFig37:()=>{ figT = 0; }, duskIn37, wakeLay37, nowS, buildLevel, hotelOpen188, hostOutage188, pipeObj2, pipeTarget2, p2Diag, MQV, hostMannequins852, mqSeen852, floorAt852, laneAt852, MLANES, mallObj852, mallTarget852, mallWayTo852, aiTick852, mallMove852, get mallHold(){ return mallHold; }, get guide(){ return guide; }, hostLurker, opusTweak, fillDevices, get LRK(){ return LRK; }, lrSpot, animLurker, get running(){ return me.running; }, get W(){ return W; }, get N(){ return N; }, get stunCharge(){ return stunCharge; }, losClear, me, H, net, hide, unhide, throwCan, contextAction, useSkin, get mySkin(){ return mySkin; }, set mySkin(v){ mySkin=v; }, inPit, zoneOf, get G(){ return G; }, set G(v){ G=v; }, get mode(){ return mode; }, get role(){ return role; }, get level(){ return level; }, get walls(){ return walls; }, mDisp, doShift, monsterPos, ability, get abCD(){ return abCD; }, disguisedFrom, get fakes(){ return fakes; }, enterVent, nearVent, get ventT(){ return ventT; }, get ventCD(){ return ventCD; }, set ventCD(v){ ventCD=v; }, get abCD2(){ return abCD; }, inPit, get LK(){ return LK; }, get crankK(){ return crankK; }, ability, get curRH(){ return curRH; }, get MON(){ return MON; }, sfx, voice, noiseLevel, get settingsOpen(){ return settingsOpen; }, myPid, monsterVoice, pitchDown, dropDust, get silT(){ return silT; }, set silNext(v){ silNext=v; }, advanceLevel, aiObjectives, poolBlock, aiTick, aiReset, bfsFrom, cellOf, cc, floorY, TU, PG, camera, scene, renderer, applyUse, AI_DIFF, set diffOpt(v){ diffOpt=v; }, get M37(){ return M37; }, buildL37test:(sd)=>build37(sd), ripP, ripWho, makeAvatar, animAvatar, buildLevelTest:(sd,k)=>buildLevel(sd,k), fpArm:(roll,axis,curl)=>{ FP_ROLL = roll; FP_AXIS = axis; if (curl) Object.assign(FP_CURL, curl); buildFPArm(survSrc); }, VM, collide, k37, h37, d37, nav37, isNight, dayK, aiTick37, collide37, K37, sdShape, floorAt188, vis188, hostElev188, aiTick188, myCar188, elevPress188, ELV, HO, elDisp, update188, inLab, hostLab, labUse, labSensor, labStatus, startHatch, get hatchT(){ return hatchT; }, connected };
+window.__hp = { updateLab, hostFun, hostPartygoers, funAction, funObj, funNight, funDoorsToWalls, get PGV(){ return PGV; }, get scarePg(){ return scarePg; }, get FL_DRAIN(){ return FL_DRAIN; }, LS_HUNT, startOpt:(v)=>{ startOpt = v; }, hostTick, nextStep, isDead, killSurvivor, get remotes(){ return remotes; }, setRole:(r)=>{ role = r; }, get MON_WALK(){ return MON_WALK; }, get MONS(){ return MONS; }, get LSJ(){ return LSJ; }, get deathT(){ return deathT; }, get scareLs(){ return scareLs; }, hostListener, lsAlert, get LSV(){ return LSV; }, TD, updateTension, tdFakeSteps, DFL, boT, panelBright, collide, gen52, hostSchool52, hostMonitors52, assign52, tardy52, roomAt52, schoolObj52, schoolTarget52, myRoom52, MV52, get HMJ(){ return HMJ; }, S52_LANES, get radio37(){ return radio37; }, get fig37(){ return fig37; }, get zLevel(){ return zLevel; }, get zK(){ return zK; }, deepDay37, deep37, forceFig37:()=>{ figT = 0; }, duskIn37, wakeLay37, nowS, buildLevel, hotelOpen188, hostOutage188, pipeObj2, pipeTarget2, p2Diag, MQV, hostMannequins852, mqSeen852, floorAt852, laneAt852, MLANES, mallObj852, mallTarget852, mallWayTo852, aiTick852, mallMove852, get mallHold(){ return mallHold; }, get guide(){ return guide; }, hostLurker, opusTweak, fillDevices, get LRK(){ return LRK; }, lrSpot, animLurker, get running(){ return me.running; }, get W(){ return W; }, get N(){ return N; }, get stunCharge(){ return stunCharge; }, losClear, me, H, net, hide, unhide, throwCan, contextAction, useSkin, get mySkin(){ return mySkin; }, set mySkin(v){ mySkin=v; }, inPit, zoneOf, get G(){ return G; }, set G(v){ G=v; }, get mode(){ return mode; }, get role(){ return role; }, get level(){ return level; }, get walls(){ return walls; }, mDisp, doShift, monsterPos, ability, get abCD(){ return abCD; }, disguisedFrom, get fakes(){ return fakes; }, enterVent, nearVent, get ventT(){ return ventT; }, get ventCD(){ return ventCD; }, set ventCD(v){ ventCD=v; }, get abCD2(){ return abCD; }, inPit, get LK(){ return LK; }, get crankK(){ return crankK; }, ability, get curRH(){ return curRH; }, get MON(){ return MON; }, sfx, voice, noiseLevel, get settingsOpen(){ return settingsOpen; }, myPid, monsterVoice, pitchDown, dropDust, get silT(){ return silT; }, set silNext(v){ silNext=v; }, advanceLevel, aiObjectives, poolBlock, aiTick, aiReset, bfsFrom, cellOf, cc, floorY, TU, PG, camera, scene, renderer, applyUse, AI_DIFF, set diffOpt(v){ diffOpt=v; }, get M37(){ return M37; }, buildL37test:(sd)=>build37(sd), ripP, ripWho, makeAvatar, animAvatar, buildLevelTest:(sd,k)=>buildLevel(sd,k), fpArm:(roll,axis,curl)=>{ FP_ROLL = roll; FP_AXIS = axis; if (curl) Object.assign(FP_CURL, curl); buildFPArm(survSrc); }, VM, collide, k37, h37, d37, nav37, isNight, dayK, aiTick37, collide37, K37, sdShape, floorAt188, vis188, hostElev188, aiTick188, myCar188, elevPress188, ELV, HO, elDisp, update188, inLab, hostLab, labUse, labSensor, labStatus, startHatch, get hatchT(){ return hatchT; }, connected };
 </script>
 </body>
 </html>
