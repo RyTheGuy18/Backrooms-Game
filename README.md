@@ -114,3 +114,5 @@ v0.57.1: no Occupant in School Halls anymore, only the hall monitors
 v0.57.2: no Occupant in Level Fun anymore; if a player is the Occupant, they play as a Partygoer (harmless while the lights are on, deadly when they go out, and they can't open doors)
 v0.58.0: the Partygoers use the real model now (balloon removed) with walk and breathing-idle animations; when you're close they stand and stare, their head following you, and shuffle round if you circle them; 2 on Easy up to 5 on Impossible
 v0.59.0: new first-person hand: a gloved hand with a sleeve, fingers closed round the flashlight
+v0.59.1: the first-person hand holds the flashlight properly now (it was twisted upside down)
+v0.59.2: the first-person hand uses the pose Ryan made in the Hand Poser, with the pinky tucked away
