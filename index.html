@@ -301,6 +301,29 @@
   #tvpages #lobby .col{display:grid;grid-template-columns:200px minmax(0,1fr);gap:8px;align-content:start}
   #tvpages #lobby .col > *{grid-column:1}#tvpages #lobby .col > .title{grid-column:1 / span 2}#tvpages #lroom{grid-column:2!important;grid-row:2 / span 7}
   #tvpages #lvPick .lvwrap{width:100%}
+  /* v0.61 friends */
+  #tvpages #friends{z-index:3;background:rgba(1,2,6,.96)}
+  #tvpages .frwrap{width:100%;font-family:monospace}
+  .mhead .frbtn{margin-left:auto}
+  #tvpages .mhead .frbtn{font-size:13px;padding:5px 10px 5px 24px}
+  .frbadge:empty{display:none}.frbadge{display:inline-block;margin-left:6px;min-width:16px;padding:0 4px;background:#e2785a;color:#100c04;font-size:12px;text-align:center;text-shadow:none;border-radius:2px}
+  #tvpages .frme{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+  #tvpages .frme b{font-size:30px;letter-spacing:.25em;color:#e9d27c}
+  #tvpages .frrow{display:flex;gap:10px;align-items:center;margin-bottom:4px}
+  #tvpages .frrow input{font:bold 20px monospace;width:150px;letter-spacing:.2em;text-transform:uppercase;padding:4px 8px}
+  #frNote{font-size:13px;color:#a9a28a;min-height:18px;margin-bottom:6px}
+  #tvpages .frh{margin:8px 0 4px}
+  .fritem{display:flex;align-items:center;gap:8px;padding:5px 0;border-top:1px solid rgba(220,225,240,.15);font-size:15px}
+  .fritem .fn{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .fritem .fs{font-size:12px;color:#7a7462;margin-left:8px}.fritem .fs.on{color:#8fd08a}.fritem .fs.lb{color:#e9d27c}
+  .fritem .vbtn.sm{font-size:12px!important;padding:4px 8px 4px 20px}
+  .fritem .vbtn.x{padding-left:8px;color:#a9a28a}.fritem .vbtn.x::before{display:none}
+  .frempty{font-size:13px;color:#7a7462;padding:4px 0}
+  #frToast{position:fixed;top:max(10px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:80;display:flex;flex-direction:column;gap:6px;pointer-events:none;width:min(440px,92vw)}
+  .frt{pointer-events:auto;background:rgba(4,6,12,.93);border:1px solid #e9d27c;color:#f4eed6;font:14px monospace;padding:8px 10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;text-shadow:1px 0 rgba(255,40,40,.4),-1px 0 rgba(40,200,255,.35);animation:frIn .25s ease-out}
+  .frt span{flex:1;min-width:160px}.frt button{font:bold 13px monospace;letter-spacing:.08em;background:none;border:1px solid rgba(244,238,214,.5);color:#f4eed6;padding:5px 9px;cursor:pointer}
+  .frt button.y{background:#e9d27c;color:#100c04;border-color:#e9d27c}
+  @keyframes frIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1}}
   #tvpages .screen,#tvpages .msub{touch-action:none;overscroll-behavior:contain}
   .setback{display:none}#tvpages .setback{display:block;order:2;margin-left:auto;font-size:20px!important;border:1px solid rgba(220,225,240,.5);padding:4px 12px!important;background:rgba(0,0,0,.4)}
   #tvpages #settings .title{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
@@ -367,7 +390,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.60.2</div>
+<div class="osd" id="ver">v0.61.0</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -418,12 +441,12 @@
   <div class="mside"><div class="mname"><span>NAME</span><input id="name" maxlength="12" placeholder="WANDERER" autocomplete="off"></div><button class="vlink" id="mInfo">HOW TO PLAY · CREDITS</button><div id="netnote"></div></div>
 </div>
 <div class="msub" id="pLevels">
-  <div class="mhead"><button class="vbtn back" data-back>◀ BACK</button><h2>SELECT A LEVEL</h2></div>
+  <div class="mhead"><button class="vbtn back" data-back>◀ BACK</button><h2>SELECT A LEVEL</h2><button class="vbtn sm frbtn" data-fr>FRIENDS<span class="frbadge"></span></button></div>
   <div class="lvgrid" id="lvgrid"></div>
   <div class="mopts"><button class="vbtn sm" id="bDiff1">COMPUTER: NORMAL</button><button class="vbtn sm" id="bEx1">MODE: NORMAL</button></div>
 </div>
 <div class="msub" id="pJoin">
-  <div class="mhead"><button class="vbtn back" data-back>◀ BACK</button><h2>JOIN A LOBBY</h2></div>
+  <div class="mhead"><button class="vbtn back" data-back>◀ BACK</button><h2>JOIN A LOBBY</h2><button class="vbtn sm frbtn" data-fr>FRIENDS<span class="frbadge"></span></button></div>
   <div class="jbox"><div class="lbl">ENTER THE ROOM CODE</div><div class="row code"><input id="joincode" maxlength="4" placeholder="CODE" autocomplete="off"><button class="vbtn" id="bJoin">JOIN</button></div></div>
 </div>
 <div class="msub" id="pInfo">
@@ -449,17 +472,28 @@
 <div style="display:none"><button id="bSolo"></button><button id="bLv1"></button><button id="bVoice"></button><button id="bSkinL"></button><div id="bSkin"></div><button id="bSkinR"></button></div>
 </div>
 
+<div class="screen" id="friends"><div class="frwrap">
+  <div class="mhead"><button class="vbtn back" id="frBack">◀ BACK</button><h2>FRIENDS</h2></div>
+  <div class="frme"><span class="lbl">YOUR FRIEND CODE</span><b id="frId">------</b><button class="vbtn sm" id="frCopy">COPY</button></div>
+  <div class="frrow"><input id="frCode" maxlength="6" placeholder="CODE" autocomplete="off"><button class="vbtn sm" id="frAddB">SEND REQUEST</button></div>
+  <div id="frNote"></div>
+  <div id="frReqs"></div>
+  <div class="lbl frh">YOUR FRIENDS</div>
+  <div id="frList"></div>
+</div></div>
 <div class="screen" id="lvPick"><div class="lvwrap">
   <div class="mhead"><button class="vbtn back" id="lvPickBack">◀ BACK</button><h2>START AT WHICH LEVEL?</h2></div>
   <div class="lvgrid" id="lvPickGrid"></div>
 </div></div>
 
+<div id="frToast"></div>
 <div class="screen" id="lobby"><div class="col">
   <div class="title"><h1>LOBBY</h1><div class="sub">HOST · PARTY</div></div>
   <div class="card">
     <div class="lbl" style="text-align:center">ROOM CODE</div>
     <div id="code">----</div>
     <div class="foot" style="margin-top:-4px">Friends open this page, tap JOIN, and enter the code.</div>
+    <button class="btn" data-fr>INVITE FRIENDS<span class="frbadge"></span></button>
   </div>
   <div class="card" id="lroom">
     <div class="lbl">IN THE ROOM</div>
@@ -6197,7 +6231,7 @@ function applyUse(pid, m){
     if (G.mo === 'AI' && H.ai.mode !== 'chase'){ H.ai.mode='hunt'; H.ai.lx=+m.x||0; H.ai.lz=+m.z||0; H.ai.lt=GEN_T + 20; H.ai.rp=0; }
   }
   else if (m.k === 'ab' && pid === G.mo){
-    if (m.a === 'blackout') G.bo.push([+m.x||0, +m.z||0, 30]);
+    if (m.a === 'blackout'){ if (LK !== 1) G.bo.push([+m.x||0, +m.z||0, 30]); }
     else if (m.a === 'shift') doShift(+m.x||0, +m.z||0, 16, 16);
     else if (m.a === 'disguise'){ const s = survivorsAlive(); if (s.length){ G.dg = DISGUISE_T; G.dgp = s[Math.floor(Math.random()*s.length)].pid; } }
   }
@@ -6392,7 +6426,8 @@ function aiTick(dt, alive){
     // v0.28 (Ryan): the lights go out every time the blackout cooldown is done. Wandering, it cuts them where one of them is.
     if (A.boT <= 0 && alive.length){ A.boT = AB_CD.blackout; const t = A.mode === 'wander' ? alive[Math.floor(Math.random()*alive.length)] : null;
       G.bo.push(t ? [+t.x.toFixed(1), +t.z.toFixed(1), 18] : [+ax.toFixed(1), +az.toFixed(1), 18]); } }
-  else if (D.bo && A.mode!=='wander' && A.boT <= 0){ A.boT = 45+Math.random()*30; G.bo.push([ax,az,15]); }
+  else if (D.bo && LK !== 1 && A.mode!=='wander' && A.boT <= 0){   // v0.61 (Ryan): no blackouts in the garage
+    A.boT = 45+Math.random()*30; G.bo.push([ax,az,15]); }
 }
 function setupLevel(k){
   if (k === 6 && G.mo !== 'AI'){ H.moKeep = G.mo; G.mo = 'AI'; }   // v0.57.1 (Ryan): no Occupant in the school; a player Occupant runs it as a survivor
@@ -6630,6 +6665,160 @@ async function connect(code, host){
   renderLobby();
   return true;
 }
+
+/* ================= v0.61 friends (Ryan: friend requests + invites, tucked away — FRIENDS on the level-select and
+   JOIN pages and INVITE FRIENDS in the lobby, never on the main menu).
+   No server of our own, so it's peer-to-peer like the rooms: every copy of the game keeps a permanent 6-character
+   friend code (localStorage lvl0_fid) and, while the game is open, listens on its own PeerJS id FR_PREFIX+code.
+   Friend requests / accepts / invites / status pings are tiny one-shot data connections to that id; every message
+   gets a reply {t:'ok', n, s, c} = their name, what they're doing (menu / lobby / playing) and their lobby code.
+   Requests to someone who's offline are kept (lvl0_fout) and re-sent every 45 s, so they go through the next time
+   both of you have the game open. Friends: lvl0_friends [{id, n}], incoming requests lvl0_freq, declined lvl0_fdec. */
+const FR_PREFIX = 'level0-f1-';
+const FR = { id:'', peer:null, ready:false, starting:false, list:[], inReq:[], out:[], dec:[], st:{}, pingT:null, note:'' };
+const frOk = id => typeof id === 'string' && /^[A-Z2-9]{6}$/.test(id);
+const frName = s => (String(s || '').replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, 12)) || 'Wanderer';
+function frLoad(){
+  try { FR.id = localStorage.getItem('lvl0_fid') || '';
+    const g = k => { const v = JSON.parse(localStorage.getItem(k) || '[]'); return Array.isArray(v) ? v : []; };
+    FR.list = g('lvl0_friends').filter(f=>f && frOk(f.id)).map(f=>({ id:f.id, n:frName(f.n) })); FR.inReq = g('lvl0_freq').filter(f=>f && frOk(f.id)).map(f=>({ id:f.id, n:frName(f.n) }));
+    FR.out = g('lvl0_fout').filter(frOk); FR.dec = g('lvl0_fdec').filter(frOk); } catch(e){}
+  if (!frOk(FR.id)){ const A = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; FR.id = ''; for (let i=0;i<6;i++) FR.id += A[Math.floor(Math.random()*A.length)]; try { localStorage.setItem('lvl0_fid', FR.id); } catch(e){} }
+}
+function frSave(){ try { localStorage.setItem('lvl0_friends', JSON.stringify(FR.list)); localStorage.setItem('lvl0_freq', JSON.stringify(FR.inReq)); localStorage.setItem('lvl0_fout', JSON.stringify(FR.out)); localStorage.setItem('lvl0_fdec', JSON.stringify(FR.dec.slice(-50))); } catch(e){} }
+const frIsF = id => FR.list.find(f=>f.id === id);
+function frAddFriend(id, n){ if (!frIsF(id)) FR.list.push({ id, n:frName(n) }); FR.out = FR.out.filter(x=>x !== id); FR.inReq = FR.inReq.filter(r=>r.id !== id); FR.dec = FR.dec.filter(x=>x !== id); frSave(); }
+function frMe(){ const s = mode === 'lobby' ? 'lobby' : mode === 'menu' ? 'menu' : 'playing'; return { n:myName || 'Wanderer', s, c: s === 'lobby' && net.code && !net.solo ? net.code : '' }; }
+function frStart(){
+  if (FR.peer || FR.starting || (inClaude && location.hash !== '#localnet')) return;
+  FR.starting = true;
+  loadPeerLib().then(P=>{
+    FR.starting = false; if (FR.peer) return;
+    const peer = FR.peer = new P(FR_PREFIX + FR.id, { debug:0 });
+    const dead = ()=>{ if (FR.peer !== peer) return; try { peer.destroy(); } catch(_){} FR.peer = null; FR.ready = false; frRender(); setTimeout(frStart, 15000); };
+    peer.on('open', ()=>{ FR.ready = true; frRender(); frRetry(); if ($('friends').classList.contains('show')) frPingAll(); });
+    peer.on('connection', c=>{ c.on('data', d=>nparse(d, m=>frOnMsg(c, m))); c.on('error', ()=>{}); setTimeout(()=>{ try { c.close(); } catch(_){} }, 10000); });
+    peer.on('disconnected', ()=>{ try { peer.reconnect(); } catch(_){ dead(); } });
+    peer.on('error', e=>{ const t = e && e.type; if (t === 'peer-unavailable') return; if (!FR.ready || t === 'unavailable-id' || t === 'network' || t === 'server-error' || t === 'socket-error' || t === 'socket-closed') dead(); });
+  }).catch(()=>{ FR.starting = false; setTimeout(frStart, 30000); });
+}
+// one message to a friend code; onOk(reply) when they answer, onFail() if they're not online (6 s)
+function frSend(id, m, onOk, onFail){
+  if (!FR.peer || !FR.ready){ onFail && onFail(); return; }
+  let done = false, c; try { c = FR.peer.connect(FR_PREFIX + id, { reliable:true }); } catch(e){ onFail && onFail(); return; }
+  const end = r=>{ if (done) return; done = true; clearTimeout(t); if (r) onOk && onOk(r); else onFail && onFail(); setTimeout(()=>{ try { c.close(); } catch(_){} }, 300); };
+  const t = setTimeout(()=>end(null), 6000);
+  c.on('open', ()=>nsend(c, { ...m, from:FR.id, n:myName || 'Wanderer' }));
+  c.on('data', d=>nparse(d, r=>{ if (r && r.t === 'ok') end(r); }));
+  c.on('error', ()=>end(null));
+}
+function frSeen(id, r){ FR.st[id] = { on:true, s:r.s, c: /^[A-Z]{4}$/.test(r.c || '') ? r.c : '', t:Date.now() }; const f = frIsF(id); if (f && r.n && frName(r.n) !== f.n){ f.n = frName(r.n); frSave(); } }
+function frOnMsg(c, m){
+  if (!m || typeof m !== 'object') return;
+  const from = m.from, n = frName(m.n); if (!frOk(from) || from === FR.id) return;
+  const reply = { t:'ok', from:FR.id, ...frMe() };
+  const f = frIsF(from); if (f && f.n !== n){ f.n = n; frSave(); }
+  if (m.t === 'freq'){
+    if (f || FR.out.includes(from)){ if (!f){ frAddFriend(from, n); frToast(`${n} is your friend now.`); } reply.acc = 1; }   // both asked each other = friends
+    else if (FR.dec.includes(from)) reply.dec = 1;
+    else if (!FR.inReq.some(r=>r.id === from)){ FR.inReq.push({ id:from, n }); frSave(); frToast(`${n} wants to be friends.`, [['ACCEPT', ()=>frAccept(from), 1], ['NO', ()=>frDecline(from)]], 25); }
+  }
+  else if (m.t === 'facc'){ if (FR.out.includes(from) || f){ if (!f){ frAddFriend(from, n); frToast(`${n} accepted your friend request.`); } } }
+  else if (m.t === 'fdec'){ FR.out = FR.out.filter(x=>x !== from); frSave(); }
+  else if (m.t === 'frem'){ if (f){ FR.list = FR.list.filter(x=>x.id !== from); delete FR.st[from]; frSave(); } }
+  else if (m.t === 'inv' && f && /^[A-Z]{4}$/.test(m.c || '')){
+    const code = m.c; frToast(`${n} invited you to their lobby.`, [['JOIN', ()=>frJoin(code), 1], ['✕', null]], 30);
+  }
+  if (f || m.t === 'ping') frSeen(from, { n, s:m.s, c:m.c });
+  nsend(c, reply); frRender();
+}
+function frRetry(){ for (const id of FR.out) frSend(id, { t:'freq' }, r=>{ if (r.acc){ frAddFriend(id, r.n); frSeen(id, r); frToast(`${frName(r.n)} is your friend now.`); } else if (r.dec){ FR.out = FR.out.filter(x=>x !== id); frSave(); } frRender(); }); }
+setInterval(()=>{ if (FR.ready && FR.out.length) frRetry(); }, 45000);
+function frSetNote(t){ FR.note = t; $('frNote').textContent = t; }
+function frAddCode(){
+  const id = $('frCode').value.trim().toUpperCase();
+  if (!frOk(id)){ frSetNote('Friend codes are 6 letters/numbers.'); return; }
+  if (id === FR.id){ frSetNote("That's your own code."); return; }
+  if (frIsF(id)){ frSetNote("You're already friends."); return; }
+  $('frCode').value = '';
+  if (FR.inReq.some(r=>r.id === id)){ frAccept(id); return; }
+  FR.dec = FR.dec.filter(x=>x !== id); if (!FR.out.includes(id)) FR.out.push(id); frSave();
+  if (!FR.ready){ frSetNote("Request saved. It'll send once you're online."); frRender(); return; }
+  frSetNote('Sending…');
+  frSend(id, { t:'freq' }, r=>{ frSeen(id, r);
+    if (r.acc){ frAddFriend(id, r.n); frSetNote(`${frName(r.n)} is your friend now.`); }
+    else if (r.dec){ FR.out = FR.out.filter(x=>x !== id); frSave(); frSetNote(`${frName(r.n)} said no.`); }
+    else frSetNote(`Request sent to ${frName(r.n)}.`); frRender(); },
+    ()=>{ frSetNote("They're not online. The request goes through next time you both have the game open."); frRender(); });
+  frRender();
+}
+function frAccept(id){ const r = FR.inReq.find(x=>x.id === id); if (!r) return; frAddFriend(id, r.n); frSend(id, { t:'facc' }, rr=>{ frSeen(id, rr); frRender(); }); frRender(); }
+function frDecline(id){ FR.inReq = FR.inReq.filter(x=>x.id !== id); if (!FR.dec.includes(id)) FR.dec.push(id); frSave(); frSend(id, { t:'fdec' }); frRender(); }
+function frRemove(id){ const f = frIsF(id); if (!f || !confirm(`Remove ${f.n} from your friends?`)) return; FR.list = FR.list.filter(x=>x.id !== id); delete FR.st[id]; frSave(); frSend(id, { t:'frem' }); frRender(); }
+function frInvite(id){ if (mode !== 'lobby' || net.solo || !net.code) return; const f = frIsF(id);
+  frSend(id, { t:'inv', c:net.code }, r=>{ frSeen(id, r); frSetNote(`Invite sent to ${f ? f.n : 'them'}.`); frRender(); }, ()=>{ if (FR.st[id]) FR.st[id].on = false; frSetNote(`${f ? f.n : 'They'} isn't online right now.`); frRender(); }); }
+function frJoin(code){
+  if (!/^[A-Z]{4}$/.test(code)) return;
+  if (mode === 'lobby' && net.code === code && !net.solo){ frClose(); return; }
+  const inGame = mode !== 'menu' && mode !== 'lobby';
+  if ((inGame || (mode === 'lobby' && !net.solo)) && !confirm(inGame ? 'Leave this game and join their lobby?' : 'Leave this lobby and join theirs?')) return;
+  if (settingsOpen) closeSettings();
+  frClose(); if (inGame){ leaveRoom(); goMenu(''); }
+  $('joincode').value = code; $('bJoin').onclick();
+}
+function frPingAll(){ for (const f of FR.list) frSend(f.id, { t:'ping', ...frMe() }, r=>{ frSeen(f.id, r); frRender(); }, ()=>{ FR.st[f.id] = { on:false }; frRender(); }); }
+function frOpen(){ frStart(); $('friends').classList.add('show'); frSetNote(FR.ready ? '' : (inClaude && location.hash !== '#localnet') ? "Friends need the hosted link (they don't work inside the Claude preview)." : 'Connecting…'); frRender(); frPingAll(); clearInterval(FR.pingT); FR.pingT = setInterval(frPingAll, 6000); }
+function frClose(){ const el = $('friends'); if (el) el.classList.remove('show'); clearInterval(FR.pingT); FR.pingT = null; }
+function frStatusText(id){ const s = FR.st[id];
+  if (!s) return ['…', ''];
+  if (!s.on) return ['offline', ''];
+  if (s.s === 'lobby') return [s.c && s.c === net.code && !net.solo ? 'in your lobby' : 'in a lobby', 'lb'];
+  if (s.s === 'playing') return ['playing', 'on'];
+  return ['online', 'on']; }
+function frBtn(lbl, fn, cls){ const b = document.createElement('button'); b.className = 'vbtn sm' + (cls ? ' ' + cls : ''); b.textContent = lbl; b.onclick = e=>{ e.stopPropagation(); fn(); }; return b; }
+function frRender(){
+  const cnt = FR.inReq.length ? String(FR.inReq.length) : '';
+  for (const b of document.querySelectorAll('.frbadge')) if (b.textContent !== cnt) b.textContent = cnt;
+  if (!$('friends').classList.contains('show')) return;
+  $('frId').textContent = FR.id; if ($('frNote').textContent !== FR.note && FR.note) $('frNote').textContent = FR.note;
+  if (FR.ready && FR.note === 'Connecting…') frSetNote('');
+  const rq = $('frReqs'); rq.innerHTML = '';
+  if (FR.inReq.length){ const h = document.createElement('div'); h.className = 'lbl frh'; h.textContent = 'FRIEND REQUESTS'; rq.appendChild(h);
+    for (const r of FR.inReq){ const row = document.createElement('div'); row.className = 'fritem'; const nm = document.createElement('span'); nm.className = 'fn'; nm.textContent = r.n; row.append(nm, frBtn('ACCEPT', ()=>frAccept(r.id)), frBtn('NO', ()=>frDecline(r.id), 'x')); rq.appendChild(row); } }
+  if (FR.out.length){ const row = document.createElement('div'); row.className = 'frempty'; row.textContent = `Waiting on ${FR.out.length} request${FR.out.length > 1 ? 's' : ''} you sent (${FR.out.join(', ')}).`; rq.appendChild(row); }
+  const L = $('frList'); L.innerHTML = '';
+  if (!FR.list.length){ const e = document.createElement('div'); e.className = 'frempty'; e.textContent = 'No friends yet. Send them your code, or type theirs above.'; L.appendChild(e); return; }
+  const rank = id => { const s = FR.st[id]; return !s || !s.on ? 2 : s.s === 'lobby' ? 0 : 1; };
+  const canInv = mode === 'lobby' && !net.solo && !!net.code;
+  for (const f of [...FR.list].sort((a,b)=>rank(a.id) - rank(b.id) || a.n.localeCompare(b.n))){
+    const row = document.createElement('div'); row.className = 'fritem';
+    const nm = document.createElement('span'); nm.className = 'fn'; nm.textContent = f.n;
+    const [st, cls] = frStatusText(f.id), ss = document.createElement('span'); ss.className = 'fs ' + cls; ss.textContent = st; nm.appendChild(ss);
+    row.appendChild(nm); const s = FR.st[f.id];
+    if (canInv && !(s && s.on === false) && !(s && s.c === net.code)) row.appendChild(frBtn('INVITE', ()=>frInvite(f.id)));
+    if (s && s.on && s.s === 'lobby' && s.c && s.c !== net.code) row.appendChild(frBtn('JOIN', ()=>frJoin(s.c)));
+    row.appendChild(frBtn('✕', ()=>frRemove(f.id), 'x'));
+    L.appendChild(row);
+  }
+}
+// pop-ups for requests / invites: top of the screen, anywhere in the game
+function frToast(text, btns, secs = 6){
+  const box = $('frToast'); while (box.children.length > 2) box.firstChild.remove();
+  const t = document.createElement('div'); t.className = 'frt'; const sp = document.createElement('span'); sp.textContent = text; t.appendChild(sp);
+  const kill = ()=>t.remove();
+  for (const [l, fn, y] of (btns || [])){ const b = document.createElement('button'); b.textContent = l; if (y) b.className = 'y'; b.onclick = e=>{ e.stopPropagation(); kill(); fn && fn(); }; t.appendChild(b); }
+  box.appendChild(t); setTimeout(kill, secs*1000);
+  try { menuTick(); } catch(e){}
+}
+frLoad();
+for (const b of document.querySelectorAll('[data-fr]')) b.onclick = e=>{ e.stopPropagation(); frOpen(); };
+$('frBack').onclick = frClose;
+$('frAddB').onclick = frAddCode;
+$('frCode').addEventListener('input', e=>{ e.target.value = e.target.value.toUpperCase().replace(/[^A-Z2-9]/g, ''); });
+$('frCode').addEventListener('keydown', e=>{ if (e.key === 'Enter') frAddCode(); e.stopPropagation(); });
+$('frCopy').onclick = ()=>{ const t = FR.id; (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(()=>frSetNote('Copied your code.'), ()=>frSetNote('Your code: ' + t)); };
+document.addEventListener('visibilitychange', ()=>{ if (!document.hidden && !FR.peer) setTimeout(frStart, 500); });
+setTimeout(frStart, 1500);
 /* ================= settings ================= */
 const SET = { vol:100, vv:100, sens:100, fov:74, mg:isIOS ? 220 : 160, mic:'', spk:'' };
 try { Object.assign(SET, JSON.parse(localStorage.getItem('lvl0_set') || '{}')); } catch(e){}
@@ -7144,7 +7333,7 @@ function showEnd(){
   $('bAgain').style.display = host ? '' : 'none'; $('bLobby').style.display = host && !net.solo ? '' : 'none'; $('ewait').style.display = host ? 'none' : '';
   showScreen('end');
 }
-function showScreen(id){ if (id === 'menu') menuSub(''); $('lvPick').classList.remove('show'); for (const s of ['menu','lobby','end']) $(s).classList.toggle('show', s===id); document.body.classList.toggle('showosd', !!id); }
+function showScreen(id){ if (id === 'menu') menuSub(''); $('lvPick').classList.remove('show'); frClose(); for (const s of ['menu','lobby','end']) $(s).classList.toggle('show', s===id); document.body.classList.toggle('showosd', !!id); }
 document.body.classList.add('showosd');
 let msgTimer = 0;
 function msg(t, secs=3){ const m=$('msg'); m.textContent=t; m.style.opacity=1; msgTimer=secs; }
@@ -7651,6 +7840,7 @@ function ability(k){
   if (k === 'shift') return;   // the Occupant's Shift Walls ability was removed in v0.24 (Level 0 walls still shift on their own)
   if (k === 'lure' && LK !== 2) return;   // v0.39: the Lure is gone (Ryan); only the eel's SPLASH is left
   if (LK === 2 && (k === 'blackout' || k === 'disguise')){ msg('Not here.', 1.5); return; }
+  if (LK === 1 && k === 'blackout'){ msg('The garage has no power to cut.', 1.5); return; }   // v0.61 (Ryan): no blackouts on Level 1
   if (LK === 2 && k === 'dash' && !isNight()){ msg('You can only lunge at night.', 2); return; }
   abCD[k] = AB_CD[k];
   if (k === 'dash'){ dashT = DASH_T; dashYaw = me.yaw; dashSound(me.x, me.z); vibrate(40); return; }
@@ -7697,7 +7887,7 @@ document.addEventListener('pointerdown', e=>{ if (e.pointerType !== 'mouse' && e
 const crtCtx = $('tvc').getContext('2d'); let crtT = 0;
 
 // v0.49 (Ryan): the menu is a pitch-dark room with the TV on his table; the TV is the only thing showing the Backrooms and every pre-game screen is ON it
-for (const id of ['menu','lvPick','lobby']) $('tvpages').appendChild($(id));
+for (const id of ['menu','lvPick','friends','lobby']) $('tvpages').appendChild($(id));
 const VHS_GAIN = 0.22;   // v0.51.7: menu/lobby ceiling-fan hum level (v0.51.6 VHS hiss was 0.3)
 const TVW = 600, TVH = 450; let TVR = null, tvAcc = 1;
 const tvRoomOn = () => mode === 'menu' || mode === 'lobby';
@@ -7764,7 +7954,7 @@ function renderTVRoom(dt){
   if (!tvWasOn){ tvWasOn = true; document.body.classList.add('tvroom'); }
   const R = TVR, cam = R.cam, W = innerWidth, H = innerHeight; R.t += dt; const t = R.t;
   // v0.50 (Ryan): PLAY → the camera pushes in almost all the way to the TV for the level select
-  const zt = ($('pLevels').classList.contains('show') || mode === 'lobby' || settingsOpen) ? 1 : 0; /* v0.51.4: the lobby (HOST/JOIN) zooms in too; v0.51.8: and settings */ R.zm = (R.zm || 0) + (zt - (R.zm || 0))*Math.min(1, dt*2.2); const zk = R.zm*R.zm*(3 - 2*R.zm);
+  const zt = ($('pLevels').classList.contains('show') || $('friends').classList.contains('show') || mode === 'lobby' || settingsOpen) ? 1 : 0; /* v0.51.4: the lobby (HOST/JOIN) zooms in too; v0.51.8: and settings */ R.zm = (R.zm || 0) + (zt - (R.zm || 0))*Math.min(1, dt*2.2); const zk = R.zm*R.zm*(3 - 2*R.zm);
   cam.aspect = W/H; const th = Math.tan(cam.fov*Math.PI/360), fh = lerp(H < 520 ? 0.68 : 0.48, H < 520 ? 0.97 : 0.9, zk), fw = lerp(0.8, 0.98, zk);
   const d = TV_S*Math.max(0.3225/(2*th*fh), 0.43*0.92/(2*th*cam.aspect*fw)), off = 1 - zk;
   R.sc.classList.toggle('zoomed', zk > 0.6);
@@ -8090,7 +8280,7 @@ function compass(dx,dz){ const a=Math.atan2(dx,-dz); const dirs=['north','north-
 function answerPhone(i){
   if (amHost()) applyUse(myPid,{k:'phone',i}); else { G.ring = -1; useReq({k:'phone',i}); }
   { const ph = level.phones[i]; if (!(ph && sfx.sample('phPick', { x:ph.x, y:1.4, z:ph.z }, 0.9, 2))) sfx.phoneStatic(); else setTimeout(()=>sfx.phoneStatic(), 500); }
-  if (Math.random() < 0.25){ me.loudT = 3; setTimeout(()=>msg(LK === 2 ? 'The speaker crackles. Slow breathing, then, very close to the mic: "found you."' : 'Breathing on the line. Then, right behind the receiver: "found you."', 5), 900); return; }
+  // v0.61 (Ryan): every phone call gives a real hint now (the 25% "found you" breathing call is gone)
   let tx, tz, what;
   const ground = G.fz.map((f,k)=>[f,k]).filter(([f])=>f[0]===0);
   const carrying = G.fz.some(f=>f[0]===1 && f[3]===myPid);
@@ -8916,7 +9106,7 @@ function frame(now){
 }
 requestAnimationFrame(frame);
 
-window.__hp = { FPH, placeFPHand, get flSrc(){ return flSrc; }, updateLab, hostFun, hostPartygoers, funAction, funObj, funNight, funDoorsToWalls, get PGV(){ return PGV; }, get scarePg(){ return scarePg; }, get FL_DRAIN(){ return FL_DRAIN; }, LS_HUNT, startOpt:(v)=>{ startOpt = v; }, hostTick, nextStep, isDead, killSurvivor, get remotes(){ return remotes; }, setRole:(r)=>{ role = r; }, get MON_WALK(){ return MON_WALK; }, get MONS(){ return MONS; }, get LSJ(){ return LSJ; }, get deathT(){ return deathT; }, get scareLs(){ return scareLs; }, hostListener, lsAlert, get LSV(){ return LSV; }, TD, updateTension, tdFakeSteps, DFL, boT, panelBright, collide, gen52, hostSchool52, hostMonitors52, assign52, tardy52, roomAt52, schoolObj52, schoolTarget52, myRoom52, MV52, get HMJ(){ return HMJ; }, S52_LANES, get radio37(){ return radio37; }, get fig37(){ return fig37; }, get zLevel(){ return zLevel; }, get zK(){ return zK; }, deepDay37, deep37, forceFig37:()=>{ figT = 0; }, duskIn37, wakeLay37, nowS, buildLevel, hotelOpen188, hostOutage188, pipeObj2, pipeTarget2, p2Diag, MQV, hostMannequins852, mqSeen852, floorAt852, laneAt852, MLANES, mallObj852, mallTarget852, mallWayTo852, aiTick852, mallMove852, get mallHold(){ return mallHold; }, get guide(){ return guide; }, hostLurker, opusTweak, fillDevices, get LRK(){ return LRK; }, lrSpot, animLurker, get running(){ return me.running; }, get W(){ return W; }, get N(){ return N; }, get stunCharge(){ return stunCharge; }, losClear, me, H, net, hide, unhide, throwCan, contextAction, useSkin, get mySkin(){ return mySkin; }, set mySkin(v){ mySkin=v; }, inPit, zoneOf, get G(){ return G; }, set G(v){ G=v; }, get mode(){ return mode; }, get role(){ return role; }, get level(){ return level; }, get walls(){ return walls; }, mDisp, doShift, monsterPos, ability, get abCD(){ return abCD; }, disguisedFrom, get fakes(){ return fakes; }, enterVent, nearVent, get ventT(){ return ventT; }, get ventCD(){ return ventCD; }, set ventCD(v){ ventCD=v; }, get abCD2(){ return abCD; }, inPit, get LK(){ return LK; }, get crankK(){ return crankK; }, ability, get curRH(){ return curRH; }, get MON(){ return MON; }, sfx, voice, noiseLevel, get settingsOpen(){ return settingsOpen; }, myPid, monsterVoice, pitchDown, dropDust, get silT(){ return silT; }, set silNext(v){ silNext=v; }, advanceLevel, aiObjectives, poolBlock, aiTick, aiReset, bfsFrom, cellOf, cc, floorY, TU, PG, camera, scene, renderer, applyUse, AI_DIFF, set diffOpt(v){ diffOpt=v; }, get M37(){ return M37; }, buildL37test:(sd)=>build37(sd), ripP, ripWho, makeAvatar, animAvatar, buildLevelTest:(sd,k)=>buildLevel(sd,k), fpArm:(roll,axis,curl)=>{ FP_ROLL = roll; FP_AXIS = axis; if (curl) Object.assign(FP_CURL, curl); buildFPArm(survSrc); }, VM, collide, k37, h37, d37, nav37, isNight, dayK, aiTick37, collide37, K37, sdShape, floorAt188, vis188, hostElev188, aiTick188, myCar188, elevPress188, ELV, HO, elDisp, update188, inLab, hostLab, labUse, labSensor, labStatus, startHatch, get hatchT(){ return hatchT; }, connected };
+window.__hp = { FR, frOpen, frClose, frJoin, frRender, frToast, FPH, placeFPHand, get flSrc(){ return flSrc; }, updateLab, hostFun, hostPartygoers, funAction, funObj, funNight, funDoorsToWalls, get PGV(){ return PGV; }, get scarePg(){ return scarePg; }, get FL_DRAIN(){ return FL_DRAIN; }, LS_HUNT, startOpt:(v)=>{ startOpt = v; }, hostTick, nextStep, isDead, killSurvivor, get remotes(){ return remotes; }, setRole:(r)=>{ role = r; }, get MON_WALK(){ return MON_WALK; }, get MONS(){ return MONS; }, get LSJ(){ return LSJ; }, get deathT(){ return deathT; }, get scareLs(){ return scareLs; }, hostListener, lsAlert, get LSV(){ return LSV; }, TD, updateTension, tdFakeSteps, DFL, boT, panelBright, collide, gen52, hostSchool52, hostMonitors52, assign52, tardy52, roomAt52, schoolObj52, schoolTarget52, myRoom52, MV52, get HMJ(){ return HMJ; }, S52_LANES, get radio37(){ return radio37; }, get fig37(){ return fig37; }, get zLevel(){ return zLevel; }, get zK(){ return zK; }, deepDay37, deep37, forceFig37:()=>{ figT = 0; }, duskIn37, wakeLay37, nowS, buildLevel, hotelOpen188, hostOutage188, pipeObj2, pipeTarget2, p2Diag, MQV, hostMannequins852, mqSeen852, floorAt852, laneAt852, MLANES, mallObj852, mallTarget852, mallWayTo852, aiTick852, mallMove852, get mallHold(){ return mallHold; }, get guide(){ return guide; }, hostLurker, opusTweak, fillDevices, get LRK(){ return LRK; }, lrSpot, animLurker, get running(){ return me.running; }, get W(){ return W; }, get N(){ return N; }, get stunCharge(){ return stunCharge; }, losClear, me, H, net, hide, unhide, throwCan, contextAction, useSkin, get mySkin(){ return mySkin; }, set mySkin(v){ mySkin=v; }, inPit, zoneOf, get G(){ return G; }, set G(v){ G=v; }, get mode(){ return mode; }, get role(){ return role; }, get level(){ return level; }, get walls(){ return walls; }, mDisp, doShift, monsterPos, ability, get abCD(){ return abCD; }, disguisedFrom, get fakes(){ return fakes; }, enterVent, nearVent, get ventT(){ return ventT; }, get ventCD(){ return ventCD; }, set ventCD(v){ ventCD=v; }, get abCD2(){ return abCD; }, inPit, get LK(){ return LK; }, get crankK(){ return crankK; }, ability, get curRH(){ return curRH; }, get MON(){ return MON; }, sfx, voice, noiseLevel, get settingsOpen(){ return settingsOpen; }, myPid, monsterVoice, pitchDown, dropDust, get silT(){ return silT; }, set silNext(v){ silNext=v; }, advanceLevel, aiObjectives, poolBlock, aiTick, aiReset, bfsFrom, cellOf, cc, floorY, TU, PG, camera, scene, renderer, applyUse, AI_DIFF, set diffOpt(v){ diffOpt=v; }, get M37(){ return M37; }, buildL37test:(sd)=>build37(sd), ripP, ripWho, makeAvatar, animAvatar, buildLevelTest:(sd,k)=>buildLevel(sd,k), fpArm:(roll,axis,curl)=>{ FP_ROLL = roll; FP_AXIS = axis; if (curl) Object.assign(FP_CURL, curl); buildFPArm(survSrc); }, VM, collide, k37, h37, d37, nav37, isNight, dayK, aiTick37, collide37, K37, sdShape, floorAt188, vis188, hostElev188, aiTick188, myCar188, elevPress188, ELV, HO, elDisp, update188, inLab, hostLab, labUse, labSensor, labStatus, startHatch, get hatchT(){ return hatchT; }, connected };
 </script>
 </body>
 </html>
