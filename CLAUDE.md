@@ -6,7 +6,7 @@ First-person co-op Backrooms horror game for 1–4 players, played in the browse
 
 - Live: https://rytheguy18.github.io/Haunted-Pines/ (GitHub Pages, `main` branch, repo root)
 - Owner: Ryan (GitHub `rytheguy18` / `RyTheGuy18`). Plays it with friends and younger brothers, mostly on phones.
-- Current version: **v0.61.0** (shown bottom-right of the menu, `#ver`)
+- Current version: **v0.61.1** (shown bottom-right of the menu, `#ver`)
 
 ## Files
 
@@ -328,3 +328,5 @@ Controls (desktop): WASD, Shift sprint, C crouch, Left click / F flashlight, E h
 - **Friends** (module `/* ===== v0.61 friends */` just above settings; long comment there). Peer-to-peer, no server: each install has a permanent 6-char friend code (`lvl0_fid`) and listens on PeerJS id `level0-f1-<code>` while the game is open (`frStart`, separate from the room peer). One-shot messages `freq/facc/fdec/frem/inv/ping`, every one answered with `{t:'ok', n, s: menu/lobby/playing, c: lobby code}`. Storage: `lvl0_friends`, `lvl0_freq` (incoming), `lvl0_fout` (sent, re-sent every 45 s until answered), `lvl0_fdec` (declined). UI kept OFF the main menu (Ryan): a small FRIENDS button top-right of the level-select and JOIN pages, INVITE FRIENDS in the lobby's room-code card (badge = pending requests). `#friends` is a TV screen like `#lvPick` (zooms in): your code + COPY, add by code, requests, friends with online / in a lobby / playing / offline (pinged every 6 s while open), INVITE (when you're in a lobby), JOIN (when they're in one), ✕ remove. Requests and invites pop up anywhere as `#frToast` (ACCEPT/NO, JOIN/✕; joining mid-round asks first). Tested over #localnet: request → accept → host → invite → join → "in your lobby". Not tested on real PeerJS.
 - **No blackouts on Level 1** (garage): computer never uses it there, the player ability says "The garage has no power to cut.", host ignores `ab blackout` on LK 1.
 - **Phones always give a real hint**: the 25% "breathing… found you" call is gone.
+
+**v0.61.1 (Ryan):** the camera zooms into the TV on the JOIN page too (`#pJoin` added to the zoom target in `renderTVRoom`).
