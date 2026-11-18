@@ -390,7 +390,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.62.1</div>
+<div class="osd" id="ver">v0.62.2</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -455,7 +455,7 @@
     <b>Find 3 fuses</b>, bring them to the breaker, then find the exit door.<br><br>
     <b>Hide</b> in lockers. It can't open them, but hold your breath when it's close.<br>
     <b>Blind it:</b> hold your flashlight on its face up close to stun it.<br>
-    <b>Escape Level 0</b> and everyone still alive drops into <b>Level 1</b>, a dark parking garage. No Occupant down there: <b>two Lurkers</b> own the dark. Start all 5 generators (it takes a while and it's LOUD: they come for whoever is cranking), keep your light ready, then find the exit. When the lights come on, they run. The <b>lit rooms</b> along the walls (storage, office…) are safe: they can't come in, but if one saw you go in, it may wait outside.<br>
+    <b>Escape Level 0</b> and everyone still alive drops into <b>Level 1</b>, a dark parking garage. No Occupant down there: <b>three Lurkers</b> own the dark. Start all 5 generators (it takes a while and it's LOUD: they come for whoever is cranking), keep your light ready, then find the exit. When the lights come on, they run. The <b>lit rooms</b> along the walls (storage, office…) are safe: they can't come in, but if one saw you go in, it may wait outside.<br>
     <b>Escape the garage</b> and you wake up in <b>Level 37, the Poolrooms</b>. Turn all 3 drain valves to empty the great pool, then climb down to the drain at the bottom.<br>
     <b>Adrenaline</b> kicks in when it's close, so run. It stalks slowly, but once it sees you it runs (still slower than your sprint).<br>
     <b>Crouch in the dark</b> with your light off and it can barely see you.<br>
@@ -3057,6 +3057,18 @@ function funSurvivor(dt){
     if (H0.s <= 0){ H0.s = 0.3; const q = F.gifts[H0.i]; if (sfx.ctx && q){ const o = sfx.panner(q.x, 0.5, q.z, 2); sfx.noise(o,{ dur:0.22, type:'bandpass', freq:2200 + Math.random()*1800, q:1.2, gain:0.25 }); } vibrate(8); }
     if (H0.t >= H0.T){ mallHold = null; useReq({ k:'gift', i:H0.i }); } }
 }
+// v0.62.2: the garage rooms' doors (Level 1)
+function gdoorAction(){
+  if (LK !== 1 || !level.groom) return null; let k = -1, bd = 1.7;
+  level.groom.forEach((q,i)=>{ if (q.mx == null) return; const d = Math.hypot(q.mx-me.x, q.mz-me.z); if (d < bd){ bd = d; k = i; } });
+  if (k < 0) return null; const shut = (G.gd || [])[k];
+  return { label: shut ? 'OPEN DOOR' : 'CLOSE DOOR', key:'E', fn:()=>useReq({ k:'gdoor', i:k }) };
+}
+function updateGarageDoors(dt){
+  if (LK !== 1 || !level || !level.groom) return;
+  level.groom.forEach((q,i)=>{ const shut = !!(G.gd && G.gd[i]) && G.ph === 'play'; walls[q.door] = shut ? 1 : 0;
+    if (q.piv){ const tg = shut ? 0 : q.openA; q.ang += (tg - q.ang)*(1 - Math.exp(-9*dt)); q.piv.rotation.y = q.ang; } });
+}
 function funAction(){
   if (LK !== 7 || !funConf()) return null;
   if (mallHold && mallHold.k === 'gift') return { label:'STOP', key:'E', fn:()=>{ mallHold = null; } };
@@ -3237,7 +3249,7 @@ function garageRoomShell(L, g, q){
   const piv = new THREE.Group(), hx = vert ? mx : mx - DW/2, hz = vert ? mz - DW/2 : mz; piv.position.set(hx, 0, hz); g.add(piv);
   const leaf = new THREE.Mesh(new THREE.BoxGeometry(vert ? 0.05 : DW-0.06, 2.1, vert ? DW-0.06 : 0.05), lam(0x5d6a72)); leaf.position.set(vert ? 0 : (DW-0.06)/2, 1.05, vert ? (DW-0.06)/2 : 0); piv.add(leaf);
   const kn = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.06, 0.06), lam(0xb8b4a0)); kn.position.set(vert ? 0.05 : DW-0.2, 1.0, vert ? DW-0.2 : 0.05); piv.add(kn);
-  piv.rotation.y = (vert ? -ci : cj) * -1.35;
+  piv.rotation.y = (vert ? -ci : cj) * -1.35; q.piv = piv; q.openA = piv.rotation.y; q.mx = mx; q.mz = mz; q.ang = q.openA;
   L.circles.push({ x: hx + (vert ? -ci*0.55 : 0.35), z: hz + (vert ? 0.35 : -cj*0.55), r: 0.12 });
   // sign over the door, on the garage side
   const nm = GROOM_NAMES[(q.i0*7 + q.j0*3 + L.groom.indexOf(q)*2) % GROOM_NAMES.length]; q.name = nm;
@@ -3314,7 +3326,7 @@ function buildLevel(seed, kind=0){
   L.edgeZ = new Uint8Array(E); for (let e=0;e<E;e++) L.edgeZ[e] = edgeZoneOf(e);
   if (kind === 0){ L.noDraw = new Uint8Array(E); L.noDraw[labPE()] = 1;   // the lab's blast door is drawn as a shutter
     for (let e=0;e<E;e++) if (edgeCells(e).some(([i,j])=>inGrid(i,j) && inLabCell(i,j))) L.fixed[e] = 1; }
-  if (kind === 1){ L.noDraw = new Uint8Array(E); for (const q of L.groom) for (const e of q.win) L.noDraw[e] = 1; }   // windows are drawn by buildGarageRoom
+  if (kind === 1){ L.noDraw = new Uint8Array(E); for (const q of L.groom){ for (const e of q.win) L.noDraw[e] = 1; L.noDraw[q.door] = 1; } }   // windows are drawn by buildGarageRoom
   const wmats = [wallMat, lam(0xffffff,{map:concWallTex}), lam(0xffffff,{map:pitWallTex}), kind === 2 ? tileMats().wall : wallMat, lam(0xffffff,{map:mallWallTex})];
   tmpM.makeScale(0.0001,0.0001,0.0001);
   L.wallMeshes = [0,1,2,3,4].map(z=>{ const m = new THREE.InstancedMesh(boxUV(CS+0.2, ZH[z], 0.2), wmats[z], E); for (let e=0;e<E;e++) m.setMatrixAt(e, tmpM); m.frustumCulled=false; g.add(m); return m; });
@@ -6170,7 +6182,7 @@ function lrCampSpot(R, q, ok){
 function lrGone(R, cd){ R.st = 0; R.cd = cd; R.tg = null; R.gaze = {}; R.mv = 0; R.back = null; R.call = 0; }
 function lrSnd(k, x, z){ playEventSound(k, x, z); safe(()=>net.room && net.room.emit('snd', { k, x:+x.toFixed(1), z:+z.toFixed(1) })); }
 // v0.62: how many Lurkers a level has (Ryan: the garage gets two and no Occupant)
-const lrN = () => LK === 1 ? 2 : LK === 0 || LK === 3 ? 1 : 0;
+const lrN = () => LK === 1 ? 3 : LK === 0 || LK === 3 ? 1 : 0;   // v0.62.2 (Ryan): three in the garage
 function lrNew(k){ return { k, st:0, x:0, z:0, y:0, cd:(LK === 1 ? 20 + k*14 : 30) + Math.random()*20, gaze:{}, lit:0, mv:0, t:0, life:0, done:false }; }
 // a hiding place to run to: a few cells away, out of everyone's sight if it can, away from (fx, fz)
 function lrHide(R, ok, fx, fz){
@@ -6473,6 +6485,10 @@ function applyUse(pid, m){
     if (LK === 7){ if (mp && v && funNight() && !v.hd && v.pid !== G.mo && !isDead(v.pid) && !isEsc(v.pid) && Math.hypot(v.x-mp.x, v.z-mp.z) < 5){ killSurvivor(v, 'pg'); lrSnd('pgKill', v.x, v.z); } return; }   // v0.57.2: the player Partygoer only kills in the dark
     if (mp && v && (LK !== 2 || prey37(v)) && !mp.vt && !v.hd && v.pid !== G.mo && !isDead(v.pid) && !isEsc(v.pid) && Math.hypot(v.x-mp.x, v.z-mp.z) < 5) killSurvivor(v);
   }
+  else if (m.k === 'gdoor'){   // v0.62.2 (Ryan): garage room doors open and shut
+    const q = LK === 1 && level.groom && level.groom[m.i|0]; if (!q || isDead(pid)) return; G.gd = G.gd || level.groom.map(()=>0);
+    if (!G.gd[m.i|0] && allPlayers().some(p=>Math.hypot(p.x-q.mx, p.z-q.mz) < 0.55)) return;   // someone's standing in the doorway
+    G.gd[m.i|0] = G.gd[m.i|0] ? 0 : 1; lrSnd(G.gd[m.i|0] ? 'gdoorS' : 'gdoorO', q.mx, q.mz); }
   else if (m.k === 'crank'){   // someone is starting a generator: the whole garage hears it, the computer comes straight for it
     if (LK === 1) lrCall(pid);   // v0.62: in the garage, the Lurkers come instead
     if (G.mo === 'AI' && H.ai.mode !== 'chase'){ H.ai.mode='hunt'; H.ai.lx=+m.x||0; H.ai.lz=+m.z||0; H.ai.lt=GEN_T + 20; H.ai.rp=0; }
@@ -6703,6 +6719,7 @@ function setupLevel(k){
   if (k === 7){ G.w = ''; const F = level.fun; G.fd = F.doors.map(()=>0); G.fn = [0, +(FUN_DAY[0] + Math.random()*(FUN_DAY[1]-FUN_DAY[0])).toFixed(1)]; G.pr = 0; G.pk = Math.floor(Math.random()*F.gifts.length); G.fk = null; G.pg = []; H.pg = null; }   // Level Fun: doors, lights, presents
   else { G.fd = null; G.fn = null; G.pr = 0; G.pk = -1; G.fk = null; G.pg = []; H.pg = null; }
   G.pgk = [];
+  G.gd = k === 1 && level.groom ? level.groom.map(()=>0) : null;   // v0.62.2: garage room doors, 0 open / 1 shut
   G.hb = 0; H.hbT = null;   // v0.36: Level 188 power outages
 }
 function advanceLevel(){
@@ -6735,7 +6752,7 @@ function hostTick(dt){
   if (LK === 0) hostLab(dt);
   if (noOcc()){   // exploration mode (and the school v0.57.1, Level Fun v0.57.2, the garage v0.62): no Occupant, no mannequins
     G.ax = G.az = -999; G.amv = 0; G.ach = 0; G.bo = []; G.mq = []; G.ls = [0,0,0,0,0];
-    if (LK === 1 && !G.ex) hostLurker(dt, alive.filter(p=>!isDead(p.pid))); else G.lr = [];   // v0.62 (Ryan): the garage is the Lurkers' (two of them)
+    if (LK === 1 && !G.ex) hostLurker(dt, alive.filter(p=>!isDead(p.pid))); else G.lr = [];   // v0.62 (Ryan): the garage is the Lurkers' (three since v0.62.2)
     if (LK === 3){ hostElev188(dt); hostOutage188(dt); } if (LK === 4) hostMall852(dt, ps); if (LK === 5) hostPipe2(dt, ps); if (LK === 2) hostDay37(dt, alive, { x:-999, z:-999 }); if (LK === 0) hostLab(dt);
     H.ringT -= dt; if (G.ring < 0 && H.ringT <= 0 && level.phones.length){ const tgt = alive[Math.floor(Math.random()*alive.length)]; let best = 0, bd = 1e9; level.phones.forEach((ph,k)=>{ const d=Math.hypot(ph.x-tgt.x, ph.z-tgt.z); if (d<bd){ bd=d; best=k; } }); G.ring = best; H.ringEnd = nowS() + 16; }
     if (G.ring >= 0 && nowS() > H.ringEnd){ G.ring = -1; H.ringT = 25+Math.random()*30; }
@@ -7512,7 +7529,7 @@ function enterLevel(){
   else if ((G.lv|0) === 4){ $('blacktext').textContent = 'LEVEL 852'; $('blacksub').textContent = 'THE MALL · three floors, closed for decades. Find the receipts, open the security office, take the master keys down to the loading dock. The music is still playing.'; }
   else if ((G.lv|0) === 3){ $('blacktext').textContent = 'LEVEL 188'; $('blacksub').textContent = 'THE HOTEL · find the keycard. It opens one room. The elevators work. So does something else.'; }
   else if ((G.lv|0) === 2){ $('blacktext').textContent = 'LEVEL 37'; $('blacksub').textContent = 'THE POOLROOMS · somewhere there is a staircase up to the sky. Find it. Stay out of the water at night.'; }
-  else { $('blacktext').textContent = 'LEVEL 1'; $('blacksub').textContent = 'THE PARKING GARAGE · two Lurkers in the dark · start all 5 generators, then find the exit'; }
+  else { $('blacktext').textContent = 'LEVEL 1'; $('blacksub').textContent = 'THE PARKING GARAGE · three Lurkers in the dark · start all 5 generators, then find the exit'; }
   { const nr = G.mo === myPid ? 'monster' : 'survivor'; if (nr !== role){ role = nr; me.bat = 100; me.light = false; me.hidden = -1; canvas.style.filter = monFilter(); $('bat').style.display = role === 'survivor' ? '' : 'none'; $('abil').style.display = role === 'monster' && !isTouch ? 'flex' : 'none'; amb.intensity = role === 'monster' ? 0.42 : 0.16;
     if (role === 'survivor') msg('No Occupant in the school. Just the hall monitors. You\'re a student today: get to class.', 5); } }   // v0.57.1: the school has no Occupant
   if (role === 'monster'){ me.x = level.mspawn[0]; me.z = level.mspawn[1]; me.yaw = Math.random()*6; abCD.dash = Math.max(abCD.dash, 6); mode = 'play'; }
@@ -7914,6 +7931,8 @@ function lureBehind(){
 function playEventSound(k, x, z, m){
   if (!sfx.ctx) return;
   if (k === 'giftHorn' || k === 'giftKey' || k === 'pgKnock' || k === 'pgKill' || k === 'pgSpot' || k === 'fdoorBang'){ funSound(k, x, z); return; }
+  if (k === 'gdoorS'){ const o = sfx.panner(x, 1.1, z, 5); sfx.noise(o,{ dur:0.18, type:'lowpass', freq:520, gain:0.8 }); sfx.tone(o,{ f:110, to:55, dur:0.22, gain:0.18 }); sfx.noise(o,{ dur:0.05, type:'bandpass', freq:2400, q:4, gain:0.25, at:0.03 }); return; }   // steel door shut + latch
+  if (k === 'gdoorO'){ const o = sfx.panner(x, 1.1, z, 4); sfx.noise(o,{ dur:0.05, type:'bandpass', freq:2200, q:4, gain:0.25 }); sfx.tone(o,{ f:340, to:260, type:'sawtooth', dur:0.55, gain:0.025, at:0.05 }); return; }   // latch + a hinge creak
   if (k === 'lsShriek'){ const o = sfx.panner(x, 2.0, z, 6); const f = sfx.noise(o,{ dur:1.1, type:'bandpass', freq:700, q:6, gain:0.9, attack:0.05 }); try { f.frequency.exponentialRampToValueAtTime(2600, sfx.ctx.currentTime + 0.9); } catch(e){}
     sfx.tone(o,{ f:420, to:1300, type:'sawtooth', dur:0.9, gain:0.06 }); for (let i=0;i<6;i++) sfx.noise(o,{ dur:0.012, type:'bandpass', freq:3400, q:5, gain:0.5, at:0.9 + i*0.06 }); return; }
   if (k === 'lsKill'){ const o = sfx.panner(x, 1.5, z, 3); sfx.noise(o,{ dur:0.5, type:'bandpass', freq:1600, q:1.4, gain:1.0 }); sfx.noise(o,{ dur:0.35, type:'lowpass', freq:300, gain:0.9 }); sfx.tone(o,{ f:110, to:30, dur:0.8, gain:0.45 }); return; }
@@ -8116,7 +8135,7 @@ diffLabel();
 
 // ---- v0.46 menu: PLAY → level select, JOIN → code, HOW TO PLAY; the CRT shows the live scene; a tick on hover
 const LV_INFO = [['LEVEL 0','THE OFFICE','Endless yellow rooms, something round every corner: restore the power and find the exit.'],
-  ['LEVEL 1','THE PARKING GARAGE','A pitch-black garage and two Lurkers. Every generator you start calls them to you.'],
+  ['LEVEL 1','THE PARKING GARAGE','A pitch-black garage and three Lurkers. Every generator you start calls them to you.'],
   ['LEVEL 37','THE POOLROOMS','Warm empty pools and tiled halls, and something waiting in the deep water.'],
   ['LEVEL 188','THE HOTEL','A silent hotel round a courtyard, one keycard, and elevators something else rides too.'],
   ['LEVEL 852','THE MALL','A dead three-floor mall where the music never stops and the mannequins never stay put.'],
@@ -8430,6 +8449,7 @@ function contextAction(){
     if (hatchT > 0) return null;
     { const c = labAction(); if (c) return c; }
     { const c = funAction(); if (c) return c; }
+    { const c = gdoorAction(); if (c) return c; }
     { const c = doorAction37(); if (c) return c; }
     const k = nearLocker(1.3); if (k>=0 && !lockerTaken(k)) return { label:'HIDE', key:'E', fn:()=>hide(k) };
     { const c = elevCall188(); if (c) return c; }
@@ -9341,7 +9361,7 @@ function frame(now){
     if (sees) lastSeen = t;
     updateVHS(dt);
     updateZoom(dt); updateLowRes(dt, sees);
-    updateCans(dt); updateVent(dt); update37(dt); updateRadio37(dt); update188(dt); updateLab(dt); updateMall(dt); updateMallMap(dt); updateMannequins852(dt); update2p(dt); updateSchool52(dt); updateFun(dt);
+    updateCans(dt); updateVent(dt); update37(dt); updateRadio37(dt); update188(dt); updateLab(dt); updateMall(dt); updateMallMap(dt); updateMannequins852(dt); update2p(dt); updateSchool52(dt); updateFun(dt); updateGarageDoors(dt);
     updateCamFx(dt);
     updateMonsterSenses(dt);
     updateAmbience(dt);
