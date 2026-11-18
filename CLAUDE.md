@@ -6,7 +6,7 @@ First-person co-op Backrooms horror game for 1–4 players, played in the browse
 
 - Live: https://rytheguy18.github.io/Haunted-Pines/ (GitHub Pages, `main` branch, repo root)
 - Owner: Ryan (GitHub `rytheguy18` / `RyTheGuy18`). Plays it with friends and younger brothers, mostly on phones.
-- Current version: **v0.62.7** (shown bottom-right of the menu, `#ver`)
+- Current version: **v0.62.8** (shown bottom-right of the menu, `#ver`)
 
 ## Files
 
@@ -360,3 +360,5 @@ Controls (desktop): WASD, Shift sprint, C crouch, Left click / F flashlight, E h
 - **Off-the-hook phone removed** (the handset dangling on its cord by an EXIT sign + its dial tone): `L.offhook` stays an empty array.
 
 **v0.62.7 (Ryan): Level 0 ceiling tiles = his OfficeCeiling001 (ambientCG, 4K PNG set).** `textures/office-ceil.jpg` = colour × AO at 512 px (6×6 tiles = one 4 m cell, so 0.667 m tiles on the same grid the lamps snap to), the grout darkened ×0.55 so the grid reads in the dark; `office-ceil-nor.jpg` = the GL normal map at 512 px (`offCeilNor`, NoColorSpace). Office `cellPlane(1)` tinted 0xd8d0aa (warm Backrooms yellow), the pitfalls tinted 0xc8b468 (their old darker yellow), the lab booth ceiling too (repeat w/4). `ceilTex`/`tileCeilTex` are unused on Level 0 now. Lab main ceiling unchanged (`labCeilTex`, 1.333 m tiles).
+
+**v0.62.8 (Ryan: on phones the HUD filled the screen, popups hard to see past):** CSS block "v0.62.8" after the v0.52 HUD restyle: `@media (max-height:600px), (max-width:600px)` + `body.touch` (phones, not tablets) → smaller objective box (title 11.5 px, side line 8.5 px, BATT/MIC 7.5 px, max 40vw), popup `#msg` 11 px (max 62vw, a bit lower: bottom 26%), smaller USE prompt, player chips, guide label. Checked at 844×390 touch.
