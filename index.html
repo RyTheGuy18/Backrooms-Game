@@ -390,7 +390,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.62.2</div>
+<div class="osd" id="ver">v0.62.3</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -455,7 +455,7 @@
     <b>Find 3 fuses</b>, bring them to the breaker, then find the exit door.<br><br>
     <b>Hide</b> in lockers. It can't open them, but hold your breath when it's close.<br>
     <b>Blind it:</b> hold your flashlight on its face up close to stun it.<br>
-    <b>Escape Level 0</b> and everyone still alive drops into <b>Level 1</b>, a dark parking garage. No Occupant down there: <b>three Lurkers</b> own the dark. Start all 5 generators (it takes a while and it's LOUD: they come for whoever is cranking), keep your light ready, then find the exit. When the lights come on, they run. The <b>lit rooms</b> along the walls (storage, office…) are safe: they can't come in, but if one saw you go in, it may wait outside.<br>
+    <b>Escape Level 0</b> and everyone still alive drops into <b>Level 1</b>, a dark parking garage. No Occupant down there: <b>four Lurkers</b> own the dark, and they don't wait: they run straight at you until your light hits them. Start all 5 generators (it takes a while and it's LOUD: they come for whoever is cranking), keep your light ready, then find the exit. When the lights come on, they run. The <b>lit rooms</b> along the walls (storage, office…) are safe: they can't come in, but if one saw you go in, it may wait outside.<br>
     <b>Escape the garage</b> and you wake up in <b>Level 37, the Poolrooms</b>. Turn all 3 drain valves to empty the great pool, then climb down to the drain at the bottom.<br>
     <b>Adrenaline</b> kicks in when it's close, so run. It stalks slowly, but once it sees you it runs (still slower than your sprint).<br>
     <b>Crouch in the dark</b> with your light off and it can barely see you.<br>
@@ -6182,8 +6182,8 @@ function lrCampSpot(R, q, ok){
 function lrGone(R, cd){ R.st = 0; R.cd = cd; R.tg = null; R.gaze = {}; R.mv = 0; R.back = null; R.call = 0; }
 function lrSnd(k, x, z){ playEventSound(k, x, z); safe(()=>net.room && net.room.emit('snd', { k, x:+x.toFixed(1), z:+z.toFixed(1) })); }
 // v0.62: how many Lurkers a level has (Ryan: the garage gets two and no Occupant)
-const lrN = () => LK === 1 ? 3 : LK === 0 || LK === 3 ? 1 : 0;   // v0.62.2 (Ryan): three in the garage
-function lrNew(k){ return { k, st:0, x:0, z:0, y:0, cd:(LK === 1 ? 20 + k*14 : 30) + Math.random()*20, gaze:{}, lit:0, mv:0, t:0, life:0, done:false }; }
+const lrN = () => LK === 1 ? 4 : LK === 0 || LK === 3 ? 1 : 0;   // v0.62.3 (Ryan): four in the garage
+function lrNew(k){ return { k, st:0, x:0, z:0, y:0, cd:(LK === 1 ? 20 + k*12 : 30) + Math.random()*20, gaze:{}, lit:0, mv:0, t:0, life:0, done:false }; }
 // a hiding place to run to: a few cells away, out of everyone's sight if it can, away from (fx, fz)
 function lrHide(R, ok, fx, fz){
   const blk = lrBlock(), ci = cellOf(R.x), cj = cellOf(R.z), dm = bfsFrom(ci, cj, blk); let b = null, bs = -1e9;
@@ -6225,8 +6225,9 @@ function lurkOne(R, dt, ok, others, safe){
   if (R.st === 1 && R.call && !lrSeen(R.x, R.z, ok)){ R.call = 0; lrGone(R, 0); }
   if (!R.st){
     if (R.cd <= 0 && ok.length){
-      const pref = ok.find(p=>p.pid === R.pref), pool = pref ? [pref] : loud.length && df ? loud : ok, p = pool[Math.floor(Math.random()*pool.length)], sp = lrSpot(p, ok, 2, 6, others);
-      if (sp){ R.x = sp[0]; R.z = sp[1]; R.st = 1; R.tg = p.pid; R.t = 0; R.life = (30 + Math.random()*30)*(df ? 1.3 : 1); R.gaze = {}; R.pref = null; R.y = Math.atan2(p.x-R.x, p.z-R.z); } else R.cd = 3; }
+      const pref = ok.find(p=>p.pid === R.pref), pool = pref ? [pref] : loud.length && df ? loud : ok, p = pool[Math.floor(Math.random()*pool.length)], sp = LK === 1 ? lrSpot(p, ok, 4, 9, others) : lrSpot(p, ok, 2, 6, others);
+      // v0.62.3 (Ryan): in the garage they don't wait to be looked at (st 2 right away), they come straight for you
+      if (sp){ R.x = sp[0]; R.z = sp[1]; R.st = LK === 1 ? 2 : 1; R.tg = p.pid; R.t = 0; R.life = (30 + Math.random()*30)*(df ? 1.3 : 1); R.gaze = {}; R.pref = null; R.y = Math.atan2(p.x-R.x, p.z-R.z); } else R.cd = 3; }
     return LR_ZERO();
   }
   let T = ok.find(p=>p.pid === R.tg);
@@ -6245,7 +6246,8 @@ function lurkOne(R, dt, ok, others, safe){
     if (p.l && d < 16 && dot > 0.9){ lit = p; R.gaze[p.pid] = 0; continue; }
     if (dot > 0.95){ R.gaze[p.pid] = (R.gaze[p.pid]||0) + dt; if (R.gaze[p.pid] >= lrDf('gaze')) stare = p; } else R.gaze[p.pid] = 0; }
   R.lit = lit ? R.lit + dt : 0;
-  if (lit && R.lit > lrDf('light') && R.st !== 3){ R.st = 3; R.t = 0; R.fd = lrHide(R, ok, lit.x, lit.z); R.back = lit.pid; lrSnd('lurkFlee', R.x, R.z); }
+  // v0.62.3: the garage needs the light on them a touch longer
+  if (lit && R.lit > lrDf('light') + (LK === 1 ? 0.12 : 0) && R.st !== 3){ R.st = 3; R.t = 0; R.fd = lrHide(R, ok, lit.x, lit.z); R.back = lit.pid; lrSnd('lurkFlee', R.x, R.z); }
   if (R.st === 5){   // camping outside a garage room's door
     const q = R.campQ, [cx, cz] = R.cs; R.campT -= dt;
     if (Math.hypot(cx-R.x, cz-R.z) > 0.4) lrMove(R, cx, cz, lrDf('creep')*0.6, dt); else R.y = Math.atan2(q.dx-R.x, q.dz-R.z);
@@ -6275,7 +6277,7 @@ function lurkOne(R, dt, ok, others, safe){
     if (R.st === 4){ if (inDark(T.x, T.z)) R.boT = 0; else R.boT = (R.boT||0) + dt;
       if (R.boT > 3){ R.st = 3; R.t = 0; R.fd = lrHide(R, ok, T.x, T.z); } }   // the lights came back: it slinks off
     if (R.st !== 3){
-      if (!lrMove(R, T.x, T.z, R.st === 2 ? lrDf('run') : lrDf('creep'), dt) || (R.st === 2 && R.t > 9)){ R.st = 3; R.t = 0; R.fd = lrHide(R, ok, T.x, T.z); }
+      if (!lrMove(R, T.x, T.z, R.st === 2 ? lrDf('run') : lrDf('creep'), dt) || (R.st === 2 && R.t > (LK === 1 ? 25 : 9))){ R.st = 3; R.t = 0; R.fd = lrHide(R, ok, T.x, T.z); }
       else if (Math.hypot(T.x-R.x, T.z-R.z) < 0.95){ killSurvivor(T, true); lrSnd('lurkKill', T.x, T.z); lrGone(R, 40 + Math.random()*30); return LR_ZERO(); } }
   }
   if (R.st === 3){
@@ -6752,7 +6754,7 @@ function hostTick(dt){
   if (LK === 0) hostLab(dt);
   if (noOcc()){   // exploration mode (and the school v0.57.1, Level Fun v0.57.2, the garage v0.62): no Occupant, no mannequins
     G.ax = G.az = -999; G.amv = 0; G.ach = 0; G.bo = []; G.mq = []; G.ls = [0,0,0,0,0];
-    if (LK === 1 && !G.ex) hostLurker(dt, alive.filter(p=>!isDead(p.pid))); else G.lr = [];   // v0.62 (Ryan): the garage is the Lurkers' (three since v0.62.2)
+    if (LK === 1 && !G.ex) hostLurker(dt, alive.filter(p=>!isDead(p.pid))); else G.lr = [];   // v0.62 (Ryan): the garage is the Lurkers' (four since v0.62.3)
     if (LK === 3){ hostElev188(dt); hostOutage188(dt); } if (LK === 4) hostMall852(dt, ps); if (LK === 5) hostPipe2(dt, ps); if (LK === 2) hostDay37(dt, alive, { x:-999, z:-999 }); if (LK === 0) hostLab(dt);
     H.ringT -= dt; if (G.ring < 0 && H.ringT <= 0 && level.phones.length){ const tgt = alive[Math.floor(Math.random()*alive.length)]; let best = 0, bd = 1e9; level.phones.forEach((ph,k)=>{ const d=Math.hypot(ph.x-tgt.x, ph.z-tgt.z); if (d<bd){ bd=d; best=k; } }); G.ring = best; H.ringEnd = nowS() + 16; }
     if (G.ring >= 0 && nowS() > H.ringEnd){ G.ring = -1; H.ringT = 25+Math.random()*30; }
@@ -7529,7 +7531,7 @@ function enterLevel(){
   else if ((G.lv|0) === 4){ $('blacktext').textContent = 'LEVEL 852'; $('blacksub').textContent = 'THE MALL · three floors, closed for decades. Find the receipts, open the security office, take the master keys down to the loading dock. The music is still playing.'; }
   else if ((G.lv|0) === 3){ $('blacktext').textContent = 'LEVEL 188'; $('blacksub').textContent = 'THE HOTEL · find the keycard. It opens one room. The elevators work. So does something else.'; }
   else if ((G.lv|0) === 2){ $('blacktext').textContent = 'LEVEL 37'; $('blacksub').textContent = 'THE POOLROOMS · somewhere there is a staircase up to the sky. Find it. Stay out of the water at night.'; }
-  else { $('blacktext').textContent = 'LEVEL 1'; $('blacksub').textContent = 'THE PARKING GARAGE · three Lurkers in the dark · start all 5 generators, then find the exit'; }
+  else { $('blacktext').textContent = 'LEVEL 1'; $('blacksub').textContent = 'THE PARKING GARAGE · four Lurkers in the dark · start all 5 generators, then find the exit'; }
   { const nr = G.mo === myPid ? 'monster' : 'survivor'; if (nr !== role){ role = nr; me.bat = 100; me.light = false; me.hidden = -1; canvas.style.filter = monFilter(); $('bat').style.display = role === 'survivor' ? '' : 'none'; $('abil').style.display = role === 'monster' && !isTouch ? 'flex' : 'none'; amb.intensity = role === 'monster' ? 0.42 : 0.16;
     if (role === 'survivor') msg('No Occupant in the school. Just the hall monitors. You\'re a student today: get to class.', 5); } }   // v0.57.1: the school has no Occupant
   if (role === 'monster'){ me.x = level.mspawn[0]; me.z = level.mspawn[1]; me.yaw = Math.random()*6; abCD.dash = Math.max(abCD.dash, 6); mode = 'play'; }
@@ -8135,7 +8137,7 @@ diffLabel();
 
 // ---- v0.46 menu: PLAY → level select, JOIN → code, HOW TO PLAY; the CRT shows the live scene; a tick on hover
 const LV_INFO = [['LEVEL 0','THE OFFICE','Endless yellow rooms, something round every corner: restore the power and find the exit.'],
-  ['LEVEL 1','THE PARKING GARAGE','A pitch-black garage and three Lurkers. Every generator you start calls them to you.'],
+  ['LEVEL 1','THE PARKING GARAGE','A pitch-black garage and four Lurkers that run at you. Every generator you start calls them to you.'],
   ['LEVEL 37','THE POOLROOMS','Warm empty pools and tiled halls, and something waiting in the deep water.'],
   ['LEVEL 188','THE HOTEL','A silent hotel round a courtyard, one keycard, and elevators something else rides too.'],
   ['LEVEL 852','THE MALL','A dead three-floor mall where the music never stops and the mannequins never stay put.'],
