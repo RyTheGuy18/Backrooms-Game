@@ -408,7 +408,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.63.0</div>
+<div class="osd" id="ver">v0.63.1</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -2959,11 +2959,14 @@ function bsMat(map, nor, color = 0xffffff, ws = [2, 2, 2]){
   return m;
 }
 // a thin post with the plank grain running up it (box uvs: along the height = texture x)
+// v0.63.1 (Ryan: beams out of his wood): textures/bs-beam.jpg = one of the wooden beams cut out of his wood_inlaid_concrete_wall texture
+// (512×64, made seamless, ×2 brighter); one repeat = BS_BEAM_L m along the grain, the whole strip across each face
+const BS_BEAM_L = 1.66, bsBeamPh = bsTex('bs-beam');
 function bsPostGeo(w, h){ const g = new THREE.BoxGeometry(w, h, w), uv = g.attributes.uv;
-  for (let f=0; f<6; f++) for (let k=0;k<4;k++){ const i = f*4+k, u = uv.getX(i), v = uv.getY(i); if (f === 2 || f === 3) uv.setXY(i, u*w/2, v*w/2); else uv.setXY(i, v*h/2, u*w/2); }
+  for (let f=0; f<6; f++) for (let k=0;k<4;k++){ const i = f*4+k, u = uv.getX(i), v = uv.getY(i); if (f === 2 || f === 3) uv.setXY(i, u*w/BS_BEAM_L, v); else uv.setXY(i, v*h/BS_BEAM_L, u); }
   return g; }
 function bsBeamGeo(len, w, h){ const g = new THREE.BoxGeometry(len, h, w), uv = g.attributes.uv;
-  for (let f=0; f<6; f++) for (let k=0;k<4;k++){ const i = f*4+k; uv.setXY(i, uv.getX(i)*(f < 2 ? w/2 : len/2), uv.getY(i)*(f < 2 ? h/2 : (f < 4 ? w/2 : h/2))); }
+  for (let f=0; f<6; f++) for (let k=0;k<4;k++){ const i = f*4+k, u = uv.getX(i), v = uv.getY(i); uv.setXY(i, f < 2 ? v*h/BS_BEAM_L : u*len/BS_BEAM_L, f < 2 ? u : v); }
   return g; }
 let bsSeen = { sr:0, open:0, cold:-1, cr:-1 };
 
@@ -2979,7 +2982,7 @@ function buildLevelBS(seed){
   const roomOf = (i,j) => inG(i,j) ? B.room[K(i,j)] : -2;
   // ---- materials
   const wallM = bsMat(bsWallPh, bsWallNor, 0xffffff), outM = bsMat(bsConcPh, bsConcNor, 0xc8c0b4), floorM = bsMat(bsPlankPh, bsPlankNor, 0xd8ccc0), ceilM = bsMat(bsConcPh, bsConcNor, 0x9a948a);
-  const woodM = lam(0xffffff, { map:bsPlankPh }), ironM = lam(0x2e2a26), rustM = lam(0x5a3a26), coalM = lam(0x141210), darkM = lam(0x0e0c0a), tinM = lam(0x8a8a84), jarM = lam(0x7a8a5a, { transparent:true, opacity:0.75 });
+  const woodM = lam(0xffffff, { map:bsPlankPh }), beamM = lam(0xffffff, { map:bsBeamPh }), ironM = lam(0x2e2a26), rustM = lam(0x5a3a26), coalM = lam(0x141210), darkM = lam(0x0e0c0a), tinM = lam(0x8a8a84), jarM = lam(0x7a8a5a, { transparent:true, opacity:0.75 });
   // ---- walls: the outer wall all round, then rooms, then a few partitions
   walls = new Uint8Array(E); for (let e=0;e<E;e++) if (isBoundary(e)) walls[e] = 1;
   const KINDS = ['furnace', 'coal', 'coal', 'storage', 'storage', 'laundry', 'workshop', 'pantry'];
@@ -3130,14 +3133,14 @@ function buildLevelBS(seed){
       if (b%2 === 0){ const j = b/2; for (const i of new Set(near.map(c=>c[0]))) if (walls[hIdx(i, j)]) bad = true; }
       if (bad || !free(x, z, 0.55) || nearDoor(x, z, 1.4) || B.crates.some(q=>Math.hypot(q.x-x, q.z-z) < 1) || L.bt.some(q=>Math.hypot(q[0]-x, q[1]-z) < 0.6) || Math.hypot(x - L.exitPos[0], z - L.exitPos[1]) < 2) continue;
       posts.push([x, z]); }
-    const pm = new THREE.InstancedMesh(bsPostGeo(PW, BS_H), woodM, posts.length); posts.forEach(([x, z], k)=>{ tmpM.makeTranslation(x, BS_H/2, z); pm.setMatrixAt(k, tmpM); C(x, z, 0.11); }); pm.frustumCulled = false; g.add(pm); B.posts = posts;
+    const pm = new THREE.InstancedMesh(bsPostGeo(PW, BS_H), beamM, posts.length); posts.forEach(([x, z], k)=>{ tmpM.makeTranslation(x, BS_H/2, z); pm.setMatrixAt(k, tmpM); C(x, z, 0.11); }); pm.frustumCulled = false; g.add(pm); B.posts = posts;
     // joists along x every 2 m, a cap block on each post
     const jg = []; for (let b=1; b<N*2; b++){ const q = bsBeamGeo(N*CS, 0.14, 0.18); q.translate(N*CS/2, BS_H - 0.09, b*2); jg.push(q); }
-    g.add(new THREE.Mesh(mergeGeometries(jg), woodM));
-    const cm = new THREE.InstancedMesh(bsPostGeo(0.24, 0.1), woodM, posts.length); posts.forEach(([x, z], k)=>{ tmpM.makeTranslation(x, BS_H - 0.23, z); cm.setMatrixAt(k, tmpM); }); cm.frustumCulled = false; g.add(cm); }
+    g.add(new THREE.Mesh(mergeGeometries(jg), beamM));
+    const cm = new THREE.InstancedMesh(bsPostGeo(0.24, 0.1), beamM, posts.length); posts.forEach(([x, z], k)=>{ tmpM.makeTranslation(x, BS_H - 0.23, z); cm.setMatrixAt(k, tmpM); }); cm.frustumCulled = false; g.add(cm); }
   // ---- lights: sparse fixtures (bare basement), every room lit
   for (let i=0;i<N;i++) for (let j=0;j<N;j++){ const r = roomOf(i,j), inR = r >= 0; if (!inR && rng() > 0.42) continue; if (inR && B.rooms[r].cells.length > 2 && rng() < 0.4 && B.rooms[r].lit) continue; if (inR) B.rooms[r].lit = true;
-    const p = { idx:L.panels.length, i, j, t:0, x:cc(i), z:cc(j), y:BS_H - 0.05, sx:1.1, sy:0.06, sz:0.55, faulty: rng() < 0.22, dead: rng() < 0.06, red:false, ph:rng()*10, b:1, gk:-1, col:0xffdcae, dist:8 };
+    const p = { idx:L.panels.length, i, j, t:0, x:cc(i), z:cc(j) + 1, y:BS_H - 0.05, sx:1.1, sy:0.06, sz:0.55, faulty: rng() < 0.22, dead: rng() < 0.06, red:false, ph:rng()*10, b:1, gk:-1, col:0xffdcae, dist:8 };   // z + 1: between two joists (they run along x every 2 m)
     if (B.furn && roomOf(i,j) === roomOf(cellOf(B.furn.x), cellOf(B.furn.z))){ p.dead = false; p.faulty = false; }
     L.panelAt[K(i,j)] = p.idx; L.panels.push(p); }
   L.panelMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1), new THREE.MeshBasicMaterial({ color:0xffffff }), Math.max(1, L.panels.length));
