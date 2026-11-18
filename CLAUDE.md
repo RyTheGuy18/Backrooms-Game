@@ -6,7 +6,7 @@ First-person co-op Backrooms horror game for 1–4 players, played in the browse
 
 - Live: https://rytheguy18.github.io/Haunted-Pines/ (GitHub Pages, `main` branch, repo root)
 - Owner: Ryan (GitHub `rytheguy18` / `RyTheGuy18`). Plays it with friends and younger brothers, mostly on phones.
-- Current version: **v0.62.6** (shown bottom-right of the menu, `#ver`)
+- Current version: **v0.62.7** (shown bottom-right of the menu, `#ver`)
 
 ## Files
 
@@ -358,3 +358,5 @@ Controls (desktop): WASD, Shift sprint, C crouch, Left click / F flashlight, E h
 - `onDoor(kind, fn)` runs `fn(src)` when the model is loaded (now or later; queue cleared per build); `doorClone(src, w, h)` = a clone fitted to w × h. The old placeholder boxes stay until the model arrives, then they're hidden.
 - Uses: **Level 0/1 exit** = prison door 1.22 × 2.5 (`L.exitLeaf`; `updateExitDoor` swings it to 1.7 rad when `G.open`; `L.door` is now a plane in the doorway behind it, near-black → `doorMatOpen` white; EXIT sign at 2.64); **doors to nowhere** (Level 0) = old door 1.2 × 2.4 closed; **garage rooms** = old door in the doorway opening into the room (`q.leaf.rotation.y = |q.ang|` in `updateGarageDoors`); **lab booth** = just the old door's leaf in the leaf group; **hotel**: every room door = wooden door (two InstancedMeshes: frames + leaves), the ROOM xyz exit = wooden door whose leaf follows `L.exitHinge` mirrored (`L.exitLeafH`), the room plate rides on it.
 - **Off-the-hook phone removed** (the handset dangling on its cord by an EXIT sign + its dial tone): `L.offhook` stays an empty array.
+
+**v0.62.7 (Ryan): Level 0 ceiling tiles = his OfficeCeiling001 (ambientCG, 4K PNG set).** `textures/office-ceil.jpg` = colour × AO at 512 px (6×6 tiles = one 4 m cell, so 0.667 m tiles on the same grid the lamps snap to), the grout darkened ×0.55 so the grid reads in the dark; `office-ceil-nor.jpg` = the GL normal map at 512 px (`offCeilNor`, NoColorSpace). Office `cellPlane(1)` tinted 0xd8d0aa (warm Backrooms yellow), the pitfalls tinted 0xc8b468 (their old darker yellow), the lab booth ceiling too (repeat w/4). `ceilTex`/`tileCeilTex` are unused on Level 0 now. Lab main ceiling unchanged (`labCeilTex`, 1.333 m tiles).

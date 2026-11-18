@@ -390,7 +390,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.62.6</div>
+<div class="osd" id="ver">v0.62.7</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -723,6 +723,8 @@ const carpetTex = canvasTex(64,64,(g,w,h)=>{
   for (let i=0;i<900;i++){ const v=texR(); g.fillStyle=v<.5?'rgba(110,95,40,.5)':'rgba(160,140,70,.35)'; g.fillRect(texR()*w|0,texR()*h|0,1,1); }
   for (let i=0;i<3;i++){ const x=texR()*w,y=texR()*h,r=5+texR()*10; const gr=g.createRadialGradient(x,y,0,x,y,r); gr.addColorStop(0,'rgba(60,50,20,.3)'); gr.addColorStop(1,'rgba(60,50,20,0)'); g.fillStyle=gr; g.fillRect(x-r,y-r,r*2,r*2); }
 });
+/* v0.62.7 (Ryan): Level 0's ceiling tiles = his OfficeCeiling001 (ambientCG): colour × AO baked at 512 px (one 4 m cell = 6×6 tiles), GL normal map 512 px. */
+const offCeilPh = fileTex('textures/office-ceil.jpg'), offCeilNor = fileTex('textures/office-ceil-nor.jpg'); offCeilNor.colorSpace = THREE.NoColorSpace;
 const ceilTex = canvasTex(64,64,(g,w,h)=>{
   g.fillStyle='#cdc6a2'; g.fillRect(0,0,w,h);
   for (let i=0;i<500;i++){ g.fillStyle='rgba(120,112,80,.35)'; g.fillRect(texR()*w|0,texR()*h|0,1,1); }
@@ -3411,10 +3413,10 @@ function buildLevelRaw(seed, kind=0){
   const instCells = (geo, mat, cells, y) => { const m = new THREE.InstancedMesh(geo, mat, cells.length); cells.forEach(([i,j],k)=>{ tmpM.makeTranslation(cc(i), y, cc(j)); m.setMatrixAt(k, tmpM); }); m.frustumCulled=false; g.add(m); return m; };
   if (kind !== 4){
   instCells(cellPlane(2,false), lam(0xffffff,{map:rugTex}), zc[0], 0);
-  instCells(cellPlane(3,true), lam(0xffffff,{map:ceilTex}), zc[0], WH);   // v0.62.5: 6 tiles of 0.667 m per cell (was 6.67 → the grid broke at every cell edge)
+  instCells(cellPlane(1,true), lam(0xd8d0aa,{ map:offCeilPh, normalMap:offCeilNor }), zc[0], WH);   // v0.62.7: Ryan's OfficeCeiling001 (6×6 tiles of 0.667 m per cell, the same grid the lamps snap to), warm Backrooms tint   // v0.62.5: 6 tiles of 0.667 m per cell (was 6.67 → the grid broke at every cell edge)
   instCells(cellPlane(1,false), concFloorM, zc[1], 0);
   instCells(cellPlane(1,true), concCeilM, zc[1], WH);
-  instCells(cellPlane(6,true), lam(0xffffff,{map:tileCeilTex}), zc[2], ZH[2]);
+  instCells(cellPlane(1,true), lam(0xc8b468,{ map:offCeilPh, normalMap:offCeilNor }), zc[2], ZH[2]);   // the pitfalls: same tiles, their old darker yellow
   }
   setPoolVisible(false);
   // walls (one instanced mesh per zone, every edge slot in each; hidden ones are scaled to zero)
@@ -4962,7 +4964,7 @@ function buildLab(L, g, rng, dist0, far){
     paper(DZ0-I, BH, xi, BH/2, (I+DZ0)/2, -Math.PI/2); paper(zi-DZ1, BH, xi, BH/2, (DZ1+zi)/2, -Math.PI/2); paper(DZ1-DZ0, BH-DH, xi, (DH+BH)/2, (DZ0+DZ1)/2, -Math.PI/2);
     paper(xi-I, BH, (I+xi)/2, BH/2, I+0.03, 0); paper(zi-I, BH, I+0.03, BH/2, (I+zi)/2, Math.PI/2);
     const cp = labPlane(xi-I, zi-I, (xi-I)/2, (zi-I)/2, dec(lam(0xffffff, { map:rugTex }))); cp.rotation.x = -Math.PI/2; cp.position.set((I+xi)/2, 0.01, (I+zi)/2); g.add(cp);
-    const cl = labPlane(xi-I, zi-I, (xi-I)/1.2, (zi-I)/1.2, lam(0xffffff, { map:ceilTex })); cl.rotation.x = Math.PI/2; cl.position.set((I+xi)/2, BH-0.005, (I+zi)/2); g.add(cl);
+    const cl = labPlane(xi-I, zi-I, (xi-I)/4, (zi-I)/4, lam(0xd8d0aa, { map:offCeilPh, normalMap:offCeilNor })); cl.rotation.x = Math.PI/2; cl.position.set((I+xi)/2, BH-0.005, (I+zi)/2); g.add(cl);
     // the window: glass, a mullion, a sill
     const glass = new THREE.Mesh(new THREE.PlaneGeometry(WX1-WX0, WY1-WY0), new THREE.MeshBasicMaterial({ color:0xa8c4bc, transparent:true, opacity:0.1, depthWrite:false, side:THREE.DoubleSide })); glass.position.set((WX0+WX1)/2, (WY0+WY1)/2, Z1); g.add(glass);
     bx(g, 0.06, WY1-WY0, 0.1, (WX0+WX1)/2, (WY0+WY1)/2, Z1, dark); bx(g, WX1-WX0+0.1, 0.05, 0.3, (WX0+WX1)/2, WY0, Z1, lam(0x8a856c));
