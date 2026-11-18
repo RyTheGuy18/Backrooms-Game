@@ -139,3 +139,5 @@ v0.63.0: THE BASEMENT - new last level: keep the furnace fed or the lights die, 
 v0.63.1: basement beams and posts are made of the wood from the wall texture; lights sit between the beams
 v0.63.2: The Basement is much smaller (11×11), far fewer posts, beams made from the dark wooden planks texture
 v0.64.0: Basement beams rebuilt like a mine-shaft frame (posts, header beams, diagonal braces, some leaning posts), based on "Wooden Support Beam" by Cianon
+v0.64.1: Lights that are off are actually dark now (no more pale panels in the dark garage), darker nights in the Poolrooms
+v0.64.2: Fixed doors clipping into the walls on Level 0 and Level 1 (the doors to nowhere and the EXIT door)
