@@ -130,3 +130,6 @@ v0.62.0: game modes (Normal = computer hunts, Hunter = a player hunts on Level 0
 v0.62.1: the garage has 1-2 lit rooms along its outer walls (door, windows, shelves, a phone) where the Lurkers can't get you, but one may wait outside if it saw you go in
 v0.62.2: three Lurkers in the garage, and the garage room doors open and shut
 v0.62.3: the garage now has four Lurkers that run straight at you without stopping; you have to keep your light on one a little longer to drive it off
+v0.62.4: garage + parking corner use the worn concrete photo texture (stripes/P2 kept, no stretching on pillars/sills); new fluorescent lamp model for all ceiling lights
+v0.62.5: ceiling lights fill whole ceiling tiles, line up with the tile grid and sit up in the ceiling
+v0.62.6: real door models (prison door exit on Levels 0/1, old door for the other Level 0/1 doors, wooden door for every hotel door); removed the off-the-hook phone
