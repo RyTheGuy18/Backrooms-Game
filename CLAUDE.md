@@ -6,7 +6,7 @@ First-person co-op Backrooms horror game for 1–4 players, played in the browse
 
 - Live: https://rytheguy18.github.io/Haunted-Pines/ (GitHub Pages, `main` branch, repo root)
 - Owner: Ryan (GitHub `rytheguy18` / `RyTheGuy18`). Plays it with friends and younger brothers, mostly on phones.
-- Current version: **v0.63.2** (shown bottom-right of the menu, `#ver`)
+- Current version: **v0.64.0** (shown bottom-right of the menu, `#ver`)
 
 ## Files
 
@@ -374,3 +374,5 @@ Controls (desktop): WASD, Shift sprint, C crouch, Left click / F flashlight, E h
 **v0.63.1 (Ryan: make the beams out of his wood):** `textures/bs-beam.jpg` = one of the dark wooden beams cut out of his wood_inlaid_concrete_wall diffuse (4k rows 830–1220, x 0–3400 with a 300 px crossfade to make it seamless, ×2 brighter, 512×64). `beamM` on the joists, the posts and their caps; `bsBeamGeo`/`bsPostGeo` map one repeat per `BS_BEAM_L` 1.66 m along the grain and the whole strip across each face (grain runs up the posts). Basement lights moved to `cc(j) + 1` so they sit between joists (they hung through them).
 
 **v0.63.2 (Ryan: posts sparser, map much smaller, beams from the dark planks texture):** `BS_N` 18 → 11 (44 m), rooms = furnace, coal, storage, laundry, workshop (spawn-corner exclusion 3×3), 6 partitions, `BS_CRATES` 7 (6 m apart), 4 wardrobes (9 m), 6 batteries (7 m). Posts: corner 42%, mid-edge 10%, cell centres never (~22–50 posts, was ~400). `textures/bs-beam.jpg` = one clean plank cut from `dark_wooden_planks_diff_4k` (rows between the seams at 164/387 of 1024, full width = seamless, ×1.6 brighter, 512×64), `BS_BEAM_L` 2 m (joists, posts, caps). Tested 12 seeds: every crate, pile, feed point, exit and wardrobe reachable.
+
+**v0.64.0 (Ryan: his "Wooden Support Beam" glb by Cianon (Sketchfab, CC BY 4.0) — use it or build it yourself with the dark plank texture):** built in code after it (the glb is NOT in the repo; it's a 274-vert mine-shaft frame: two posts, a header beam, two 45° knee braces, one post leaning). Every basement post is now 0.2 m (collider 0.13), runs up to the header beam (joists 0.2 × 0.22 along x every 2 m), and has two knee braces (0.11 m, 45°, 0.6 m out along the beam each side, merged into the joist mesh); 30% of posts lean 0.02–0.05 rad about their top. Caps removed. Credit line "support beams built after …" in HOW TO PLAY · CREDITS. 12 seeds still fully reachable.
