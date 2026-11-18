@@ -408,7 +408,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.63.1</div>
+<div class="osd" id="ver">v0.63.2</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -2926,7 +2926,7 @@ function hostPipe2(dt, ps){
    Stand still for CR_STILL[df] s (half that while the furnace is out) and it locks on, slides under you (state 1), and the floor starts to
    crack (state 2, CR_WARN s: MOVE) — then it bursts up there (state 3): anyone still within CR_REACH of that spot is caught ('cr' → G.crk).
    Wardrobes keep you safe. Placeholder model (makeCreaker): Ryan may send a real one. No Occupant here (noOcc). */
-const BS_NEAR_COAL = 4, BS_N = 18, BS_H = 2.5, BS_CRATES = 10, BS_SEARCH_T = 2.4, BS_FEED_T = 1.4, BS_FEED = 34, BS_DOORW = 1.3;
+const BS_NEAR_COAL = 4, BS_N = 11, BS_H = 2.5, BS_CRATES = 7, BS_SEARCH_T = 2.4, BS_FEED_T = 1.4, BS_FEED = 34, BS_DOORW = 1.3;
 const BS_BURN = [150, 120, 100, 85];   // seconds from a full furnace to cold, by difficulty
 const CR_STILL = [7, 5.5, 4.5, 3.5], CR_ROAM = [2.0, 2.5, 3.0, 3.4], CR_HUNT = [3.0, 3.6, 4.2, 4.8], CR_WARN = [1.4, 1.15, 0.95, 0.8], CR_HEAR_RUN = 26, CR_HEAR_WALK = 9, CR_REACH = 0.95;
 const bsConf = () => level && level.bs;
@@ -2959,9 +2959,10 @@ function bsMat(map, nor, color = 0xffffff, ws = [2, 2, 2]){
   return m;
 }
 // a thin post with the plank grain running up it (box uvs: along the height = texture x)
+// v0.63.2: bs-beam.jpg is now one plank cut from his dark_wooden_planks texture (2 m per repeat); map 11×11 cells, sparse posts.
 // v0.63.1 (Ryan: beams out of his wood): textures/bs-beam.jpg = one of the wooden beams cut out of his wood_inlaid_concrete_wall texture
 // (512×64, made seamless, ×2 brighter); one repeat = BS_BEAM_L m along the grain, the whole strip across each face
-const BS_BEAM_L = 1.66, bsBeamPh = bsTex('bs-beam');
+const BS_BEAM_L = 2, bsBeamPh = bsTex('bs-beam');
 function bsPostGeo(w, h){ const g = new THREE.BoxGeometry(w, h, w), uv = g.attributes.uv;
   for (let f=0; f<6; f++) for (let k=0;k<4;k++){ const i = f*4+k, u = uv.getX(i), v = uv.getY(i); if (f === 2 || f === 3) uv.setXY(i, u*w/BS_BEAM_L, v); else uv.setXY(i, v*h/BS_BEAM_L, u); }
   return g; }
@@ -2985,13 +2986,13 @@ function buildLevelBS(seed){
   const woodM = lam(0xffffff, { map:bsPlankPh }), beamM = lam(0xffffff, { map:bsBeamPh }), ironM = lam(0x2e2a26), rustM = lam(0x5a3a26), coalM = lam(0x141210), darkM = lam(0x0e0c0a), tinM = lam(0x8a8a84), jarM = lam(0x7a8a5a, { transparent:true, opacity:0.75 });
   // ---- walls: the outer wall all round, then rooms, then a few partitions
   walls = new Uint8Array(E); for (let e=0;e<E;e++) if (isBoundary(e)) walls[e] = 1;
-  const KINDS = ['furnace', 'coal', 'coal', 'storage', 'storage', 'laundry', 'workshop', 'pantry'];
+  const KINDS = ['furnace', 'coal', 'storage', 'laundry', 'workshop'];
   for (const kind of KINDS){
     for (let t=0; t<400; t++){
       const w = kind === 'coal' ? 2 : 2 + Math.floor(rng()*2), h = kind === 'coal' ? 2 : 2 + Math.floor(rng()*2);
       let i0, j0; if (kind === 'furnace'){ i0 = Math.floor(N/2) - 2 + Math.floor(rng()*3); j0 = Math.floor(N/2) - 2 + Math.floor(rng()*3); } else { i0 = Math.floor(rng()*(N - w)); j0 = Math.floor(rng()*(N - h)); }
       if (i0 < 0 || j0 < 0 || i0 + w > N || j0 + h > N) continue;
-      if (i0 < 4 && j0 < 4) continue;   // keep the spawn corner open
+      if (i0 < 3 && j0 < 3) continue;   // keep the spawn corner open
       let ok = true; for (let i=i0-1;i<=i0+w && ok;i++) for (let j=j0-1;j<=j0+h && ok;j++) if (inG(i,j) && B.room[K(i,j)] >= 0) ok = false;
       if (!ok) continue;
       const r = { id:B.rooms.length, kind, i0, j0, w, h, cells:[], doors:[] }; B.rooms.push(r);
@@ -3001,7 +3002,7 @@ function buildLevelBS(seed){
       const nd = w*h >= 6 ? 2 : 1, ds = shuffle188(per, rng); for (let k=0; k<nd && k<ds.length; k++){ if (k && r.doors.some(d=>Math.hypot(edgeMid(d.e)[0] - edgeMid(ds[k].e)[0], edgeMid(d.e)[1] - edgeMid(ds[k].e)[1]) < 6)) continue; r.doors.push(ds[k]); }
       break; } }
   // partitions in the open: short wall runs, kept only if everything stays connected
-  for (let k=0; k<16; k++){ const vert = rng() < 0.5, len = 2 + Math.floor(rng()*3), i0 = 1 + Math.floor(rng()*(N-2)), j0 = 1 + Math.floor(rng()*(N-2)), es = [];
+  for (let k=0; k<6; k++){ const vert = rng() < 0.5, len = 2 + Math.floor(rng()*3), i0 = 1 + Math.floor(rng()*(N-2)), j0 = 1 + Math.floor(rng()*(N-2)), es = [];
     for (let q=0;q<len;q++){ const i = vert ? i0 : i0 + q, j = vert ? j0 + q : j0; if (!inG(i,j) || i < 3 && j < 3) { es.length = 0; break; } const e = vert ? vIdx(i, j) : hIdx(i, j); const [ca, cb] = edgeCells(e); if (!inG(ca[0],ca[1]) || !inG(cb[0],cb[1]) || roomOf(ca[0],ca[1]) >= 0 || roomOf(cb[0],cb[1]) >= 0 || walls[e]){ es.length = 0; break; } es.push(e); }
     if (!es.length) continue; for (const e of es) walls[e] = 1; for (const r of B.rooms) for (const d of r.doors) walls[d.e] = 0;
     if (!connected()){ for (const e of es) walls[e] = 0; } }
@@ -3103,18 +3104,18 @@ function buildLevelBS(seed){
   // ---- wardrobes (hide spots), crates, batteries
   const free = (x, z, m) => !(L.slabs.some(q=>x > q[0]-m && x < q[1]+m && z > q[2]-m && z < q[3]+m) || L.circles.some(c=>Math.hypot(c.x-x, c.z-z) < c.r + m));
   { const cand = shuffle188(spots.filter(s=>!s.used && !nearDoor(s.x, s.z, 1.8) && Math.hypot(s.x - L.spawn[0], s.z - L.spawn[1]) > 6), rng);
-    for (const s of cand){ if (L.lockers.length >= 6) break; if (L.lockers.some(q=>Math.hypot(q.x-s.x, q.z-s.z) < 14)) continue; const x = s.x + s.nx*0.32, z = s.z + s.nz*0.32; if (!free(x + s.nx*0.75, z + s.nz*0.75, 0.5) || !free(x, z, 0.1)) continue; s.used = true; const lk = grp(x, z, s.ry);
+    for (const s of cand){ if (L.lockers.length >= 4) break; if (L.lockers.some(q=>Math.hypot(q.x-s.x, q.z-s.z) < 9)) continue; const x = s.x + s.nx*0.32, z = s.z + s.nz*0.32; if (!free(x + s.nx*0.75, z + s.nz*0.75, 0.5) || !free(x, z, 0.1)) continue; s.used = true; const lk = grp(x, z, s.ry);
       bx(lk, 0.95, 2.05, 0.58, 0, 1.025, 0, lam(0x5a3a22)); bx(lk, 0.02, 1.85, 0.01, 0, 1.0, 0.295, darkM); for (const sx of [-0.08, 0.08]) bx(lk, 0.03, 0.12, 0.04, sx, 1.05, 0.31, tinM); bx(lk, 1.0, 0.08, 0.62, 0, 2.06, 0, lam(0x3a2414));
       L.lockers.push({ x, z, ry:s.ry, fx: x + s.nx*0.75, fz: z + s.nz*0.75 }); slab(x - (s.nx ? 0.3 : 0.5), x + (s.nx ? 0.3 : 0.5), z - (s.nz ? 0.3 : 0.5), z + (s.nz ? 0.3 : 0.5)); } }
-  { const cells = shuffle188([...Array(N*N).keys()].filter(k=>D0[k] >= 3 && !(B.furn && Math.hypot(cc(Math.floor(k/N)) - B.furn.x, cc(k%N) - B.furn.z) < 4)), rng);
+  { const cells = shuffle188([...Array(N*N).keys()].filter(k=>D0[k] >= 2 && !(B.furn && Math.hypot(cc(Math.floor(k/N)) - B.furn.x, cc(k%N) - B.furn.z) < 4)), rng);
     for (const k of cells){ if (B.crates.length >= BS_CRATES) break; const i = Math.floor(k/N), j = k%N, x = cc(i) + (rng()-0.5)*2.2, z = cc(j) + (rng()-0.5)*2.2;
-      if (nearDoor(x, z, 1.8) || !free(x, z, 0.7) || B.crates.some(q=>Math.hypot(q.x-x, q.z-z) < 9) || Math.hypot(x - L.exitPos[0], z - L.exitPos[1]) < 6) continue;
+      if (nearDoor(x, z, 1.8) || !free(x, z, 0.7) || B.crates.some(q=>Math.hypot(q.x-x, q.z-z) < 6) || Math.hypot(x - L.exitPos[0], z - L.exitPos[1]) < 6) continue;
       const c = grp(x, z, rng()*6.28), cm = lam(0x7a5a38); bx(c, 0.8, 0.5, 0.55, 0, 0.25, 0, cm); for (const sx of [-0.36, 0.36]) bx(c, 0.06, 0.52, 0.57, sx, 0.26, 0, lam(0x5a4028)); bx(c, 0.82, 0.04, 0.57, 0, 0.12, 0, lam(0x5a4028));
       const lid = new THREE.Group(); lid.position.set(0, 0.5, -0.27); c.add(lid); bx(lid, 0.82, 0.05, 0.57, 0, 0.025, 0.275, cm);
       const junk = new THREE.Group(); junk.visible = false; c.add(junk); for (let q=0;q<4;q++){ const p = bx(junk, 0.12 + rng()*0.1, 0.03, 0.1 + rng()*0.08, (rng()-0.5)*0.9, 0.02, (rng()-0.5)*0.9 + 0.5, rng() < 0.5 ? lam(0xd8d0b8) : tinM); p.rotation.y = rng()*3; }
       C(x, z, 0.5); B.crates.push({ k:B.crates.length, x, z, g:c, lid, junk }); } }
-  { const pool = shuffle188([...Array(N*N).keys()].filter(k=>D0[k] >= 0), rng); for (const k of pool){ if (L.bt.length >= 11) break; const x = cc(Math.floor(k/N)) + (rng()-0.5)*2.4, z = cc(k%N) + (rng()-0.5)*2.4;
-      if (nearDoor(x, z, 1.3) || !free(x, z, 0.5) || L.bt.some(b=>Math.hypot(b[0]-x, b[1]-z) < 9)) continue; L.bt.push([x, z]); } }
+  { const pool = shuffle188([...Array(N*N).keys()].filter(k=>D0[k] >= 0), rng); for (const k of pool){ if (L.bt.length >= 6) break; const x = cc(Math.floor(k/N)) + (rng()-0.5)*2.4, z = cc(k%N) + (rng()-0.5)*2.4;
+      if (nearDoor(x, z, 1.3) || !free(x, z, 0.5) || L.bt.some(b=>Math.hypot(b[0]-x, b[1]-z) < 7)) continue; L.bt.push([x, z]); } }
   for (const p of L.bt){ const m = new THREE.Group(); const b = new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.08,0.3,8), lam(0xb8a640)); b.rotation.z = Math.PI/2; b.position.y = 0.08; m.add(b);
     const cp = new THREE.Mesh(new THREE.CylinderGeometry(0.081,0.081,0.1,8), lam(0x222222)); cp.rotation.z = Math.PI/2; cp.position.set(0.1,0.08,0); m.add(cp); m.position.set(p[0], 0, p[1]); m.rotation.y = rng()*6; g.add(m); L.btM.push(m); }
   // ---- the key (shown once found and dropped)
@@ -3124,7 +3125,7 @@ function buildLevelBS(seed){
   { const posts = [], PW = 0.16;
     const onWall = (x, z) => { for (let e=0;e<E;e++){} return false; };
     for (let a=1; a<N*2; a++) for (let b=1; b<N*2; b++){ const x = a*2, z = b*2, ci = Math.min(N-1, Math.floor(x/CS)), cj = Math.min(N-1, Math.floor(z/CS)), corner = a%2 === 0 && b%2 === 0, mid = (a + b)%2 === 1;
-      const p = corner ? 0.8 : mid ? 0.45 : 0.12; if (rng() > p) continue;
+      const p = corner ? 0.42 : mid ? 0.1 : 0; if (rng() > p) continue;
       if (Math.hypot(x - L.spawn[0], z - L.spawn[1]) < 3.5) continue;
       // which cells touch this point; none may be a room; no closed edge may pass through it
       let bad = false; const near = []; for (const di of [-0.01, 0.01]) for (const dj of [-0.01, 0.01]) near.push([Math.floor((x+di)/CS), Math.floor((z+dj)/CS)]);
