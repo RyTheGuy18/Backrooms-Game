@@ -135,3 +135,4 @@ v0.62.5: ceiling lights fill whole ceiling tiles, line up with the tile grid and
 v0.62.6: real door models (prison door exit on Levels 0/1, old door for the other Level 0/1 doors, wooden door for every hotel door); removed the off-the-hook phone
 v0.62.7: Level 0 ceiling tiles use the OfficeCeiling001 texture (speckled acoustic tiles, lined up with the lights)
 v0.62.8: smaller objective box and popup messages on phones
+v0.63.0: THE BASEMENT - new last level: keep the furnace fed or the lights die, search the crates for the cellar key, and don't stand still - something lives under the floorboards
