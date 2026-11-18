@@ -390,7 +390,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.61.1</div>
+<div class="osd" id="ver">v0.62.0</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -455,12 +455,12 @@
     <b>Find 3 fuses</b>, bring them to the breaker, then find the exit door.<br><br>
     <b>Hide</b> in lockers. It can't open them, but hold your breath when it's close.<br>
     <b>Blind it:</b> hold your flashlight on its face up close to stun it.<br>
-    <b>Escape Level 0</b> and everyone still alive drops into <b>Level 1</b>, a dark parking garage. Start all 5 generators (it takes a while and it's LOUD: the Occupant will come), then find the exit.<br>
+    <b>Escape Level 0</b> and everyone still alive drops into <b>Level 1</b>, a dark parking garage. No Occupant down there: <b>two Lurkers</b> own the dark. Start all 5 generators (it takes a while and it's LOUD: they come for whoever is cranking), keep your light ready, then find the exit. When the lights come on, they run.<br>
     <b>Escape the garage</b> and you wake up in <b>Level 37, the Poolrooms</b>. Turn all 3 drain valves to empty the great pool, then climb down to the drain at the bottom.<br>
     <b>Adrenaline</b> kicks in when it's close, so run. It stalks slowly, but once it sees you it runs (still slower than your sprint).<br>
     <b>Crouch in the dark</b> with your light off and it can barely see you.<br>
     <b>Trust nobody far away.</b> It can look like one of you. Watch for a hazmat suit with no flashlight and lights flickering around it, or hold your light on them.<br><br>
-    <i>The Occupant</i> hunts by sound: it hears running, talking and gasps, but can't see you through walls. It can kill the lights, move the walls, fake footsteps, disguise itself as a survivor, lunge forward with its arms out, and crawl through vents (you'll hear it climb out). It hears every fuse you place.<br>
+    <i>The Occupant</i> hunts by sound: it hears running (from far away, and it runs at you), talking and gasps, but can't see you through walls. It can kill the lights, fake footsteps, disguise itself as a survivor, lunge forward with its arms out, and crawl through vents (you'll hear it climb out). It hears every fuse you place.<br>
     When the computer hunts you, pick how smart it is: <b>EASY</b> barely listens, <b>IMPOSSIBLE</b> reads where you're going and cuts you off, but it still can't outrun you and your flashlight still works on it.<br><br>
     <span id="controls"></span>
   </div>
@@ -499,11 +499,11 @@
     <div class="lbl">IN THE ROOM</div>
     <div id="lplayers"></div>
     <button class="btn" id="bVoice2">VOICE CHAT: OFF</button>
-    <button class="btn monb" id="bMonVoice">OCCUPANT VOICE: OFF</button>
+    <button class="btn" id="bEx">MODE: NORMAL</button>
     <button class="btn monb" id="bMon">THE OCCUPANT: RANDOM</button>
+    <button class="btn monb" id="bMonVoice">OCCUPANT VOICE: OFF</button>
     <button class="btn monb" id="bDiff">COMPUTER: NORMAL</button>
     <button class="btn" id="bLv">START AT: LEVEL 0</button>
-    <button class="btn" id="bEx">MODE: NORMAL</button>
     <div id="monText"></div>
     <div class="picker"><button id="bSkin2L">◀</button><div class="pv" id="bSkin2"></div><button id="bSkin2R">▶</button></div>
   </div>
@@ -754,6 +754,14 @@ const exitLight = new THREE.PointLight(0xffffff, 0, 12, 1.2); scene.add(exitLigh
 /* ================= level ================= */
 let level = null;
 const wallMat = lam(0xffffff, { map: paperTex });
+/* v0.62 (Ryan: the wallpaper got crammed on thin pillars): a box whose side faces keep the wall's texture scale, so a 0.4 m face
+   shows 0.4 m of paper instead of the whole repeat. `ref` = metres of the full u range (a 4.2 m wall face = 0..1). */
+function boxUV(w, h, d, ref = CS+0.2){
+  const g = new THREE.BoxGeometry(w, h, d), uv = g.attributes.uv;
+  const fw = [d, d, w, w, w, w], fv = [1, 1, d/ref, d/ref, 1, 1];   // px nx py ny pz nz
+  for (let f=0;f<6;f++) for (let k=0;k<4;k++){ const q = f*4+k; uv.setXY(q, uv.getX(q)*fw[f]/ref, uv.getY(q)*fv[f]); }
+  uv.needsUpdate = true; return g;
+}
 const nbr4 = [[1,0],[-1,0],[0,1],[0,-1]];
 function bfsFrom(si,sj,blk){
   const d = new Int16Array(N*N).fill(-1); const q=[si*N+sj]; d[q[0]]=0;
@@ -835,7 +843,51 @@ const grateTex = canvasTex(64,64,(g,w,h)=>{
   g.fillStyle='#4a3a2e'; for (let k=0;k<w;k+=8){ g.fillRect(k,0,2,h); g.fillRect(0,k,w,2); }
 });
 function cellPlane(rep, up){ const geo=new THREE.PlaneGeometry(CS,CS); const uv=geo.attributes.uv; for (let k=0;k<uv.count;k++) uv.setXY(k, uv.getX(k)*rep, uv.getY(k)*rep); geo.rotateX(up ? Math.PI/2 : -Math.PI/2); return geo; }
+/* v0.62 (Ryan): the garage is no longer a perfect square full of random walls. Two corners and a notch are cut out of the outline
+   (an L / step shape), a few solid cores stand inside (stairwells, elevator banks, service rooms) and 2-3 long low walls run
+   across it, each with a gap: real corners to get round, and things to vanish behind when the lights come up. No random walls.
+   `solid` cells are outside the garage / inside a core: walled off, never reachable, nothing is placed there. */
+function garageWalls(rng){
+  const w = new Uint8Array(E), solid = new Uint8Array(N*N), kind = new Uint8Array(N*N);
+  const R = (a, b) => a + Math.floor(rng()*(b-a+1));
+  const nearSpawn = (i, j) => i <= 6 && j <= 6;
+  const fill = (i0, j0, i1, j1) => { for (let i=i0;i<=i1;i++) for (let j=j0;j<=j1;j++) if (inGrid(i,j)) solid[i*N+j] = 1; };
+  const clear = (i0, j0, i1, j1, pad) => { if (i0 < 0 || j0 < 0 || i1 >= N || j1 >= N) return false;
+    for (let i=i0-pad;i<=i1+pad;i++) for (let j=j0-pad;j<=j1+pad;j++){ if (!inGrid(i,j)) continue; if (solid[i*N+j] || nearSpawn(i,j)) return false; } return true; };
+  // 1. the outline: two of the three far corners cut away, and a notch in one side
+  const corners = [[1,0],[0,1],[1,1]]; for (let k=2;k>0;k--){ const r = Math.floor(rng()*(k+1)); [corners[k], corners[r]] = [corners[r], corners[k]]; }
+  for (const [ci, cj] of corners.slice(0, 2)){ const iw = R(6, 10), jh = R(5, 9); fill(ci ? N-iw : 0, cj ? N-jh : 0, ci ? N-1 : iw-1, cj ? N-1 : jh-1); }
+  for (let t=0;t<40;t++){ const side = R(0, 3), dep = R(3, 5), len = R(5, 8), p = R(9, N-9-len);
+    const box = side === 0 ? [0, p, dep-1, p+len-1] : side === 1 ? [N-dep, p, N-1, p+len-1] : side === 2 ? [p, 0, p+len-1, dep-1] : [p, N-dep, p+len-1, N-1];
+    if (clear(box[0], box[1], box[2], box[3], 0)){ fill(...box); break; } }
+  // 2. solid cores inside (stairwells, elevator banks, service rooms)
+  for (const [iw, jh] of [[2,2],[3,4],[2,3],[3,2],[2,4],[2,2]]) for (let t=0;t<200;t++){ const a = rng() < 0.5, W0 = a ? iw : jh, H0 = a ? jh : iw, i0 = R(2, N-2-W0), j0 = R(2, N-2-H0);
+    if (clear(i0, j0, i0+W0-1, j0+H0-1, 2)){ fill(i0, j0, i0+W0-1, j0+H0-1); break; } }
+  // 3. long low walls with a gap (ramp dividers)
+  const runs = [];
+  for (let r=0, t=0; r<3 && t<300; t++){ const vert = rng() < 0.5, len = R(5, 9), line = R(4, N-4), st = R(2, N-2-len), es = [];
+    let okR = true;
+    for (let q=0;q<len;q++){ const [i0, j0, i1, j1] = vert ? [line-1, st+q, line, st+q] : [st+q, line-1, st+q, line];
+      if (!inGrid(i0,j0) || !inGrid(i1,j1) || solid[i0*N+j0] || solid[i1*N+j1] || nearSpawn(i0,j0) || nearSpawn(i1,j1)) { okR = false; break; }
+      es.push(vert ? vIdx(line, st+q) : hIdx(st+q, line)); }
+    if (!okR || runs.some(o=>o.some(e=>es.includes(e)))) continue;
+    if (len >= 7) es.splice(R(2, len-3), 1);   // a gap to slip through
+    runs.push(es); r++; }
+  const build = () => { w.fill(0);
+    for (let e=0;e<E;e++){ if (isBoundary(e)){ w[e] = 1; continue; } const [a, b] = edgeCells(e); if (solid[a[0]*N+a[1]] !== solid[b[0]*N+b[1]]) w[e] = 1; }
+    for (const es of runs) for (const e of es) w[e] = 1; };
+  const reach = () => { const d = new Int16Array(N*N).fill(-1), q = [1*N+1]; d[q[0]] = 0;
+    for (let h=0; h<q.length; h++){ const c = q[h], i = Math.floor(c/N), j = c%N;
+      for (const [a,b] of nbr4){ const ni = i+a, nj = j+b; if (!inGrid(ni,nj) || d[ni*N+nj] >= 0 || solid[ni*N+nj] || w[edgeBetween(i,j,ni,nj)]) continue; d[ni*N+nj] = d[c]+1; q.push(ni*N+nj); } }
+    return d; };
+  build(); let d = reach();
+  while (runs.length && [...solid].some((v,k)=>!v && d[k] < 0)){ runs.pop(); build(); d = reach(); }   // never cut part of the garage off
+  for (let k=0;k<N*N;k++) if (!solid[k] && d[k] < 0) solid[k] = 1;
+  build();
+  return { w, rooms:[], halls:[], tight:[], kind, field:null, corrs:[], solid };
+}
 function genWalls(rng){
+  if (LK === 1) return garageWalls(rng);
   const w = new Uint8Array(E).fill(1);
   const vis = new Uint8Array(N*N), st=[[0,0]]; vis[0]=1;
   while (st.length){
@@ -929,7 +981,7 @@ const RING_NEAR = 10, RING_FAR = 22;   // phone ring: full volume (with normal f
 function wallsHex(){ let s=''; for (let e=0;e<E;e+=4) s += ((walls[e]|0) | (walls[e+1]|0)<<1 | (walls[e+2]|0)<<2 | (walls[e+3]|0)<<3).toString(16); return s; }
 function hexToWalls(s){ const w = new Uint8Array(E); for (let k=0;k<s.length;k++){ const v=parseInt(s[k],16); for (let b=0;b<4;b++) if (k*4+b<E) w[k*4+b]=(v>>b)&1; } return w; }
 
-const SCRAWLS = ["IT CAN'T SEE YOU IF YOU DON'T RUN","THE WALLS MOVE WHEN YOU LOOK AWAY","DON'T ANSWER THE PHONE","I'VE BEEN HERE 41 DAYS","THE HUM STOPS WHEN IT'S CLOSE","WHO TURNED OFF THE LIGHTS","FOLLOW THE BUZZING","NOT THE RED ROOM","IT WAS HUMAN ONCE","COUNT THE LIGHTS","YOU WERE HERE BEFORE","THE EXIT SIGNS LIE","IT WEARS A SMILE"];
+const SCRAWLS = ["IT CAN'T SEE YOU IF YOU DON'T RUN","DON'T RUN ROUND CORNERS","DON'T ANSWER THE PHONE","I'VE BEEN HERE 41 DAYS","THE HUM STOPS WHEN IT'S CLOSE","WHO TURNED OFF THE LIGHTS","FOLLOW THE BUZZING","NOT THE RED ROOM","IT WAS HUMAN ONCE","COUNT THE LIGHTS","YOU WERE HERE BEFORE","THE EXIT SIGNS LIE","IT WEARS A SMILE"];
 
 /* ================= Level 852: the Mall (v0.32: three floors; LK = 4, G.lv = 4) =================
    Ryan's v0.31 review: shorter, but with floors you can go up and down (escalators), taller ceilings, a harder goal
@@ -3168,6 +3220,8 @@ function buildLevel(seed, kind=0){
   const g = new THREE.Group(); scene.add(g);
   level = { seed, lk:kind, gens:[], slotLeds:[], fuses:[], fuseMeshes:[], breaker:null, group:g, rooms:gen.rooms, halls:gen.halls, kind:gen.kind, fixed:new Uint8Array(E), slabs:[], base:gen.w, shown:new Uint8Array(E).fill(2), circles:[], pillarSet:new Set(), sounds:[], used:new Set(), wet:[], drips:[], tvs:[], phones:[] };
   const L = level;
+  L.solid = gen.solid || null; L.pilH = kind === 1 ? 0.65 : 0.35;   // v0.62: garage cores/outside + thicker garage pillars
+  if (L.solid) for (let k=0;k<N*N;k++) if (L.solid[k]) L.used.add(k);
   // floors + ceilings per zone (pitfalls floor is built later around the holes)
   const zc = [[],[],[],[],[]];
   for (let i=0;i<N;i++) for (let j=0;j<N;j++){ if (kind === 0 && inLabCell(i,j)) continue; zc[zoneOf(i,j)].push([i,j]); }   // the lab builds its own floor/ceiling
@@ -3186,7 +3240,7 @@ function buildLevel(seed, kind=0){
     for (let e=0;e<E;e++) if (edgeCells(e).some(([i,j])=>inGrid(i,j) && inLabCell(i,j))) L.fixed[e] = 1; }
   const wmats = [wallMat, lam(0xffffff,{map:concWallTex}), lam(0xffffff,{map:pitWallTex}), kind === 2 ? tileMats().wall : wallMat, lam(0xffffff,{map:mallWallTex})];
   tmpM.makeScale(0.0001,0.0001,0.0001);
-  L.wallMeshes = [0,1,2,3,4].map(z=>{ const m = new THREE.InstancedMesh(new THREE.BoxGeometry(CS+0.2, ZH[z], 0.2), wmats[z], E); for (let e=0;e<E;e++) m.setMatrixAt(e, tmpM); m.frustumCulled=false; g.add(m); return m; });
+  L.wallMeshes = [0,1,2,3,4].map(z=>{ const m = new THREE.InstancedMesh(boxUV(CS+0.2, ZH[z], 0.2), wmats[z], E); for (let e=0;e<E;e++) m.setMatrixAt(e, tmpM); m.frustumCulled=false; g.add(m); return m; });
   applyWalls(true);
   // pillars: in every other office room, and in a grid across the parking garage
   // v0.40: the pillar field + long hallways never shift; + shaped pillars on the field's inner corners
@@ -3198,7 +3252,10 @@ function buildLevel(seed, kind=0){
   if (kind === 0) for (const c of gen.corrs || []) for (const [i,j] of c.path) for (const e of [vIdx(i,j), vIdx(i+1,j), hIdx(i,j), hIdx(i,j+1)]) L.fixed[e] = 1;
   const pil = [[],[]];
   ((kind === 2 ? gen.halls[1] : gen.halls[0]) ? [kind === 2 ? gen.halls[1] : gen.halls[0]] : []).forEach(r=>{ for (let i=r.i0+1;i<=r.i1;i+=2) for (let j=r.j0+1;j<=r.j1;j+=2) pil[0].push([i,j]); });
-  if (kind === 1){ for (let i=2;i<N;i+=2) for (let j=2;j<N;j+=2) if (!(i<=2 && j<=2)) pil[1].push([i,j]); }
+  if (kind === 1){ for (let i=2;i<N;i+=2) for (let j=2;j<N;j+=2){ if (i<=2 && j<=2) continue;
+      if ([[i-1,j-1],[i,j-1],[i-1,j],[i,j]].some(([a,b])=>L.solid[a*N+b])) continue;
+      if (walls[vIdx(i,j-1)] || walls[vIdx(i,j)] || walls[hIdx(i-1,j)] || walls[hIdx(i,j)]) continue;
+      pil[1].push([i,j]); } }
   else for (let i=N-ZS+1;i<N;i+=2) for (let j=1;j<ZS;j+=2) if (zoneOf(i-1,j-1)===1 && zoneOf(i,j)===1) pil[1].push([i,j]);
   // tight corridor blocks: walls never move here, and thick slabs squeeze the halls down to ~2m
   for (let i=0;i<N;i++) for (let j=0;j<N;j++){ if (gen.kind[i*N+j]!==2) continue;
@@ -3209,9 +3266,10 @@ function buildLevel(seed, kind=0){
     if (walls[hIdx(i,j)])   L.slabs.push([x0, x0+CS, z0, z0+T]);
     if (walls[hIdx(i,j+1)]) L.slabs.push([x0, x0+CS, z0+CS-T, z0+CS]); }
   const SH = kind === 2 ? ZH[3] : WH;
-  if (L.slabs.length){ const sm = new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1), kind === 2 ? tileMats().wall : wallMat, L.slabs.length);
-    L.slabs.forEach(([a0,a1,b0,b1],k)=>{ tmpQ.identity(); tmpV.set((a0+a1)/2, SH/2, (b0+b1)/2); tmpS.set(a1-a0, SH, b1-b0); tmpM.compose(tmpV,tmpQ,tmpS); sm.setMatrixAt(k,tmpM); }); g.add(sm); }
-  pil.forEach((list,z)=>{ if (!list.length) return; const pm = kind === 2 ? new THREE.InstancedMesh(new THREE.CylinderGeometry(0.42,0.42,ZH[3],14), tileMats().wall, list.length) : new THREE.InstancedMesh(new THREE.BoxGeometry(z?0.8:0.7, WH, z?0.8:0.7), z ? wmats[1] : wallMat, list.length);
+  if (L.slabs.length){   // v0.62: one merged mesh with real-size UVs (instanced unit boxes squeezed the paper)
+    const sm = new THREE.Mesh(mergeGeometries(L.slabs.map(([a0,a1,b0,b1])=>{ const q = boxUV(a1-a0, SH, b1-b0); q.translate((a0+a1)/2, SH/2, (b0+b1)/2); return q; })), kind === 2 ? tileMats().wall : wallMat);
+    sm.frustumCulled = false; g.add(sm); }
+  pil.forEach((list,z)=>{ if (!list.length) return; const pm = kind === 2 ? new THREE.InstancedMesh(new THREE.CylinderGeometry(0.42,0.42,ZH[3],14), tileMats().wall, list.length) : new THREE.InstancedMesh(z ? boxUV(L.pilH*2, WH, L.pilH*2) : boxUV(0.7, WH, 0.7), z ? wmats[1] : wallMat, list.length);
     list.forEach(([i,j],k)=>{ tmpM.makeTranslation(i*CS, (kind === 2 ? ZH[3] : WH)/2, j*CS); pm.setMatrixAt(k, tmpM); L.pillarSet.add(i+','+j); }); g.add(pm); });
   // lights: office panels, garage tubes, bare bulbs over the pits
   L.red = gen.rooms.slice(gen.halls.length).find(r=>zoneOf(r.i0,r.j0)===0) || gen.rooms[gen.rooms.length-1] || {i0:-1,j0:-1,i1:-1,j1:-1};
@@ -3229,6 +3287,7 @@ function buildLevel(seed, kind=0){
   L.panels = []; L.panelAt = new Int16Array(N*N).fill(-1);
   for (let i=0;i<N;i++) for (let j=0;j<N;j++){
     if (kind === 0 && inLabCell(i,j)) continue;
+    if (L.solid && L.solid[i*N+j]) continue;
     const t = zoneOf(i,j), chance = [0.8, 0.62, 1.0][t];
     if (kind !== 2 && (rng() < chance || inRed(i,j) || genAt(i,j) >= 0)){
       const p = { idx:L.panels.length, i, j, t, x:cc(i), z:cc(j), faulty: rng() < [0.14,0.25,0.12][t], dead: rng()<0.06, red: t===0 && inRed(i,j), ph: rng()*10, b:1 };
@@ -3269,7 +3328,7 @@ function buildLevel(seed, kind=0){
   const slots=[]; for (let s=0;s<4;s++) for (let k=0;k<N;k++) slots.push([s,k]);
   for (let k=slots.length-1;k>0;k--){ const r=Math.floor(rng()*(k+1)); [slots[k],slots[r]]=[slots[r],slots[k]]; }
   const usedSlots = new Set();
-  const takeSlot = (filter) => { for (const [s,k] of slots){ const key=s+','+k; if (usedSlots.has(key)) continue; const p=slotPos(s,k); if (kind === 0 && inLabCell(p.i,p.j)) continue; if (filter && !filter(p)) continue; usedSlots.add(key); usedSlots.add(s+','+(k-1)); usedSlots.add(s+','+(k+1)); L.used.add(p.i*N+p.j); return p; } return null; };
+  const takeSlot = (filter) => { for (const [s,k] of slots){ const key=s+','+k; if (usedSlots.has(key)) continue; const p=slotPos(s,k); if (kind === 0 && inLabCell(p.i,p.j)) continue; if (L.solid && L.solid[p.i*N+p.j]) continue; if (filter && !filter(p)) continue; usedSlots.add(key); usedSlots.add(s+','+(k-1)); usedSlots.add(s+','+(k+1)); L.used.add(p.i*N+p.j); return p; } return null; };
   // exit: far boundary slot
   const exitOk = p => { const k = p.i*N+p.j; if (gen.kind[k] === 2 || zoneOf(p.i,p.j) === 2 || dist0[k] < 0) return false;
     for (const [a,b] of nbr4){ const ni = p.i+a, nj = p.j+b; if (inGrid(ni,nj) && (gen.kind[ni*N+nj] === 2 || zoneOf(ni,nj) === 2)) return false; }
@@ -3399,7 +3458,7 @@ function buildLevel(seed, kind=0){
   const lockCells = new Set();
   for (const e of cand){
     if (L.lockers.length >= 7) break;
-    const [x,z] = edgeMid(e); const [a,b] = edgeCells(e); const side = rng()<0.5 ? a : b; const key = side[0]*N+side[1];
+    const [x,z] = edgeMid(e); const [a,b] = edgeCells(e); let side = rng()<0.5 ? a : b; if (L.solid && L.solid[side[0]*N+side[1]]) side = side === a ? b : a; const key = side[0]*N+side[1];
     if (lockCells.has(key) || (side[0]<=2 && side[1]<=2)) continue;
     lockCells.add(key); L.fixed[e] = 1;
     const nx = e < VN ? Math.sign(cc(side[0]) - x) : 0, nz = e < VN ? 0 : Math.sign(cc(side[1]) - z);
@@ -3427,12 +3486,13 @@ function buildLevel(seed, kind=0){
     const sg = new THREE.BufferGeometry(); sg.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); sg.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); sg.computeVertexNormals();
     const sf = new THREE.Mesh(sg, lam(0xffffff,{map:rugTex})); sf.frustumCulled=false; g.add(sf); }
   if (L.holes.length){
-    const shaft = new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1), lam(0xffffff,{map:shaftTex}), L.holes.length*4);
-    L.holes.forEach((h,k)=>{
-      const w=h.x1-h.x0, d=h.z1-h.z0, cx=(h.x0+h.x1)/2, cz=(h.z0+h.z1)/2, D=16;
-      [[h.x0,cz,0.04,d],[h.x1,cz,0.04,d],[cx,h.z0,w,0.04],[cx,h.z1,w,0.04]].forEach(([x,z,sx,sz],q)=>{ tmpQ.identity(); tmpV.set(x,-D/2,z); tmpS.set(sx,D,sz); tmpM.compose(tmpV,tmpQ,tmpS); shaft.setMatrixAt(k*4+q,tmpM); });
-    });
-    shaft.frustumCulled=false; g.add(shaft);
+    // v0.62 (Ryan): the pit walls are the walkway carpet (same 2 m tile), not a stretched shaft texture
+    const pos = [], uv = [], D = 16;
+    for (const h of L.holes) for (const [ax, az, bx, bz] of [[h.x0,h.z0,h.x0,h.z1],[h.x1,h.z0,h.x1,h.z1],[h.x0,h.z0,h.x1,h.z0],[h.x0,h.z1,h.x1,h.z1]]){
+      const ua = (ax+az)/2, ub = (bx+bz)/2;
+      for (const [x, y, z, u, v] of [[ax,0,az,ua,0],[bx,0,bz,ub,0],[bx,-D,bz,ub,D/2],[ax,0,az,ua,0],[bx,-D,bz,ub,D/2],[ax,-D,az,ua,D/2]]){ pos.push(x, y, z); uv.push(u, v); } }
+    const pg = new THREE.BufferGeometry(); pg.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); pg.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); pg.computeVertexNormals();
+    const shaft = new THREE.Mesh(pg, lam(0xb8b0a0, { map:rugTex, side:THREE.DoubleSide })); shaft.frustumCulled = false; g.add(shaft);
     const voidp = new THREE.Mesh(new THREE.PlaneGeometry(ZS*CS,ZS*CS), new THREE.MeshBasicMaterial({ color:0x000000 })); voidp.rotation.x=-Math.PI/2; voidp.position.set(ZS/2*CS,-16,(N-ZS/2)*CS); g.add(voidp);
   }
   buildExtras(L, g, rngFrom(seed ^ 0x5eed10), takeSlot, dist0, far);
@@ -5408,7 +5468,7 @@ function visPass188(){
   visSaved.length = 0;
   const V = LK === 4 || LK === 6 ? vis852 : vis188, add = o => { if (!o) return; visSaved.push(o, o.position.x, o.position.y, o.position.z); V(o.position.x, o.position.y, o.position.z, o.position); };
   add(camera); for (const s of spots){ add(s); add(s.target); } for (const l of PL) add(l); add(exitLight);
-  for (const r of remotes.values()) add(r.mesh); add(MON.g); for (const f of fakes.values()) add(f.g); if (LRK){ add(LRK.g); if (LRK.run) add(LRK.run.g); } if (LK === 4){ for (const m of MQV) if (m.g.visible) add(m.g); if (MQJ && MQJ.g.visible) add(MQJ.g); } if (LK === 6){ for (const m of MV52) if (m.g.visible) add(m.g); if (HMJ && HMJ.g.visible) add(HMJ.g); }
+  for (const r of remotes.values()) add(r.mesh); add(MON.g); for (const f of fakes.values()) add(f.g); for (const L of LRKS){ add(L.g); if (L.run) add(L.run.g); } if (LK === 4){ for (const m of MQV) if (m.g.visible) add(m.g); if (MQJ && MQJ.g.visible) add(MQJ.g); } if (LK === 6){ for (const m of MV52) if (m.g.visible) add(m.g); if (HMJ && HMJ.g.visible) add(HMJ.g); }
 }
 function visRestore188(){ for (let i=0;i<visSaved.length;i+=4) visSaved[i].position.set(visSaved[i+1], visSaved[i+2], visSaved[i+3]); visSaved.length = 0; }
 
@@ -5429,7 +5489,7 @@ function collide(x,z,r,ox,oz,eel,lunge){
       if (!inGrid(i,j)) continue;
       for (const e of [vIdx(i,j), vIdx(i+1,j), hIdx(i,j), hIdx(i,j+1)]) if (walls[e]){ const b=edgeBox(e); pushBox(p,b[0],b[1],b[2],b[3],r); }
     }
-    for (let a=ci;a<=ci+1;a++) for (let b=cj;b<=cj+1;b++) if (level.pillarSet.has(a+','+b)) pushBox(p, a*CS-0.35, a*CS+0.35, b*CS-0.35, b*CS+0.35, r);
+    for (let a=ci;a<=ci+1;a++) for (let b=cj;b<=cj+1;b++) if (level.pillarSet.has(a+','+b)){ const ph = level.pilH || 0.35; pushBox(p, a*CS-ph, a*CS+ph, b*CS-ph, b*CS+ph, r); }
     for (const c of (level.circCell ? level.circCell[ci*N+cj] : level.circles)){ const dx=p.x-c.x, dz=p.z-c.z, d2=dx*dx+dz*dz, m=r+c.r; if (d2<m*m && d2>1e-8){ const d=Math.sqrt(d2), k=(m-d)/d; p.x+=dx*k; p.z+=dz*k; } }
     if (level.slabCell){ for (let i=ci-1;i<=ci+1;i++) for (let j=cj-1;j<=cj+1;j++){ if (!inGrid(i,j)) continue; for (const sl of level.slabCell[i*N+j]) if (p.x>sl[0]-r && p.x<sl[1]+r && p.z>sl[2]-r && p.z<sl[3]+r) pushBox(p, sl[0], sl[1], sl[2], sl[3], r); } }
     else for (const sl of level.slabs) if (p.x>sl[0]-r && p.x<sl[1]+r && p.z>sl[2]-r && p.z<sl[3]+r) pushBox(p, sl[0], sl[1], sl[2], sl[3], r);
@@ -5453,7 +5513,7 @@ function losClear(ax,az,bx,bz){
       pi=i; pj=j;
     }
     const ri=Math.round(x/CS), rj=Math.round(z/CS);
-    if (level.pillarSet.has(ri+','+rj) && Math.abs(x-ri*CS)<0.35 && Math.abs(z-rj*CS)<0.35) return false;
+    if (level.pillarSet.has(ri+','+rj) && Math.abs(x-ri*CS)<(level.pilH||0.35) && Math.abs(z-rj*CS)<(level.pilH||0.35)) return false;
     for (const sl of (level.slabCell ? level.slabCell[i*N+j] : level.slabs)) if (x>sl[0] && x<sl[1] && z>sl[2] && z<sl[3]) return false;
   }
   return true;
@@ -5920,9 +5980,14 @@ function skinLabel(){ return 'OCCUPANT SKIN: ' + SKIN_NAMES[mySkin].replace('THE
    2 charging (someone stared at it for 2 s, or walked right into it), 3 running from a flashlight, 4 creeping in during a blackout. */
 const LR_RUN = 7.8, LR_CREEP = 4.0, LR_FLEE = 8.5, LR_GAZE = 2.0, LR_SCALE = 2.2/2.6;
 // v0.37 (Ryan: more deadly, scaled by the computer difficulty G.df: EASY / NORMAL / HARD / IMPOSSIBLE)
-const LR_DF = { creep:[3.4, 4.2, 4.8, 5.3], run:[7.0, 7.8, 8.3, 8.8], gaze:[2.6, 2.0, 1.5, 1.1], light:[0.12, 0.18, 0.3, 0.45], cd:[1.3, 1, 0.75, 0.55] };
+// v0.62 (Ryan): buffed and scaled harder by difficulty: EASY pretty easy, NORMAL kind of hard, HARD pretty hard, IMPOSSIBLE really hard.
+//   run = charge speed (a survivor sprints 5.0), gaze = stare seconds that set it off, light = how long the flashlight must stay on it (unchanged),
+//   cd = multiplier on every "gone" timer (smaller = shows up more often), back = seconds it stays away after a flashlight [min, max],
+//   runHear = a survivor SPRINTING within this many metres of it sets it off (round a corner into it = dead)
+const LR_DF = { creep:[3.2, 4.4, 5.0, 5.6], run:[6.6, 8.4, 9.2, 10.0], gaze:[2.8, 1.6, 1.2, 0.8], light:[0.12, 0.18, 0.3, 0.45], cd:[1.2, 0.55, 0.4, 0.28],
+  back:[[12, 18], [6, 10], [4, 8], [3, 6]], runHear:[0, 7, 11, 15] };
 const lrDf = k => LR_DF[k][clamp(G.df|0, 0, 3)];
-let lurkSrc = null, LRK = null;
+let lurkSrc = null, LRK = null; const LRKS = [];   // v0.62: one model per Lurker (2 in the garage); LRK = LRKS[0] (also the jumpscare)
 function makeLurker(){
   const root = cloneSkinned(lurkSrc.scene), g = new THREE.Group(); root.scale.setScalar(LR_SCALE); root.position.y = 1.299*LR_SCALE; g.add(root);
   root.traverse(o=>{ if (o.isMesh){ const map = o.material.map || null; if (map){ map.magFilter = THREE.NearestFilter; map.minFilter = THREE.NearestFilter; map.colorSpace = THREE.SRGBColorSpace; }
@@ -5931,7 +5996,7 @@ function makeLurker(){
   g.visible = false; scene.add(g);
   return { g, B, saved:new Map(), ph:0, x:0, z:0, sp:0, st:0, tapT:0 };
 }
-new GLTFLoader().load('models/lurker.glb', gl=>{ lurkSrc = gl; LRK = makeLurker(); if (lurkRunSrc) attachLurkRun(LRK); }, undefined, e=>console.warn('lurker model failed to load', e));
+new GLTFLoader().load('models/lurker.glb', gl=>{ lurkSrc = gl; LRK = makeLurker(); LRKS.push(LRK); if (lurkRunSrc) attachLurkRun(LRK); }, undefined, e=>console.warn('lurker model failed to load', e));
 /* v0.30: running uses models/lurker-run.glb = the same mesh re-rigged by Mixamo with Ryan's "Fast Run" clip (0.53 s loop,
    hips X/Z root motion stripped, the original texture put back on). ~1 unit tall in the file → ×2.2. Standing/lurking and the
    jumpscare still use the old model + code pose; updateLurker swaps between the two by speed. */
@@ -5944,7 +6009,7 @@ function attachLurkRun(L){
   const mixer = new THREE.AnimationMixer(root), act = mixer.clipAction(lurkRunSrc.animations[0]); act.play();
   g.visible = false; scene.add(g); L.run = { g, mixer };
 }
-new GLTFLoader().load('models/lurker-run.glb', gl=>{ lurkRunSrc = gl; if (LRK) attachLurkRun(LRK); }, undefined, e=>console.warn('lurker run model failed to load', e));
+new GLTFLoader().load('models/lurker-run.glb', gl=>{ lurkRunSrc = gl; for (const L of LRKS) attachLurkRun(L); }, undefined, e=>console.warn('lurker run model failed to load', e));
 // bone axes (from the model): thigh +x swings the leg forward, calf -x bends the knee, spine/waist -x bends forward,
 // upper arm forward = L (+x, -z) / R (+x, +z), forearm bend = L (+x, +z) / R (+x, -z)
 function animLurker(L, t, dt, st, spd){
@@ -5984,7 +6049,7 @@ function inDark(x, z){ if (lrBlackout(x, z)) return true; if (LK === 3 && G.hb >
 function lrSeen(x, z, ps, far=34){ for (const p of ps){ const dx = x-p.x, dz = z-p.z, d = Math.hypot(dx,dz); if (d > far) continue; if (d < 3) return true; const [fx,,fz] = lookDir(p.yaw||0, 0); if ((dx*fx+dz*fz)/d > -0.2 && losClear(p.x, p.z, x, z)) return true; } return false; }
 const lrBlock = () => { if (LK !== 0) return null; const b = new Uint8Array(N*N); for (let i=0;i<N;i++) for (let j=0;j<N;j++) if (zoneOf(i,j) === 2 || (level.lab && inLabCell(i,j))) b[i*N+j] = 1; return b; };
 // a dark spot a few cells from `tg`, out of everyone's sight, ideally just round a corner from them
-function lrSpot(tg, ps, d0, d1){
+function lrSpot(tg, ps, d0, d1, avoid){
   const blk = lrBlock(), ti = cellOf(tg.x), tj = cellOf(tg.z); if (blk && blk[ti*N+tj]) return null;
   const d = bfsFrom(ti, tj, blk); let best = null, bs = -1e9;
   for (let k=0;k<N*N;k++){ const s = d[k]; if (s < d0 || s > d1) continue;
@@ -5992,6 +6057,7 @@ function lrSpot(tg, ps, d0, d1){
     if (LK === 3){ const pk = level.panelAt[k]; if (pk >= 0 && level.panels[pk].car != null) continue; }   // not inside an elevator car
     if (lrSeen(x, z, ps)) continue;
     if (Math.hypot(x-G.ax, z-G.az) < 6) continue;
+    if (avoid && avoid.some(o=>o.st && Math.hypot(x-o.x, z-o.z) < 10)) continue;   // v0.62: not on top of the other Lurker
     let sc = -Math.abs(s - (d0+d1)/2) + Math.random()*1.5 + (lightAtCell(x, z) < 0.3 ? 2.5 : 0);
     for (const [a,b] of nbr4){ const ni=i+a, nj=j+b; if (!inGrid(ni,nj) || walls[edgeBetween(i,j,ni,nj)]) continue; if (losClear(tg.x, tg.z, cc(ni), cc(nj))){ sc += 2.5; break; } }
     if (sc > bs){ bs = sc; best = [x, z]; } }
@@ -6006,31 +6072,59 @@ function lrMove(R, tx, tz, sp, dt){
   const st = Math.min(d, sp*dt), ox = R.x, oz = R.z; [R.x, R.z] = collide(R.x + dx/d*st, R.z + dz/d*st, 0.3, ox, oz);
   R.y = Math.atan2(dx, dz); R.mv = sp > 4.5 ? 2 : 1; return true;
 }
-function lrGone(R, cd){ R.st = 0; R.cd = cd; R.tg = null; R.gaze = {}; R.mv = 0; }
+function lrGone(R, cd){ R.st = 0; R.cd = cd; R.tg = null; R.gaze = {}; R.mv = 0; R.back = null; R.call = 0; }
 function lrSnd(k, x, z){ playEventSound(k, x, z); safe(()=>net.room && net.room.emit('snd', { k, x:+x.toFixed(1), z:+z.toFixed(1) })); }
+// v0.62: how many Lurkers a level has (Ryan: the garage gets two and no Occupant)
+const lrN = () => LK === 1 ? 2 : LK === 0 || LK === 3 ? 1 : 0;
+function lrNew(k){ return { k, st:0, x:0, z:0, y:0, cd:(LK === 1 ? 20 + k*14 : 30) + Math.random()*20, gaze:{}, lit:0, mv:0, t:0, life:0, done:false }; }
+// a hiding place to run to: a few cells away, out of everyone's sight if it can, away from (fx, fz)
+function lrHide(R, ok, fx, fz){
+  const blk = lrBlock(), ci = cellOf(R.x), cj = cellOf(R.z), dm = bfsFrom(ci, cj, blk); let b = null, bs = -1e9;
+  for (let k=0;k<N*N;k++){ const s0 = dm[k]; if (s0 < 2 || s0 > 12) continue; const x = cc(Math.floor(k/N)), z = cc(k%N);
+    let near = 1e9; for (const p of ok) near = Math.min(near, Math.hypot(x-p.x, z-p.z));
+    const sc = Math.min(near, 30) + Math.hypot(x-fx, z-fz)*0.3 + (lrSeen(x, z, ok, 70) ? -40 : 0) - s0*0.4 + Math.random();
+    if (sc > bs){ bs = sc; b = k; } }
+  return b == null ? [R.x, R.z] : [cc(Math.floor(b/N)), cc(b%N)];
+}
+// v0.62: a generator being cranked in the garage calls them to whoever is doing it
+function lrCall(pid){ if (!H.lrs) return; for (const R of H.lrs.list){ if (R.done) continue; if (R.st === 0){ R.pref = pid; R.cd = Math.min(R.cd, 0); } else if (R.st === 1 && R.tg !== pid){ R.pref = pid; R.call = 1; } } }
 function hostLurker(dt, alive){
-  const key = G.r + '.' + (G.lv|0);
-  if (!H.lr || H.lr.key !== key) H.lr = { key, st:0, x:0, z:0, y:0, cd:30 + Math.random()*25, gaze:{}, lit:0, mv:0, t:0, life:0 };
-  const R = H.lr;
-  if (LK !== 0 && LK !== 3){ G.lr = [0,0,0,0,0]; return; }
+  const key = G.r + '.' + (G.lv|0), n = lrN();
+  if (!H.lrs || H.lrs.key !== key){ H.lrs = { key, list:[] }; for (let k=0;k<n;k++) H.lrs.list.push(lrNew(k)); }
+  if (!n){ G.lr = []; return; }
   const ok = alive.filter(p=>!p.hd && !inLab(p.x, p.z));   // a closet/locker keeps you safe from it too, and so does the Async lab
-  R.cd -= dt/lrDf('cd'); R.t += dt; R.mv = 0;
-  if (G.grace > 0 || !ok.length){ if (R.st) lrGone(R, 15); G.lr = [0,0,0,0,0]; return; }
+  const all = H.lrs.list;
+  G.lr = all.map(R=>lurkOne(R, dt, ok, all.filter(o=>o !== R)));
+}
+const LR_ZERO = () => [0,0,0,0,0];
+function lurkOne(R, dt, ok, others){
+  if (R.done) return LR_ZERO();
+  const df = clamp(G.df|0, 0, 3), loud = ok.filter(p=>(p.m|0) >= 2);
+  R.cd -= dt/lrDf('cd') * (loud.length && df ? 2.5 : 1); R.t += dt; R.mv = 0;   // sprinting gives you away: it shows up sooner
+  if (G.grace > 0 || !ok.length){ if (R.st) lrGone(R, 15); return LR_ZERO(); }
+  // v0.62 garage: once every generator is on and the lights come up, they bolt round a corner and are gone for good
+  if (LK === 1 && G.open){
+    if (R.st === 0){ R.done = true; return LR_ZERO(); }
+    if (!R.van){ R.van = true; R.st = 3; R.t = 0; R.fd = lrHide(R, ok, R.x, R.z); lrSnd('lurkFlee', R.x, R.z); }
+  }
   // the lights went out around someone: it comes for them
-  if (R.st !== 2 && R.st !== 3 && R.st !== 4 && R.cd < 30){
+  if (!R.van && R.st !== 2 && R.st !== 3 && R.st !== 4 && R.cd < 30){
     const inBo = ok.filter(p=>inDark(p.x, p.z));
     if (inBo.length){ const p = inBo[Math.floor(Math.random()*inBo.length)];
-      if (!R.st){ const sp = lrSpot(p, ok, 3, 7); if (sp){ R.x = sp[0]; R.z = sp[1]; R.st = 4; } }
+      if (!R.st){ const sp = lrSpot(p, ok, 3, 7, others); if (sp){ R.x = sp[0]; R.z = sp[1]; R.st = 4; } }
       else R.st = 4;
       if (R.st === 4){ R.tg = p.pid; R.t = 0; R.boT = 0; } } }
+  // called away by a generator (garage): slip off to that person, if nobody is looking
+  if (R.st === 1 && R.call && !lrSeen(R.x, R.z, ok)){ R.call = 0; lrGone(R, 0); }
   if (!R.st){
-    if (R.cd <= 0){ const p = ok[Math.floor(Math.random()*ok.length)], sp = lrSpot(p, ok, 2, 6);
-      if (sp){ R.x = sp[0]; R.z = sp[1]; R.st = 1; R.tg = p.pid; R.t = 0; R.life = 30 + Math.random()*30; R.gaze = {}; R.y = Math.atan2(p.x-R.x, p.z-R.z); } else R.cd = 3; }
-    G.lr = [0,0,0,0,0]; return;
+    if (R.cd <= 0){
+      const pref = ok.find(p=>p.pid === R.pref), pool = pref ? [pref] : loud.length && df ? loud : ok, p = pool[Math.floor(Math.random()*pool.length)], sp = lrSpot(p, ok, 2, 6, others);
+      if (sp){ R.x = sp[0]; R.z = sp[1]; R.st = 1; R.tg = p.pid; R.t = 0; R.life = (30 + Math.random()*30)*(df ? 1.3 : 1); R.gaze = {}; R.pref = null; R.y = Math.atan2(p.x-R.x, p.z-R.z); } else R.cd = 3; }
+    return LR_ZERO();
   }
   let T = ok.find(p=>p.pid === R.tg);
-  if (!T){ if (R.st === 3){ /* keep running */ } else { lrGone(R, 12); G.lr = [0,0,0,0,0]; return; } }
-  // what they're doing to it: a flashlight on it sends it running; staring at it for 2 s sets it off
+  if (!T){ if (R.st === 3){ /* keep running */ } else { lrGone(R, 12); return LR_ZERO(); } }
+  // what they're doing to it: a flashlight on it sends it running; staring at it sets it off
   let lit = null, stare = null;
   for (const p of ok){ const dx = R.x-p.x, dz = R.z-p.z, d = Math.hypot(dx,dz); if (d > 24 || d < 0.05){ R.gaze[p.pid] = 0; continue; }
     const [fx,fy,fz] = lookDir(p.yaw||0, p.pitch||0), dy = 1.2-EYE, l3 = Math.hypot(d, dy), dot = (dx*fx + dy*fy + dz*fz)/l3;
@@ -6038,39 +6132,49 @@ function hostLurker(dt, alive){
     if (p.l && d < 16 && dot > 0.9){ lit = p; R.gaze[p.pid] = 0; continue; }
     if (dot > 0.95){ R.gaze[p.pid] = (R.gaze[p.pid]||0) + dt; if (R.gaze[p.pid] >= lrDf('gaze')) stare = p; } else R.gaze[p.pid] = 0; }
   R.lit = lit ? R.lit + dt : 0;
-  if (lit && R.lit > lrDf('light') && R.st !== 3){ R.st = 3; R.t = 0; R.fx = lit.x; R.fz = lit.z; R.fd = null; lrSnd('lurkFlee', R.x, R.z); }
+  if (lit && R.lit > lrDf('light') && R.st !== 3){ R.st = 3; R.t = 0; R.fd = lrHide(R, ok, lit.x, lit.z); R.back = lit.pid; lrSnd('lurkFlee', R.x, R.z); }
   if (R.st === 1){
     const d = Math.hypot(T.x-R.x, T.z-R.z);
     R.y = Math.atan2(T.x-R.x, T.z-R.z);
+    // v0.62: anyone SPRINTING close by sets it off (it heard you coming round the corner)
+    const rh = lrDf('runHear'); let runner = null;
+    if (rh) for (const p of loud){ const dd = Math.hypot(p.x-R.x, p.z-R.z); if (dd < rh && (dd < rh*0.6 || losClear(p.x, p.z, R.x, R.z))){ runner = p; break; } }
     if (stare){ R.st = 2; R.tg = stare.pid; R.t = 0; }
+    else if (runner){ R.st = 2; R.tg = runner.pid; R.t = 0; }
     else if (d < 2.4){ R.st = 2; R.t = 0; }   // they walked right into it
     else { R.life -= dt;
       if ((R.life <= 0 || d > 30) && !lrSeen(R.x, R.z, ok)){
         if (Math.random() < 0.45) lrGone(R, 25 + Math.random()*30);
-        else { const p = ok[Math.floor(Math.random()*ok.length)], sp = lrSpot(p, ok, 2, 6); if (sp){ R.x = sp[0]; R.z = sp[1]; R.tg = p.pid; R.life = 25 + Math.random()*25; R.gaze = {}; } else lrGone(R, 10); } } }
+        else { const p = ok[Math.floor(Math.random()*ok.length)], sp = lrSpot(p, ok, 2, 6, others); if (sp){ R.x = sp[0]; R.z = sp[1]; R.tg = p.pid; R.life = 25 + Math.random()*25; R.gaze = {}; } else lrGone(R, 10); } } }
   }
   else if (R.st === 2 || R.st === 4){
     T = ok.find(p=>p.pid === R.tg) || T;
     if (R.st === 4){ if (inDark(T.x, T.z)) R.boT = 0; else R.boT = (R.boT||0) + dt;
-      if (R.boT > 3){ R.st = 3; R.t = 0; R.fx = T.x; R.fz = T.z; R.fd = null; } }   // the lights came back: it slinks off
+      if (R.boT > 3){ R.st = 3; R.t = 0; R.fd = lrHide(R, ok, T.x, T.z); } }   // the lights came back: it slinks off
     if (R.st !== 3){
-      if (!lrMove(R, T.x, T.z, R.st === 2 ? lrDf('run') : lrDf('creep'), dt) || (R.st === 2 && R.t > 9)){ R.st = 3; R.t = 0; R.fx = T.x; R.fz = T.z; R.fd = null; }
-      else if (Math.hypot(T.x-R.x, T.z-R.z) < 0.95){ killSurvivor(T, true); lrSnd('lurkKill', T.x, T.z); lrGone(R, 40 + Math.random()*30); G.lr = [0,0,0,0,0]; return; } }
+      if (!lrMove(R, T.x, T.z, R.st === 2 ? lrDf('run') : lrDf('creep'), dt) || (R.st === 2 && R.t > 9)){ R.st = 3; R.t = 0; R.fd = lrHide(R, ok, T.x, T.z); }
+      else if (Math.hypot(T.x-R.x, T.z-R.z) < 0.95){ killSurvivor(T, true); lrSnd('lurkKill', T.x, T.z); lrGone(R, 40 + Math.random()*30); return LR_ZERO(); } }
   }
   if (R.st === 3){
-    if (!R.fd){ const blk = lrBlock(), dd = bfsFrom(cellOf(R.fx), cellOf(R.fz), blk), ci = cellOf(R.x), cj = cellOf(R.z); let b = null, bd = -1;
-      const dm = bfsFrom(ci, cj, blk); for (let k=0;k<N*N;k++) if (dm[k] >= 0 && dm[k] <= 8 && dd[k] > bd){ bd = dd[k]; b = k; }
-      R.fd = b == null ? [R.x, R.z] : [cc(Math.floor(b/N)), cc(b%N)]; }
     lrMove(R, R.fd[0], R.fd[1], LR_FLEE, dt);
-    if ((R.t > 2.2 && !lrSeen(R.x, R.z, ok, 40)) || R.t > 7) lrGone(R, 35 + Math.random()*35);
+    if (R.van){ if ((R.t > 1.2 && !lrSeen(R.x, R.z, ok, 80)) || R.t > 12){ R.done = true; R.st = 0; return LR_ZERO(); } }
+    else if ((R.t > 2.2 && !lrSeen(R.x, R.z, ok, 40)) || R.t > 7){
+      // v0.62 (Ryan): after a flashlight it's back within ~10 s (by difficulty), for the same person
+      if (R.back){ const [a, b] = LR_DF.back[df]; const who = R.back; lrGone(R, (a + Math.random()*(b-a))/lrDf('cd')); R.pref = who; }   // cd ticks at 1/lrDf('cd') per s, so this is a..b seconds
+      else lrGone(R, 35 + Math.random()*35); }
   }
-  G.lr = R.st ? [+R.x.toFixed(2), +R.z.toFixed(2), +R.y.toFixed(2), R.st, R.mv] : [0,0,0,0,0];
+  return R.st ? [+R.x.toFixed(2), +R.z.toFixed(2), +R.y.toFixed(2), R.st, R.mv] : LR_ZERO();
 }
 // ---- everyone: draw it, its light quick footsteps ----
 function updateLurker(dt){
   if (!LRK) return;
-  const L = LRK, lr = G.lr || [0,0,0,0,0], on = lr[3] > 0 && (LK === 0 || LK === 3) && G.ph === 'play';
-  if (mode === 'deadAnim' && scareLurk) return;   // the jumpscare owns it
+  if (mode === 'deadAnim' && scareLurk) return;   // the jumpscare owns them
+  const list = Array.isArray(G.lr) && Array.isArray(G.lr[0]) ? G.lr : [];
+  const show = (LK === 0 || LK === 1 || LK === 3) && G.ph === 'play';
+  while (show && LRKS.length < list.length && lurkSrc){ const L = makeLurker(); LRKS.push(L); if (lurkRunSrc) attachLurkRun(L); }   // v0.62: a second one for the garage
+  LRKS.forEach((L, k)=>{ const lr = list[k]; drawLurker(L, lr, show && !!lr && lr[3] > 0, dt); });
+}
+function drawLurker(L, lr, on, dt){
   if (!on){ L.g.visible = false; if (L.run) L.run.g.visible = false; L.st = 0; return; }
   const jump = !L.st || Math.hypot(lr[0]-L.x, lr[1]-L.z) > 4;
   const ox = L.x, oz = L.z, k = jump ? 1 : 1 - Math.exp(-12*dt);
@@ -6078,7 +6182,7 @@ function updateLurker(dt){
   const v = jump ? 0 : Math.hypot(L.x-ox, L.z-oz)/Math.max(dt, 1e-3); L.sp = lerp(L.sp, lr[4] ? v : 0, 1 - Math.exp(-10*dt)); L.st = lr[3];
   L.g.position.set(L.x, 0, L.z);
   let dy = lr[2] - L.g.rotation.y; dy = Math.atan2(Math.sin(dy), Math.cos(dy)); L.g.rotation.y += jump ? dy : dy*(1 - Math.exp(-10*dt));
-  const running = !!L.run && L.sp > 0.6, ts = clamp(L.sp/7, 0.55, 1.4);
+  const running = !!L.run && L.sp > 0.6, ts = clamp(L.sp/7, 0.55, 1.45);
   L.g.visible = !running;
   if (L.run){ L.run.g.visible = running; if (running){ L.run.g.position.copy(L.g.position); L.run.g.rotation.y = L.g.rotation.y; L.run.mixer.update(dt*ts); } }
   if (!running) animLurker(L, nowS(), dt, L.st, L.sp);
@@ -6086,12 +6190,42 @@ function updateLurker(dt){
   if (lr[4] && sfx.ctx){ L.tapT -= dt; if (L.tapT <= 0){ L.tapT = running ? LR_RUN_CYCLE/2/ts : lr[4] === 2 ? 0.15 : 0.24; if (Math.hypot(L.x-camera.position.x, L.z-camera.position.z) < 22) sfx.lurkStep(L.x, L.z, lr[4] === 2); } }
 }
 let scareLurk = false, seenLkd = 0;
+/* v0.62 (Ryan: sprinting gives your position away): a player Occupant sees a red ripple through the walls wherever a survivor
+   is sprinting within SPRINT_PING m (one every 0.7 s per runner). Walking and crouching show nothing. */
+const SPRINT_PING = 60, PINGS = [];
+let spTex = null, pingT = {};
+function pingSprite(){
+  if (!spTex){ const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d');
+    x.strokeStyle = '#ff2a1a'; x.lineWidth = 5; x.beginPath(); x.arc(32, 32, 26, 0, Math.PI*2); x.stroke();
+    x.fillStyle = 'rgba(255,40,20,.55)'; x.beginPath(); x.arc(32, 32, 6, 0, Math.PI*2); x.fill(); spTex = new THREE.CanvasTexture(c); }
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map:spTex, depthTest:false, depthWrite:false, transparent:true, fog:false }));
+  sp.renderOrder = 999; scene.add(sp); return sp;
+}
+function updateSprintPings(dt){
+  for (let k=PINGS.length-1;k>=0;k--){ const p = PINGS[k]; p.t += dt; const f = p.t/1.1;
+    if (f >= 1 || role !== 'monster' || mode !== 'play'){ scene.remove(p.s); p.s.material.dispose(); PINGS.splice(k, 1); continue; }
+    p.s.scale.setScalar(0.6 + f*2.2); p.s.material.opacity = (1-f)*0.85; }
+  if (role !== 'monster' || mode !== 'play' || G.ph !== 'play' || LK === 2) return;
+  for (const r of remotes.values()){
+    if (r.pid === G.mo || r.mv !== 2 || r.hd || isDead(r.pid) || isEsc(r.pid)) continue;
+    if (Math.hypot(r.x-me.x, r.z-me.z) > SPRINT_PING) continue;
+    if ((pingT[r.pid] = (pingT[r.pid] ?? 0) - dt) > 0) continue; pingT[r.pid] = 0.7;
+    const s0 = pingSprite(), v = new THREE.Vector3(r.x, 1.0, r.z);
+    if (LK === 3) vis188(r.x, 1.0, r.z, v); else if (LK === 4 || LK === 6) vis852(r.x, 1.0, r.z, v);
+    s0.position.copy(v); PINGS.push({ s:s0, t:0 }); }
+}
 
 /* ================= shared state ================= */
 let monVoiceOpt = 0; try { monVoiceOpt = +(localStorage.getItem('lvl0_monvoice')||0) ? 1 : 0; } catch(e){}
 let startOpt = 0; try { startOpt = clamp(+(localStorage.getItem('lvl0_start')||0)|0, 0, 7); } catch(e){}
 const LV_NAMES = ['LEVEL 0', 'LEVEL 1', 'LEVEL 37', 'LEVEL 188', 'LEVEL 852', 'LEVEL 2', 'LEVEL 52', 'LEVEL FUN'];
 let exOpt = 0; try { exOpt = +(localStorage.getItem('lvl0_explore')||0) ? 1 : 0; } catch(e){}   // v0.41: exploration mode = no monster at all
+/* v0.62 (Ryan): game modes. NORMAL = everyone is a survivor, the Occupant is always the computer, every level.
+   HUNTER = one player is the Occupant, only on Level 0 or the Hotel (HUNTER_LVS), and the game ends when that map does.
+   EXPLORATION = no monster (G.ex, as before). G.hn = 1 in Hunter. */
+const HUNTER_LVS = [0, 3];
+let hnOpt = 0; try { hnOpt = +(localStorage.getItem('lvl0_hunter')||0) ? 1 : 0; } catch(e){}
+function modeName(ex, hn){ return ex ? 'EXPLORATION (NO MONSTER)' : hn ? 'HUNTER (A PLAYER HUNTS)' : 'NORMAL (COMPUTER HUNTS)'; }
 let diffOpt = 1; try { const v = localStorage.getItem('lvl0_diff'); if (v !== null) diffOpt = clamp(+v|0, 0, 3); } catch(e){}
 // how the computer Occupant plays at each difficulty. It is never faster than a sprinting survivor (5.0), and the flashlight always works on it.
 // v0.37 (Ryan: more deadly in the dark, proportional to difficulty): while a survivor stands in event darkness (inDark) within range
@@ -6116,7 +6250,7 @@ const AI_DIFF = [
   { name:'HARD',       hear:1.6, see:19, near:7, spd:1.04, wander:1.5, hunt:3.2, drift:1,    persist:1.5, spr:1, dash:1, stun:0.8,  bo:1, vent:1, lead:0.6, obj:1 },
   { name:'IMPOSSIBLE', hear:2.2,  see:24, near:8, spd:1.08, wander:1.5, hunt:3.5, drift:1,    persist:2.2, spr:1, dash:1, stun:0.6,  bo:1, vent:2, lead:1.4, obj:2 },
 ];
-function freshState(r=0){ return { ph:'lobby', r, mo:'AI', ax:0, az:0, ay:0, amv:0, w:'', wv:0, fz:[], pl:0, open:0, ring:-1, aw:[], bt:[], bo:[], dead:[], esc:[], grace:0, sk:0, cn:[], stun:0, t0:0, dg:0, dgp:'', lv:0, gen:[], ads:0, kl:[], ov:monVoiceOpt, df:diffOpt, sl:startOpt, ach:0, avt:0, tod:0, asub:0, stk:0, lr:[0,0,0,0,0], lkd:[], ld:0, lp:100, lbo:0, ex:exOpt, fl:[], lsk:[], ls:[0,0,0,0,0], pgk:[], pg:[] }; }
+function freshState(r=0){ return { ph:'lobby', r, mo:'AI', ax:0, az:0, ay:0, amv:0, w:'', wv:0, fz:[], pl:0, open:0, ring:-1, aw:[], bt:[], bo:[], dead:[], esc:[], grace:0, sk:0, cn:[], stun:0, t0:0, dg:0, dgp:'', lv:0, gen:[], ads:0, kl:[], ov:monVoiceOpt, df:diffOpt, sl:startOpt, ach:0, avt:0, tod:0, asub:0, stk:0, lr:[], lkd:[], ld:0, lp:100, lbo:0, ex:exOpt, hn:hnOpt, fl:[], lsk:[], ls:[0,0,0,0,0], pgk:[], pg:[] }; }
 let G = freshState();
 const H = { ai:{}, shiftT:30, ringT:25, ringEnd:0 };
 let mode = 'menu';
@@ -6159,14 +6293,15 @@ function hostStartRound(){
   H.advT = null;
   const ids = [myPid, ...remotes.keys()];
   let mo = 'AI';
-  if (!net.solo && ids.length > 1){
-    if (monChoice === 'random') mo = ids[Math.floor(Math.random()*ids.length)];
-    else if (monChoice !== 'ai' && ids.includes(monChoice)) mo = monChoice;
-    else if (monChoice !== 'ai') mo = ids[Math.floor(Math.random()*ids.length)];
-  }
   const keepSl = G.sl ?? startOpt, keepEx = net.solo ? exOpt : (G.ex|0);
-  if (keepEx) mo = 'AI';   // exploration: nobody is the monster
-  G = freshState(G.r + 1); G.sl = net.solo ? startOpt : keepSl; G.ex = keepEx; H.moKeep = null;
+  let keepHn = net.solo || keepEx ? 0 : (G.hn|0);
+  // v0.62: only HUNTER mode puts a player in the Occupant's shoes (needs 2+ players)
+  if (keepHn && ids.length > 1){
+    if (monChoice !== 'random' && monChoice !== 'ai' && ids.includes(monChoice)) mo = monChoice;
+    else mo = ids[Math.floor(Math.random()*ids.length)];
+  } else keepHn = 0;
+  G = freshState(G.r + 1); G.sl = net.solo ? startOpt : keepSl; G.ex = keepEx; G.hn = keepHn; H.moKeep = null;
+  if (G.hn && !HUNTER_LVS.includes(G.sl|0)) G.sl = 0;
   G.ph = 'play'; G.mo = mo; G.sk = mySkin;
   walls = level.base.slice(); G.w = wallsHex(); G.wv = 1;
   G.fz = level.fuses.map(f=>[0, +f[0].toFixed(2), +f[1].toFixed(2), '']);
@@ -6176,8 +6311,8 @@ function hostStartRound(){
   aiReset();
   H.shiftT = 26; H.ringT = 30; H.ringEnd = 0;
   // the host can start the round on a later level
-  const sl = clamp(G.sl ?? startOpt, 0, 7); if (sl > 0){ const gr = G.grace; setupLevel(sl); G.grace = sl === 6 || (sl === 7 && G.mo === 'AI') ? 0 : gr; }
-  if (G.ex || sl === 6 || sl === 7){ G.ax = G.az = -999; }
+  const sl = clamp(G.sl ?? startOpt, 0, 7); if (sl > 0){ const gr = G.grace; setupLevel(sl); G.grace = sl === 6 || sl === 1 || (sl === 7 && G.mo === 'AI') ? 0 : gr; }
+  if (noOcc(sl)){ G.ax = G.az = -999; }
   broadcastState(); afterState();
 }
 function applyUse(pid, m){
@@ -6228,6 +6363,7 @@ function applyUse(pid, m){
     if (mp && v && (LK !== 2 || prey37(v)) && !mp.vt && !v.hd && v.pid !== G.mo && !isDead(v.pid) && !isEsc(v.pid) && Math.hypot(v.x-mp.x, v.z-mp.z) < 5) killSurvivor(v);
   }
   else if (m.k === 'crank'){   // someone is starting a generator: the whole garage hears it, the computer comes straight for it
+    if (LK === 1) lrCall(pid);   // v0.62: in the garage, the Lurkers come instead
     if (G.mo === 'AI' && H.ai.mode !== 'chase'){ H.ai.mode='hunt'; H.ai.lx=+m.x||0; H.ai.lz=+m.z||0; H.ai.lt=GEN_T + 20; H.ai.rp=0; }
   }
   else if (m.k === 'ab' && pid === G.mo){
@@ -6303,6 +6439,8 @@ function aiObjectives(){
   return out;
 }
 function aiReset(mode='wander', x, z){ H.ai = { mode, lx:x ?? G.ax, lz:z ?? G.az, lt:mode==='hunt' ? 6 : 0, rp:0, boT:30, wp:null, lc:-1, dashCD:10, ventCD:12, pv:{}, know:{}, objCD:{}, decT:0 }; G.avt = 0; G.ach = 0; }
+// v0.62 (Ryan: sprinting gives your position away): the computer hears a sprinting survivor this far (m) by difficulty, and RUNS at them
+const SPRINT_HEAR = [22, 50, 68, 90];
 function aiTick(dt, alive){
   alive = alive.filter(p=>!inLab(p.x, p.z));   // v0.39: the computer ignores anyone in the Async lab
   const A = H.ai, D = aiD(), now = nowS();
@@ -6323,8 +6461,8 @@ function aiTick(dt, alive){
     const d = Math.hypot(p.x-ax, p.z-az);
     const dark = !p.l && lightAtCell(p.x,p.z) < 0.25;
     if (d < D.see && (p.l || d < (p.c && dark ? 2.5 : D.near) || lightAtCell(p.x,p.z) > 0.5) && losClear(ax,az,p.x,p.z)){ if (d < sd){ sd=d; seen=p; } }
-    const hear = (p.m>=3 ? 60 : p.m===2 ? 32 : p.m===1 ? 11 : 0) * D.hear;
-    if (d < hear){ A.lx=p.x; A.lz=p.z; A.know[p.pid] = now; if (A.mode!=='chase' && A.mode!=='cut') A.mode='hunt'; A.lt=8*D.persist; A.target = A.target || p.pid; }
+    const hear = (p.m>=3 ? 60 : p.m===2 ? Math.max(32 * D.hear, SPRINT_HEAR[clamp(G.df|0, 0, 3)]) : p.m===1 ? 11 : 0) * (p.m===2 ? 1 : D.hear);
+    if (d < hear){ A.lx=p.x; A.lz=p.z; A.know[p.pid] = now; if (A.mode!=='chase' && A.mode!=='cut') A.mode='hunt'; A.lt=8*D.persist; A.target = A.target || p.pid; if (p.m === 2) A.sprT2 = now; }
   }
   if (seen){ A.mode='chase'; A.target=seen.pid; A.know[seen.pid] = now;
     // IMPOSSIBLE/HARD lead their target: aim where you'll be, not where you are (straight at you once it's close)
@@ -6366,7 +6504,7 @@ function aiTick(dt, alive){
   A.sprCD = Math.max(0, (A.sprCD||0) - dt);
   if (A.mode==='chase' || (A.mode==='cut' && D.obj > 1)){ tx=A.lx; tz=A.lz; sp=SPD;
     if (D.spr){ if (A.sprT > 0){ A.sprT -= dt; sp = SPD*1.15; if (A.sprT <= 0) A.sprCD = 4; } else if (A.sprCD <= 0) A.sprT = 1.8; } }
-  else if (A.mode==='hunt' || A.mode==='cut'){ tx=A.lx; tz=A.lz; sp = (A.dk||0) > 0 ? SPD : D.hunt;   // v0.55: walks to what it heard; runs at you in the dark
+  else if (A.mode==='hunt' || A.mode==='cut'){ tx=A.lx; tz=A.lz; sp = (A.dk||0) > 0 || now - (A.sprT2 ?? -99) < 2.5 ? SPD : D.hunt;   // v0.55: walks to what it heard; runs at you in the dark (v0.62: and at anyone it hears sprinting)
     if (Math.hypot(tx-ax,tz-az)<1.2){ if (A.mode==='cut'){ A.objCD[A.cutKey] = now + 20; A.lt = Math.min(A.lt, 2.5); A.mode='hunt'; } else { A.mode='wander'; A.wp=null; } } }
   else {
     if (!A.wp || Math.hypot(A.wp[0]-ax,A.wp[1]-az) < 1.5){
@@ -6429,15 +6567,17 @@ function aiTick(dt, alive){
   else if (D.bo && LK !== 1 && A.mode!=='wander' && A.boT <= 0){   // v0.61 (Ryan): no blackouts in the garage
     A.boT = 45+Math.random()*30; G.bo.push([ax,az,15]); }
 }
+// v0.62: levels with no Occupant at all (exploration mode; the garage, the school, Level Fun)
+function noOcc(lk = LK){ return !!G.ex || lk === 1 || lk === 6 || lk === 7; }
 function setupLevel(k){
-  if (k === 6 && G.mo !== 'AI'){ H.moKeep = G.mo; G.mo = 'AI'; }   // v0.57.1 (Ryan): no Occupant in the school; a player Occupant runs it as a survivor
-  else if (k !== 6 && H.moKeep){ if (allPlayers().some(p=>p.pid === H.moKeep)) G.mo = H.moKeep; H.moKeep = null; }
+  if ((k === 6 || k === 1) && G.mo !== 'AI'){ H.moKeep = G.mo; G.mo = 'AI'; }   // v0.57.1 (Ryan): no Occupant in the school (v0.62: or the garage); a player Occupant runs it as a survivor
+  else if (k !== 6 && k !== 1 && H.moKeep){ if (allPlayers().some(p=>p.pid === H.moKeep)) G.mo = H.moKeep; H.moKeep = null; }
   buildLevel(lvSeed(k), k); sfx.bindLevel();
   walls = level.base.slice(); G.w = wallsHex(); G.wv++;
   G.lv = k; G.esc = []; G.dead = [];   // everyone caught on the last level wakes up here too
   G.open = 0; G.fz = (k === 0) ? level.fuses.map(f=>[0, +f[0].toFixed(2), +f[1].toFixed(2), '']) : []; G.pl = 0; G.gen = level.gens.map(()=>0);
   G.aw = level.aw.map(()=>0); G.bt = level.bt.map(()=>0); G.cn = level.cn.map(()=>0);
-  G.bo = []; G.stun = 0; G.dg = 0; G.ring = -1; G.ads = 0; G.lkd = []; G.lr = [0,0,0,0,0]; H.lr = null; G.fl = []; G.lsk = []; G.ls = [0,0,0,0,0]; H.ls = null; G.mqk = []; G.mq = []; H.mq = null; G.hmk = []; G.hm = []; H.hm = null;
+  G.bo = []; G.stun = 0; G.dg = 0; G.ring = -1; G.ads = 0; G.lkd = []; G.lr = []; H.lrs = null; G.fl = []; G.lsk = []; G.ls = [0,0,0,0,0]; H.ls = null; G.mqk = []; G.mq = []; H.mq = null; G.hmk = []; G.hm = []; H.hm = null;
   G.ax = level.mspawn[0]; G.az = level.mspawn[1];
   aiReset(); H.shiftT = 26; H.ringT = 30; H.ringEnd = 0;
   if (k === 2){ G.open = 1; G.tod = 0; G.c0 = 0; G.dl = 100 + Math.random()*50; G.nl = 65 + Math.random()*45; G.stk = 0; G.dr37 = 0; G.dn37 = 0; H.dry37 = {}; G.asub = G.mo === 'AI' ? 1 : 0; }   // Level 37: the staircase is always there, you just have to find it
@@ -6456,7 +6596,7 @@ function setupLevel(k){
 }
 function advanceLevel(){
   setupLevel(Math.min(7, (G.lv|0) + 1));
-  G.grace = G.ex || G.lv === 6 || (G.lv === 7 && G.mo === 'AI') ? 0 : G.mo === 'AI' ? 12 : 15; if (G.ex || G.lv === 6 || G.lv === 7){ G.ax = G.az = -999; }
+  G.grace = G.ex || G.lv === 6 || G.lv === 1 || (G.lv === 7 && G.mo === 'AI') ? 0 : G.mo === 'AI' ? 12 : 15; if (noOcc(G.lv)){ G.ax = G.az = -999; }
   broadcastState(); afterState();
 }
 function hostTick(dt){
@@ -6470,7 +6610,7 @@ function hostTick(dt){
   if (!surv.length){ G.ph = 'end'; return; }
   if (!alive.length){
     // everyone left alive got out of Level 0: a few seconds later, the whole room drops into Level 1
-    if ((G.lv|0) < 7 && G.esc.length){ if (H.advT == null) H.advT = 3.5; H.advT -= dt; if (H.advT <= 0){ H.advT = null; advanceLevel(); } return; }
+    if ((G.lv|0) < 7 && G.esc.length && !G.hn){ if (H.advT == null) H.advT = 3.5; H.advT -= dt; if (H.advT <= 0){ H.advT = null; advanceLevel(); } return; }
     G.ph = 'end'; return;
   }
   let mp;
@@ -6482,12 +6622,12 @@ function hostTick(dt){
   if (LK === 7) hostFun(dt, alive, !!G.ex);
   if (LK === 3) hostOutage188(dt);
   if (LK === 0) hostLab(dt);
-  if (G.ex || LK === 6 || LK === 7){   // exploration mode (and the school v0.57.1, Level Fun v0.57.2): no Occupant, no Lurker, no mannequins
-    G.ax = G.az = -999; G.amv = 0; G.ach = 0; G.bo = []; G.lr = [0,0,0,0,0]; G.mq = []; G.ls = [0,0,0,0,0];
+  if (noOcc()){   // exploration mode (and the school v0.57.1, Level Fun v0.57.2, the garage v0.62): no Occupant, no mannequins
+    G.ax = G.az = -999; G.amv = 0; G.ach = 0; G.bo = []; G.mq = []; G.ls = [0,0,0,0,0];
+    if (LK === 1 && !G.ex) hostLurker(dt, alive.filter(p=>!isDead(p.pid))); else G.lr = [];   // v0.62 (Ryan): the garage is the Lurkers' (two of them)
     if (LK === 3){ hostElev188(dt); hostOutage188(dt); } if (LK === 4) hostMall852(dt, ps); if (LK === 5) hostPipe2(dt, ps); if (LK === 2) hostDay37(dt, alive, { x:-999, z:-999 }); if (LK === 0) hostLab(dt);
     H.ringT -= dt; if (G.ring < 0 && H.ringT <= 0 && level.phones.length){ const tgt = alive[Math.floor(Math.random()*alive.length)]; let best = 0, bd = 1e9; level.phones.forEach((ph,k)=>{ const d=Math.hypot(ph.x-tgt.x, ph.z-tgt.z); if (d<bd){ bd=d; best=k; } }); G.ring = best; H.ringEnd = nowS() + 16; }
     if (G.ring >= 0 && nowS() > H.ringEnd){ G.ring = -1; H.ringT = 25+Math.random()*30; }
-    H.shiftT -= dt; if (H.shiftT <= 0 && (G.lv|0) === 0){ H.shiftT = 20+Math.random()*15; doShift(null, 0, 0, 9); }
     return; }
   if (G.mo === 'AI') darkHunt(dt, alive);
   if (G.mo === 'AI' && LK === 7) funDoorsToWalls(true);   // the computer just shoves doors open (hostFun), so it plans through them
@@ -6512,10 +6652,7 @@ function hostTick(dt){
     G.ring = best; H.ringEnd = nowS() + 16;
   }
   if (G.ring >= 0 && nowS() > H.ringEnd){ G.ring = -1; H.ringT = 25+Math.random()*30; }
-  // the level rearranges itself
-  // the level rearranges itself (Level 0 only)
-  H.shiftT -= dt;
-  if (H.shiftT <= 0 && (G.lv|0) === 0){ H.shiftT = 20+Math.random()*15; doShift(null, 0, 0, 9); }
+  // v0.62 (Ryan): the walls don't shift any more, on any level
 }
 
 /* ---- networking ---- */
@@ -7152,7 +7289,7 @@ function goMenu(note){
 }
 function monLabel(){
   if (monChoice === 'random') return 'RANDOM';
-  if (monChoice === 'ai') return 'COMPUTER';
+  if (monChoice === 'ai') return 'RANDOM';
   if (monChoice === myPid) return (myName||'YOU').toUpperCase();
   const r = remotes.get(monChoice); return r ? r.n.toUpperCase() : 'RANDOM';
 }
@@ -7162,13 +7299,14 @@ function renderLobby(){
   const el = $('lplayers'); el.textContent = '';
   [ [(myName||'You')+' (you)', true], ...[...remotes.values()].map(r=>[r.n,false]) ].forEach(([n,isMe])=>{ const d=document.createElement('div'); d.className='chip'+(isMe?' me':''); d.innerHTML='<i></i>'; d.appendChild(document.createTextNode(n)); el.appendChild(d); });
   if (monChoice !== 'random' && monChoice !== 'ai' && monChoice !== myPid && !remotes.has(monChoice)) monChoice = 'random';
-  $('bMon').style.display = host ? '' : 'none';
+  const hn = !G.ex && !!G.hn;
+  $('bMon').style.display = host && hn ? '' : 'none'; $('bMonVoice').style.display = hn ? '' : 'none';
   $('bMonVoice').textContent = 'OCCUPANT VOICE: ' + (G.ov ? 'MONSTER' : 'OFF') + (host ? '' : ' (host picks)'); $('bMonVoice').disabled = !host;
   $('bMon').textContent = 'THE OCCUPANT: ' + monLabel();
   $('bLv').textContent = 'START AT: ' + LV_NAMES[clamp(G.sl ?? startOpt, 0, 7)] + (host ? '' : ' (host picks)'); $('bLv').disabled = !host;
   $('bDiff').textContent = 'COMPUTER: ' + AI_DIFF[clamp(G.df ?? diffOpt, 0, 3)].name + (host ? '' : ' (host picks)'); $('bDiff').disabled = !host;
-  $('bEx').textContent = 'MODE: ' + (G.ex ? 'EXPLORATION (NO MONSTER)' : 'NORMAL') + (host ? '' : ' (host picks)'); $('bEx').disabled = !host;
-  $('monText').textContent = host ? (remotes.size ? 'Tap to choose who hunts.' : 'Alone? The computer will hunt you.') : 'The host picks who becomes the Occupant.';
+  $('bEx').textContent = 'MODE: ' + modeName(G.ex, G.hn) + (host ? '' : ' (host picks)'); $('bEx').disabled = !host;
+  $('monText').textContent = G.ex ? 'No monster. Just look around.' : !hn ? 'Everyone is a survivor. The computer is the Occupant.' : !remotes.size ? 'Hunter needs at least 2 players (alone, the computer hunts you).' : host ? 'Tap THE OCCUPANT to choose who hunts. Hunter is Level 0 or the Hotel only.' : 'The host picks who becomes the Occupant. Level 0 or the Hotel only.';
   $('bStart').style.display = host ? '' : 'none';
   $('lwait').style.display = host ? 'none' : '';
 }
@@ -7263,7 +7401,7 @@ function enterLevel(){
   else if ((G.lv|0) === 4){ $('blacktext').textContent = 'LEVEL 852'; $('blacksub').textContent = 'THE MALL · three floors, closed for decades. Find the receipts, open the security office, take the master keys down to the loading dock. The music is still playing.'; }
   else if ((G.lv|0) === 3){ $('blacktext').textContent = 'LEVEL 188'; $('blacksub').textContent = 'THE HOTEL · find the keycard. It opens one room. The elevators work. So does something else.'; }
   else if ((G.lv|0) === 2){ $('blacktext').textContent = 'LEVEL 37'; $('blacksub').textContent = 'THE POOLROOMS · somewhere there is a staircase up to the sky. Find it. Stay out of the water at night.'; }
-  else { $('blacktext').textContent = 'LEVEL 1'; $('blacksub').textContent = 'THE PARKING GARAGE · start all 5 generators, then find the exit'; }
+  else { $('blacktext').textContent = 'LEVEL 1'; $('blacksub').textContent = 'THE PARKING GARAGE · two Lurkers in the dark · start all 5 generators, then find the exit'; }
   { const nr = G.mo === myPid ? 'monster' : 'survivor'; if (nr !== role){ role = nr; me.bat = 100; me.light = false; me.hidden = -1; canvas.style.filter = monFilter(); $('bat').style.display = role === 'survivor' ? '' : 'none'; $('abil').style.display = role === 'monster' && !isTouch ? 'flex' : 'none'; amb.intensity = role === 'monster' ? 0.42 : 0.16;
     if (role === 'survivor') msg('No Occupant in the school. Just the hall monitors. You\'re a student today: get to class.', 5); } }   // v0.57.1: the school has no Occupant
   if (role === 'monster'){ me.x = level.mspawn[0]; me.z = level.mspawn[1]; me.yaw = Math.random()*6; abCD.dash = Math.max(abCD.dash, 6); mode = 'play'; }
@@ -7860,14 +7998,14 @@ function readName(){ myName = ($('name').value.trim() || 'Wanderer').slice(0,12)
 function genCode(){ const A='ABCDEFGHJKLMNPQRSTUVWXYZ'; let s=''; for (let i=0;i<4;i++) s+=A[Math.floor(Math.random()*A.length)]; return s; }
 function goFull(){ try { const el=document.documentElement; const r = el.requestFullscreen && el.requestFullscreen(); if (r && r.catch) r.catch(()=>{}); } catch(e){} }
 function diffLabel(){ $('bDiff1').textContent = 'COMPUTER: ' + AI_DIFF[diffOpt].name; }
-function exLabel(){ $('bEx1').textContent = 'MODE: ' + (exOpt ? 'EXPLORATION (NO MONSTER)' : 'NORMAL'); }
+function exLabel(){ $('bEx1').textContent = 'MODE: ' + (exOpt ? 'EXPLORATION (NO MONSTER)' : 'NORMAL'); }   // solo: Normal or Exploration (Hunter needs friends)
 exLabel();
 $('bEx1').onclick = ()=>{ exOpt = exOpt ? 0 : 1; try { localStorage.setItem('lvl0_explore', exOpt); } catch(e){} exLabel(); };
 diffLabel();
 
 // ---- v0.46 menu: PLAY → level select, JOIN → code, HOW TO PLAY; the CRT shows the live scene; a tick on hover
-const LV_INFO = [['LEVEL 0','THE OFFICE','Endless yellow rooms that move when you look away: restore the power and find the exit.'],
-  ['LEVEL 1','THE PARKING GARAGE','A pitch-black garage where every generator you start tells it where you are.'],
+const LV_INFO = [['LEVEL 0','THE OFFICE','Endless yellow rooms, something round every corner: restore the power and find the exit.'],
+  ['LEVEL 1','THE PARKING GARAGE','A pitch-black garage and two Lurkers. Every generator you start calls them to you.'],
   ['LEVEL 37','THE POOLROOMS','Warm empty pools and tiled halls, and something waiting in the deep water.'],
   ['LEVEL 188','THE HOTEL','A silent hotel round a courtyard, one keycard, and elevators something else rides too.'],
   ['LEVEL 852','THE MALL','A dead three-floor mall where the music never stops and the mannequins never stay put.'],
@@ -8031,15 +8169,21 @@ $('bJoin').onclick = async ()=>{ if (voice.want && !voice.stream) voiceEnable(tr
   readName(); sfx.init(); if (isTouch) goFull(); if (await connect(c, false)) sfx.bindLevel();
 };
 $('joincode').addEventListener('input', e=>{ e.target.value = e.target.value.toUpperCase().replace(/[^A-Z]/g,''); });
-$('bLv').onclick = ()=>{ if (!amHost()) return; $('lvPick').classList.add('show'); };
+$('bLv').onclick = ()=>{ if (!amHost()) return; lvPickFilter(); $('lvPick').classList.add('show'); };
 $('lvPickBack').onclick = ()=>$('lvPick').classList.remove('show');
 $('lvPickGrid').innerHTML = $('lvgrid').innerHTML;
 for (const t of document.querySelectorAll('#lvPickGrid .tile')) t.onclick = ()=>{ $('lvPick').classList.remove('show'); if (!amHost()) return; startOpt = G.sl = +t.dataset.lv; try { localStorage.setItem('lvl0_start', startOpt); } catch(e){} lvLabel(); broadcastState(); renderLobby(); };
-$('bEx').onclick = ()=>{ if (!amHost()) return; exOpt = G.ex = G.ex ? 0 : 1; try { localStorage.setItem('lvl0_explore', exOpt); } catch(e){} exLabel(); broadcastState(); renderLobby(); };
+$('bEx').onclick = ()=>{ if (!amHost()) return;
+  const cur = G.ex ? 2 : G.hn ? 1 : 0, nx = (cur + 1) % 3;
+  exOpt = G.ex = nx === 2 ? 1 : 0; hnOpt = G.hn = nx === 1 ? 1 : 0;
+  if (G.hn && !HUNTER_LVS.includes(G.sl|0)){ startOpt = G.sl = 0; try { localStorage.setItem('lvl0_start', 0); } catch(e){} lvLabel(); }
+  try { localStorage.setItem('lvl0_explore', exOpt); localStorage.setItem('lvl0_hunter', hnOpt); } catch(e){} exLabel(); lvPickFilter(); broadcastState(); renderLobby(); };
+// v0.62: in Hunter the level picker only offers the maps it works on
+function lvPickFilter(){ for (const t of document.querySelectorAll('#lvPickGrid .tile')) t.style.display = !G.ex && G.hn && !HUNTER_LVS.includes(+t.dataset.lv) ? 'none' : ''; }
 $('bDiff').onclick = ()=>{ if (!amHost()) return; diffOpt = G.df = ((G.df ?? diffOpt) + 1) % 4; try { localStorage.setItem('lvl0_diff', diffOpt); } catch(e){} diffLabel(); broadcastState(); renderLobby(); };
 $('bMonVoice').onclick = ()=>{ if (!amHost()) return; monVoiceOpt = G.ov = G.ov ? 0 : 1; try { localStorage.setItem('lvl0_monvoice', monVoiceOpt); } catch(e){} broadcastState(); renderLobby(); };
 $('bMon').onclick = ()=>{
-  const opts = ['random','ai', myPid, ...remotes.keys()];
+  const opts = ['random', myPid, ...remotes.keys()];   // v0.62: the computer is NORMAL mode now
   monChoice = opts[(opts.indexOf(monChoice)+1) % opts.length]; renderLobby();
 };
 function showSkin(){ for (const id of ['bSkin','bSkin2']) $(id).innerHTML = SKIN_NAMES[mySkin] + '<small>OCCUPANT SKIN</small>'; }
@@ -8067,7 +8211,7 @@ const pings = new Map();
 const pingTex = textTex('',64,64,(c,w,h)=>{ const gr=c.createRadialGradient(32,32,0,32,32,30); gr.addColorStop(0,'rgba(255,60,40,.9)'); gr.addColorStop(.5,'rgba(255,40,20,.35)'); gr.addColorStop(1,'rgba(255,0,0,0)'); c.fillStyle=gr; c.fillRect(0,0,w,h); });
 function getPing(pid){
   let p = pings.get(pid);
-  if (!p){ p = new THREE.Sprite(new THREE.SpriteMaterial({ map:pingTex, depthTest:false, transparent:true, fog:false })); p.renderOrder = 10; scene.add(p); p.userData = { life:0 }; pings.set(pid,p); }
+  if (!p){ p = new THREE.Sprite(new THREE.SpriteMaterial({ map:spTex, depthTest:false, transparent:true, fog:false })); p.renderOrder = 10; scene.add(p); p.userData = { life:0 }; pings.set(pid,p); }
   return p;
 }
 
@@ -8336,7 +8480,7 @@ function updateMonsterDisplay(dt){
   } else if (G.mo === myPid){ mDisp.x=me.x; mDisp.z=me.z; mDisp.ry=me.yaw+Math.PI; mDisp.mv = me.moving ? (me.running?2:1) : 0; }
   else { const r = remotes.get(G.mo); if (r){ mDisp.x=r.x; mDisp.z=r.z; mDisp.ry=r.yaw+Math.PI; mDisp.mv=r.mv; if (r.vt || (LK === 2 && G.asub > 0)){ mDisp.x=-999; mDisp.z=-999; mDisp.mv=0; } } }
   useSkin(LK === 2 ? EEL : G.mo === 'AI' ? G.sk : G.mo === myPid ? mySkin : ((remotes.get(G.mo)||{}).sk|0));
-  if (G.ex || LK === 6 || LK === 7){ mDisp.x = -999; mDisp.z = -999; mDisp.mv = 0; }
+  if (noOcc()){ mDisp.x = -999; mDisp.z = -999; mDisp.mv = 0; }
   { const jd = Math.hypot(mDisp.x - (mDisp.px ?? mDisp.x), mDisp.z - (mDisp.pz ?? mDisp.z)), v = jd > 3 || dt <= 0 ? (mDisp.sp||0) : Math.min(8, jd/Math.max(dt, 1e-3));   // v0.55: how fast it's really going (for the walk/run clips)
     mDisp.sp = (mDisp.sp||0) + (v - (mDisp.sp||0))*(1 - Math.exp(-5*dt)); mDisp.px = mDisp.x; mDisp.pz = mDisp.z; }
   const showMon = !G.ex && LK !== 6 && LK !== 7 && G.mo !== myPid && myRound===G.r && (mode==='play'||mode==='spect'||mode==='deadAnim') && G.ph==='play';
@@ -8733,7 +8877,8 @@ function tdSpot(d0, d1, behind){   // a point near me, preferably out of sight (
 function tdFakeSteps(){
   if (TD.fake) tdStopFake();
   const sp = tdSpot(9, 14, true); if (!sp) return false;
-  const lurker = (LK === 0 || LK === 3) && !G.ex && Math.random() < 0.35;
+  if (LK === 1 && G.open) return false;
+  const lurker = (LK === 1 && !G.ex) || ((LK === 0 || LK === 3) && !G.ex && Math.random() < 0.35);
   const side = sp.a + Math.PI/2*(Math.random() < 0.5 ? 1 : -1), len = 5 + Math.random()*4;
   const f = { x0:sp.x, z0:sp.z, x1:sp.x - Math.sin(side)*len, z1:sp.z - Math.cos(side)*len, t:0, dur:2.6 + Math.random()*1.8, lurker, stepT:0 };
   if (!lurker){ const key = MON === MONS[CRAWLER] ? 'crawl' : 'heavy', b = sfx.samples[key]; if (!b) return false;
@@ -9060,7 +9205,7 @@ function frame(now){
     const path = 0.12*menuT, ms = menuSpot();
     camera.position.set(ms[0] + Math.sin(path)*ms[2], EYE, ms[1] + Math.cos(path*0.7)*ms[2]);
     camera.rotation.set(0, menuT*0.04, 0);
-    MON.g.visible = false; PHANTOM.g.visible = false; VM.visible = false; if (LRK){ LRK.g.visible = false; if (LRK.run) LRK.run.g.visible = false; }
+    MON.g.visible = false; PHANTOM.g.visible = false; VM.visible = false; for (const L of LRKS){ L.g.visible = false; if (L.run) L.run.g.visible = false; }
     if (curRH !== RH){ curRH = RH; lowK = 0; resize(); }
     updateZoneEnv(dt);
     for (const s of spots) s.intensity = 0;
@@ -9074,7 +9219,7 @@ function frame(now){
   } else {
     updateRemotes(dt);
     updateMonsterDisplay(dt);
-    updateLurker(dt); updateDroppedFL(dt); updateListener(dt); updatePartygoers(dt);
+    updateLurker(dt); updateSprintPings(dt); updateDroppedFL(dt); updateListener(dt); updatePartygoers(dt);
     placeCamera(dt);
     updateZoneEnv(dt);
     updatePanels(t);
