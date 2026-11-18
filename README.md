@@ -1,10 +1,10 @@
 # Level 0 — The Backrooms
 
-First-person Backrooms horror for 1–4 players. Survivors find 3 fuses, restore power at the breaker, and find the exit while the hallways rearrange themselves. One player is the Occupant hunting them (or the computer, in solo).
+First-person Backrooms horror for 1–4 players. Escape level after level of the Backrooms (the office, the parking garage, the Poolrooms, the Hotel, the Mall, Pipe Dreams, the School and Level Fun) while something hunts you. In Normal mode the computer is the Occupant; in Hunter mode one player hunts everyone else on Level 0 or the Hotel.
 
 Play / install: https://rytheguy18.github.io/Haunted-Pines/
 
-Online: HOST GAME gives a 4-letter code, friends tap JOIN. The host picks who becomes the Occupant.
+Online: HOST GAME gives a 4-letter code, friends tap JOIN (or add each other with friend codes). The host picks the mode, and in Hunter mode who becomes the Occupant.
 
 On iPhone: open in Safari, Share, Add to Home Screen. Headphones on.
 v0.10.0: Occupant can't sprint, disguise ability, vents, new ambience.
@@ -108,6 +108,7 @@ v0.53.0: the Snatcher shambles with a zombie walk and writhes in agony when a fl
 v0.53.1: the Snatcher swipes at you with a zombie attack when it catches someone or lunges
 v0.54.0: the School Halls hall monitor is now a tall faceless teacher in a suit who sprints at you the moment you're late for class, and you can't outrun him
 v0.55.0: the Occupant stalks slowly with the zombie walk (feet match the ground), then breaks into a zombie run the moment it sees you; a player Occupant walks and holds sprint to run
+v0.55.1: on Hard and Impossible the Occupant wanders slower and runs to noises instead; its run animation is quicker
 v0.56.0: the Occupant no longer gets stuck on desks, railings or ledges (school, mall, hotel, eel); it hears further now that it walks slower; the player Occupant gets a RUN meter; new level-select pictures
 v0.57.0: new Level Fun: party rooms, presents (one has the exit key, the rest are party horns), and Partygoers who watch you while the lights are on and hunt you when they go out (shut the doors!); the Listener now ignores walking but hears any talking and sprints at you; flashlight batteries drain faster
 v0.57.1: no Occupant in School Halls anymore, only the hall monitors
@@ -116,3 +117,16 @@ v0.58.0: the Partygoers use the real model now (balloon removed) with walk and b
 v0.59.0: new first-person hand: a gloved hand with a sleeve, fingers closed round the flashlight
 v0.59.1: the first-person hand holds the flashlight properly now (it was twisted upside down)
 v0.59.2: the first-person hand uses the pose Ryan made in the Hand Poser, with the pinky tucked away
+v0.59.3: the first-person arm sits closer to the camera, and the flashlight beam comes straight out of the lens
+v0.59.4: the first-person arm is a little smaller
+v0.59.5: the first-person arm is 20% smaller
+v0.59.6: the first-person arm is another 20% smaller and a bit lower
+v0.60.0: forced landscape on phones (iPhone auto-rotate + landscape lock)
+v0.60.1: no motion-permission prompt by default (fixed landscape side)
+v0.60.2: took the forced landscape back out (same as v0.59.6 again)
+v0.61.0: friends: add people by friend code, see who's online, invite them to your lobby or join theirs; no blackouts in the garage; phones always give a real hint
+v0.61.1: the camera zooms into the TV on the JOIN page too
+v0.62.0: game modes (Normal = computer hunts, Hunter = a player hunts on Level 0/Hotel only), the garage has Lurkers and no Occupant plus a new non-square layout with thicker pillars, Lurker buffed and scaled by difficulty, sprinting gives you away, no more shifting walls, wallpaper and pit texture fixes
+v0.62.1: the garage has 1-2 lit rooms along its outer walls (door, windows, shelves, a phone) where the Lurkers can't get you, but one may wait outside if it saw you go in
+v0.62.2: three Lurkers in the garage, and the garage room doors open and shut
+v0.62.3: the garage now has four Lurkers that run straight at you without stopping; you have to keep your light on one a little longer to drive it off
