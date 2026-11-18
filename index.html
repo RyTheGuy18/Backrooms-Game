@@ -408,7 +408,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.64.1</div>
+<div class="osd" id="ver">v0.64.2</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -3960,8 +3960,8 @@ function buildLevelRaw(seed, kind=0){
   const sign = new THREE.Mesh(new THREE.PlaneGeometry(0.7,0.24), new THREE.MeshBasicMaterial({ map: textTex('EXIT',64,22,(c,w,h)=>{ c.fillStyle='#062a10'; c.fillRect(0,0,w,h); c.fillStyle='#4dff7a'; c.font='bold 18px monospace'; c.textAlign='center'; c.fillText('EXIT',w/2,17); }) }));
   sign.position.set(0,2.5,0.05); door.add(sign);
   onDoor('prison', src=>{   // v0.62.6: Ryan's prison door; L.door becomes the doorway behind it (dark, glows white once open) and the leaf swings out
-    frame.visible = false; const d = doorClone(src, 1.22, 2.5); d.g.position.z = -0.02; door.add(d.g); L.exitLeaf = d.leaf; L.exitAng = 0;
-    L.door.geometry.dispose(); L.door.geometry = new THREE.PlaneGeometry(1.1, 2.38); L.door.position.set(0, 1.2, -0.05); L.doorMatLocked = new THREE.MeshBasicMaterial({ color:0x050403 });
+    frame.visible = false; const d = doorClone(src, 1.22, 2.5); d.g.position.z = 0.09; door.add(d.g); L.exitLeaf = d.leaf; L.exitAng = 0;   // v0.64.2: out of the wall
+    L.door.geometry.dispose(); L.door.geometry = new THREE.PlaneGeometry(1.1, 2.38); L.door.position.set(0, 1.2, 0.004); L.doorMatLocked = new THREE.MeshBasicMaterial({ color:0x050403 });
     if (!G.open) L.door.material = L.doorMatLocked; sign.position.y = 2.64; });
   exitLight.position.set(L.exitPos[0], 1.5, L.exitPos[1]); exitLight.intensity = 0;
   if (kind === 0 || kind === 4){
@@ -4031,7 +4031,7 @@ function buildLevelRaw(seed, kind=0){
   for (let k=0;k<3;k++){ const p = takeSlot(); if (!p) break; const d=new THREE.Group(); d.position.set(p.x+p.nx*0.11,0,p.z+p.nz*0.11); d.rotation.y=p.ry; g.add(d);
     const f=new THREE.Mesh(new THREE.BoxGeometry(1.1,2.15,0.05), lam(0x6a5434)); f.position.y=1.07; d.add(f);
     const kn=new THREE.Mesh(new THREE.SphereGeometry(0.04,6,4), lam(0xb0a070)); kn.position.set(0.42,1.05,0.05); d.add(kn);
-    onDoor('old', src=>{ f.visible = kn.visible = false; const m = doorClone(src, 1.2, 2.4); m.g.position.z = -0.03; d.add(m.g); }); }
+    onDoor('old', src=>{ f.visible = kn.visible = false; const m = doorClone(src, 1.2, 2.4); m.g.position.z = 0.075; d.add(m.g); }); }   // v0.64.2: the slot is the wall's centre line (face at 0.1): the model's back now sits just in front of the face (it was sunk in, wallpaper showed through)
   // scrawled messages
   const msgs = (kind === 4 ? MALL_SCRAWLS : SCRAWLS).slice().sort(()=>rng()-0.5);
   for (let k=0;k<7;k++){ const p = takeSlot(); if (!p) break; L.high.push(p); const txt = msgs[k%msgs.length];

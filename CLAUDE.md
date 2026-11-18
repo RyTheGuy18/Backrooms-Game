@@ -6,7 +6,7 @@ First-person co-op Backrooms horror game for 1–4 players, played in the browse
 
 - Live: https://rytheguy18.github.io/Haunted-Pines/ (GitHub Pages, `main` branch, repo root)
 - Owner: Ryan (GitHub `rytheguy18` / `RyTheGuy18`). Plays it with friends and younger brothers, mostly on phones.
-- Current version: **v0.64.1** (shown bottom-right of the menu, `#ver`)
+- Current version: **v0.64.2** (shown bottom-right of the menu, `#ver`)
 
 ## Files
 
@@ -378,3 +378,5 @@ Controls (desktop): WASD, Shift sprint, C crouch, Left click / F flashlight, E h
 **v0.64.0 (Ryan: his "Wooden Support Beam" glb by Cianon (Sketchfab, CC BY 4.0) — use it or build it yourself with the dark plank texture):** built in code after it (the glb is NOT in the repo; it's a 274-vert mine-shaft frame: two posts, a header beam, two 45° knee braces, one post leaning). Every basement post is now 0.2 m (collider 0.13), runs up to the header beam (joists 0.2 × 0.22 along x every 2 m), and has two knee braces (0.11 m, 45°, 0.6 m out along the beam each side, merged into the joist mesh); 30% of posts lean 0.02–0.05 rad about their top. Caps removed. Credit line "support beams built after …" in HOW TO PLAY · CREDITS. 12 seeds still fully reachable.
 
 **v0.64.1 (Ryan: lights that are off were still dim-but-visible in the dark, mostly in the garage — "when dark they should be darkkkk"):** `updatePanels`: any panel with `p.b < 0.03` gets instance colour 0 (it used to keep a 0.07 grey floor, which after sRGB output + the 1.3× diffuser read as a pale glowing panel); the lamp housing (`lampHouseM`) now multiplies by `0.18 + 0.82·vColor.g` so the metal goes dark with its lamp too. Poolrooms nights darker: room lamps (`always`) ×(0.1 + 0.9·day), their mesh (`L.lampMat37`) dims the same, pool lights LI×(0.45 − 0.21·day) (were 1.6 LI at night), pool lamp spheres dimmer, survivor ambient 0.05 at night (was 0.2), moonlight 0.015.
+
+**v0.64.2 (Ryan: doors clipping on Levels 0/1):** door slots (`takeSlot`) and the exit `ex` sit on the wall's CENTRE line (face 0.1 m out), and the door models are ~0.18–0.2 m deep centred on z 0, so the v0.62.6 offsets sank most of each model into the wall (wallpaper / "P2" showed through the leaf; the exit's dark/white doorway plane was hidden inside the wall). Doors to nowhere: model z −0.03 → +0.075 in the slot group (+0.11). Exit: prison model z −0.02 → +0.09, `L.door` plane z −0.05 → +0.004. Checked closed + open (exit) on both levels; garage room doors were fine.
