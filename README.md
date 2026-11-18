@@ -133,3 +133,4 @@ v0.62.3: the garage now has four Lurkers that run straight at you without stoppi
 v0.62.4: garage + parking corner use the worn concrete photo texture (stripes/P2 kept, no stretching on pillars/sills); new fluorescent lamp model for all ceiling lights
 v0.62.5: ceiling lights fill whole ceiling tiles, line up with the tile grid and sit up in the ceiling
 v0.62.6: real door models (prison door exit on Levels 0/1, old door for the other Level 0/1 doors, wooden door for every hotel door); removed the off-the-hook phone
+v0.62.7: Level 0 ceiling tiles use the OfficeCeiling001 texture (speckled acoustic tiles, lined up with the lights)
