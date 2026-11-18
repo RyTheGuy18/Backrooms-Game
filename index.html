@@ -390,7 +390,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.62.3</div>
+<div class="osd" id="ver">v0.62.4</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -795,27 +795,101 @@ const ZDENS = [0.1, 0.12, 0.07, 0.02, 0.07, 0.085, 0.065, 0.075];
 const ZSKY = [new THREE.Color(0x8a7a40), new THREE.Color(0x56626a), new THREE.Color(0x9a8c58), new THREE.Color(0xe4efe2), new THREE.Color(0x6a7488), new THREE.Color(0x7a6a50), new THREE.Color(0x8a826a), new THREE.Color(0x9a8448)];
 const ZGND = [new THREE.Color(0x1a1608), new THREE.Color(0x101214), new THREE.Color(0x221c0c), new THREE.Color(0x9fbdae), new THREE.Color(0x16140f), new THREE.Color(0x1a140c), new THREE.Color(0x1c1a14), new THREE.Color(0x221408)];
 const ZNAME = ['', 'PARKING LEVEL', 'THE PITFALLS', '', '', '', ''];
-const concWallTex = canvasTex(128,128,(g,w,h)=>{
-  g.fillStyle='#7a7c76'; g.fillRect(0,0,w,h);
-  for (let i=0;i<1600;i++){ const v=texR(); g.fillStyle=v<.5?'rgba(60,62,58,.35)':'rgba(150,150,140,.25)'; g.fillRect(texR()*w|0,texR()*h|0,1,1); }
-  for (let i=0;i<6;i++){ const x=texR()*w; g.fillStyle='rgba(60,55,45,.25)'; g.fillRect(x,0,2+texR()*3,20+texR()*70); }
-  g.fillStyle='rgba(40,40,38,.35)'; g.fillRect(0,40,w,1); g.fillRect(0,86,w,1);
-  for (let x=-16;x<w+16;x+=16){ g.fillStyle='#c9a21c'; g.beginPath(); g.moveTo(x,h-18); g.lineTo(x+8,h-18); g.lineTo(x+16,h-6); g.lineTo(x+8,h-6); g.fill(); g.fillStyle='#1a1a18'; g.beginPath(); g.moveTo(x+8,h-18); g.lineTo(x+16,h-18); g.lineTo(x+24,h-6); g.lineTo(x+16,h-6); g.fill(); }
-  g.fillStyle='#3a3a36'; g.fillRect(0,h-6,w,6);
+/* v0.62.4 (Ryan): his Poly Haven concrete (concrete_floor_worn_001: textures/garage-conc.jpg = the diffuse at 256 px = 2 m,
+   garage-conc-nor.png = its normal map) under the garage's yellow/black stripes, P2 sign, seams and parking lines, on the
+   walls, pillars, floor and ceiling of the Level 1 garage and Level 0's parking corner. concMat() maps them in WORLD
+   space (walls/pillars/sills: 4 m across × WH up, floors/ceilings: 4 m squares; normal map every 2 m), so nothing is
+   stretched or squeezed on short or thin boxes any more. The canvases start plain grey and get the photo when it loads. */
+const CONC_PH = 'textures/garage-conc.jpg', concNor = fileTex('textures/garage-conc-nor.png'); concNor.colorSpace = THREE.NoColorSpace;
+let concImg = null; const concWait = [];
+{ const im = new Image(); im.onload = () => { concImg = im; for (const f of concWait) f(); }; im.src = CONC_PH; }
+function concPhotoTex(w, h, gain, base, over){   // the photo tiled every 256 px (bottom-aligned), brightness ×gain, then the overlay
+  const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d');
+  const t = new THREE.CanvasTexture(c);
+  t.magFilter = THREE.NearestFilter; t.minFilter = THREE.NearestMipmapNearestFilter;
+  t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace;
+  const paint = () => {
+    g.globalAlpha = 1; g.globalCompositeOperation = 'source-over'; g.fillStyle = base; g.fillRect(0, 0, w, h);
+    if (concImg){
+      const tile = () => { for (let y = h - 256; y > -256; y -= 256) for (let x = 0; x < w; x += 256) g.drawImage(concImg, x, y, 256, 256); };
+      tile();
+      if (gain > 1){ g.globalCompositeOperation = 'lighter'; g.globalAlpha = gain - 1; tile(); }
+      else if (gain < 1){ g.globalAlpha = 1 - gain; g.fillStyle = '#000'; g.fillRect(0, 0, w, h); }
+      g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
+    }
+    g.save(); over(g, w, h); g.restore(); t.needsUpdate = true;
+  };
+  paint(); if (!concImg) concWait.push(paint);
+  return t;
+}
+// walls: 512 × 358 px = 4 m × 2.8 m; the overlay is drawn in the old 128 × 128 layout, stretched to fit (same look as before)
+const concWallTex = concPhotoTex(512, 358, 1.35, '#7a7c76', (g,w,h)=>{
+  g.scale(w/128, h/128);
+  g.fillStyle='rgba(40,40,38,.35)'; g.fillRect(0,40,128,1); g.fillRect(0,86,128,1);
+  for (let x=-16;x<128+16;x+=16){ g.fillStyle='#c9a21c'; g.beginPath(); g.moveTo(x,110); g.lineTo(x+8,110); g.lineTo(x+16,122); g.lineTo(x+8,122); g.fill(); g.fillStyle='#1a1a18'; g.beginPath(); g.moveTo(x+8,110); g.lineTo(x+16,110); g.lineTo(x+24,122); g.lineTo(x+16,122); g.fill(); }
+  g.fillStyle='#3a3a36'; g.fillRect(0,122,128,6);
   g.font='bold 34px monospace'; g.fillStyle='rgba(230,225,200,.55)'; g.fillText('P2', 40, 70);
 });
-const concFloorTex = canvasTex(64,64,(g,w,h)=>{
-  g.fillStyle='#4a4b48'; g.fillRect(0,0,w,h);
-  for (let i=0;i<900;i++){ const v=texR(); g.fillStyle=v<.5?'rgba(30,30,28,.4)':'rgba(110,110,100,.3)'; g.fillRect(texR()*w|0,texR()*h|0,1,1); }
-  g.fillStyle='rgba(225,225,210,.75)'; g.fillRect(0,0,2,h);
-  const gr=g.createRadialGradient(36,30,0,36,30,14); gr.addColorStop(0,'rgba(10,10,8,.55)'); gr.addColorStop(1,'rgba(10,10,8,0)'); g.fillStyle=gr; g.fillRect(20,14,32,32);
-  g.strokeStyle='rgba(20,20,18,.5)'; g.beginPath(); g.moveTo(10,50); g.lineTo(22,44); g.lineTo(30,52); g.stroke();
-});
-const concCeilTex = canvasTex(64,64,(g,w,h)=>{
-  g.fillStyle='#55574f'; g.fillRect(0,0,w,h);
-  for (let i=0;i<600;i++){ g.fillStyle='rgba(30,30,28,.35)'; g.fillRect(texR()*w|0,texR()*h|0,1,1); }
-  g.fillStyle='#3e403a'; g.fillRect(0,28,w,8); g.fillStyle='rgba(20,20,18,.4)'; g.fillRect(0,36,w,2);
-});
+// floor: 512 px = one 4 m cell, the white parking line along its west edge
+const concFloorTex = concPhotoTex(512, 512, 0.84, '#4a4b48', (g,w,h)=>{ g.fillStyle='rgba(225,225,210,.75)'; g.fillRect(0,0,16,h); });
+// ceiling: 512 px = one 4 m cell, a beam across it
+const concCeilTex = concPhotoTex(512, 512, 0.92, '#55574f', (g,w,h)=>{ g.fillStyle='rgba(50,52,46,.85)'; g.fillRect(0,224,w,64); g.fillStyle='rgba(20,20,18,.4)'; g.fillRect(0,288,w,16); });
+function concMat(map){
+  const m = psx(new THREE.MeshLambertMaterial({ color:0xffffff, map, normalMap:concNor }));
+  m.onBeforeCompile = s => {
+    s.vertexShader = s.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vCW; varying vec3 vCN;')
+      .replace('#include <project_vertex>', `#include <project_vertex>
+       { vec4 cwp = vec4(transformed, 1.0); vec3 cwn = objectNormal;
+         #ifdef USE_INSTANCING
+         cwp = instanceMatrix * cwp; cwn = mat3(instanceMatrix) * cwn;
+         #endif
+         vCW = (modelMatrix * cwp).xyz; vCN = mat3(modelMatrix) * cwn; }
+       { vec2 sr = vec2(280.0,210.0); gl_Position.xy = floor(gl_Position.xy/gl_Position.w*sr+0.5)/sr*gl_Position.w; }`);
+    s.fragmentShader = s.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec3 vCW; varying vec3 vCN; vec2 cUV; vec2 cNUV;')
+      .replace('void main() {', `void main() {
+       { vec3 cn = normalize(vCN); vec2 q;
+         if (abs(cn.y) > 0.7){ q = vec2(vCW.x, -vCW.z); cUV = q / 4.0; }
+         else { vec2 r = normalize(vec2(cn.z, -cn.x)); q = vec2(dot(vCW.xz, r), vCW.y); cUV = vec2(q.x / 4.0, q.y / 2.8); }
+         cNUV = q / 2.0; }`)
+      .replace('#include <map_fragment>', THREE.ShaderChunk.map_fragment.replaceAll('vMapUv', 'cUV'))
+      .replace('#include <normal_fragment_begin>', THREE.ShaderChunk.normal_fragment_begin.replaceAll('vNormalMapUv', 'cNUV'))
+      .replace('#include <normal_fragment_maps>', THREE.ShaderChunk.normal_fragment_maps.replaceAll('vNormalMapUv', 'cNUV'));
+  };
+  return m;
+}
+const concWallM = concMat(concWallTex), concFloorM = concMat(concFloorTex), concCeilM = concMat(concCeilTex);
+
+/* v0.62.4 (Ryan): EVERY ceiling light (all levels with panels; the Poolrooms' pool lamps aren't ceiling panels) is his
+   "low-poly fluorescent lamp with diffuser" (Downloads/ceiling-lowpoly-fluorescent-lamps-with-diffuser): a 0.8 m square
+   troffer hanging 9.5 cm under the ceiling. The mesh data of its ON lamp is inlined below (4 + 88 verts; local space: top at
+   y 0, diffuser facing down at −0.076); the diffuser shows its emissive texture at 128 px (textures/lamp-diffuser.jpg).
+   lampify() runs after every buildLevel: it swaps each level's L.panelMesh (unit boxes scaled per panel) for the lamp,
+   placed with its top where the old box's top was. Material 0 = diffuser (MeshBasic, tinted by the panel brightness via
+   instance colours exactly like the old boxes), material 1 = the metal housing (Lambert, ignores the instance colour). */
+const LAMP_DP=[0.3706,-0.0759,0.3707,-0.3704,-0.0759,0.3707,0.3706,-0.0759,-0.3703,-0.3704,-0.0759,-0.3703], LAMP_DU=[1,1,1,0,0,1,0,0], LAMP_DI=[0,1,2,2,1,3], LAMP_HP=[0.3706,-0.0759,0.3707,0.3706,-0.0759,0.3707,-0.3704,-0.0759,0.3707,-0.3704,-0.0759,0.3707,0.3706,-0.0759,-0.3703,0.3706,-0.0759,-0.3703,-0.3704,-0.0759,-0.3703,-0.3704,-0.0759,-0.3703,-0.3977,-0.0947,0.398,-0.3977,-0.0947,0.398,-0.3977,-0.0947,0.398,0.3979,-0.0947,0.398,0.3979,-0.0947,0.398,0.3979,-0.0947,0.398,0.3979,-0.0348,0.398,0.3979,-0.0348,0.398,0.3979,-0.0348,0.398,-0.3977,-0.0348,0.398,-0.3977,-0.0348,0.398,-0.3977,-0.0348,0.398,0.3979,-0.0348,-0.3976,0.3979,-0.0348,-0.3976,0.3979,-0.0348,-0.3976,0.3979,-0.0947,-0.3976,0.3979,-0.0947,-0.3976,0.3979,-0.0947,-0.3976,-0.3977,-0.0947,-0.3976,-0.3977,-0.0947,-0.3976,-0.3977,-0.0947,-0.3976,-0.3977,-0.0348,-0.3976,-0.3977,-0.0348,-0.3976,-0.3977,-0.0348,-0.3976,0.3706,-0.0889,-0.3703,0.3706,-0.0889,-0.3703,0.3706,-0.0889,-0.3703,-0.3704,-0.0889,-0.3703,-0.3704,-0.0889,-0.3703,-0.3704,-0.0889,-0.3703,0.3997,-0.0348,-0.3994,0.3997,-0.0348,-0.3994,0.3997,-0.0348,-0.3994,-0.3995,-0,-0.3994,-0.3995,-0,-0.3994,0.3997,-0,-0.3994,0.3997,-0,-0.3994,-0.3995,-0.0348,-0.3994,-0.3995,-0.0348,-0.3994,-0.3995,-0.0348,-0.3994,-0.3995,-0.0348,0.3998,-0.3995,-0.0348,0.3998,-0.3995,-0.0348,0.3998,0.3997,-0.0348,0.3998,0.3997,-0.0348,0.3998,0.3997,-0.0348,0.3998,0.3997,-0,0.3998,0.3997,-0,0.3998,-0.3995,-0,0.3998,-0.3995,-0,0.3998,0.3706,-0.0889,0.3707,0.3706,-0.0889,0.3707,0.3706,-0.0889,0.3707,0.3771,-0.0889,-0.3768,0.3771,-0.0889,-0.3768,0.3771,-0.0889,-0.3768,-0.3769,-0.0889,-0.3768,-0.3769,-0.0889,-0.3768,-0.3769,-0.0889,-0.3768,-0.3769,-0.0947,-0.3768,-0.3769,-0.0947,-0.3768,-0.3769,-0.0947,-0.3768,0.3771,-0.0947,-0.3768,0.3771,-0.0947,-0.3768,0.3771,-0.0947,-0.3768,-0.3769,-0.0889,0.3772,-0.3769,-0.0889,0.3772,-0.3769,-0.0889,0.3772,0.3771,-0.0889,0.3772,0.3771,-0.0889,0.3772,0.3771,-0.0889,0.3772,0.3771,-0.0947,0.3772,0.3771,-0.0947,0.3772,0.3771,-0.0947,0.3772,-0.3769,-0.0947,0.3772,-0.3769,-0.0947,0.3772,-0.3769,-0.0947,0.3772,-0.3704,-0.0889,0.3707,-0.3704,-0.0889,0.3707,-0.3704,-0.0889,0.3707], LAMP_HN=[0,0,-1,-1,0,0,0,0,-1,1,0,0,0,0,1,-1,0,0,0,0,1,1,0,0,0,0,1,0,-1,0,-1,0,0,0,0,1,0,-1,0,1,0,0,0,0,1,0,-1,0,1,0,0,0,0,1,0,-1,0,-1,0,0,0,0,-1,0,-1,0,1,0,0,0,0,-1,0,-1,0,1,0,0,0,0,-1,0,-1,0,-1,0,0,0,0,-1,0,-1,0,-1,0,0,0,0,1,0,-1,0,-1,0,0,0,0,1,0,-1,0,1,0,0,0,0,-1,0,-1,0,1,0,0,0,0,-1,-1,0,0,0,0,-1,1,0,0,0,0,-1,0,-1,0,-1,0,0,0,0,1,0,-1,0,-1,0,0,0,0,1,0,-1,0,1,0,0,0,0,1,1,0,0,0,0,1,-1,0,0,0,0,-1,0,-1,0,-1,0,0,0,0,1,0,-1,0,-1,0,0,0,0,1,0,-1,0,1,0,0,0,0,1,0,-1,0,1,0,0,0,0,1,0,-1,0,-1,0,0,0,0,-1,0,-1,0,1,0,0,0,0,-1,0,-1,0,-1,0,0,0,0,-1,0,-1,0,-1,0,0,0,0,-1,0,-1,0,1,0,0,0,0,-1,0,-1,0,1,0,0], LAMP_HI=[8,11,14,8,14,17,13,22,16,13,25,22,28,19,31,28,10,19,32,6,35,32,4,6,38,41,43,38,45,41,48,51,54,48,54,56,23,29,20,23,26,29,60,1,5,60,5,34,61,64,67,61,67,70,73,76,79,73,79,82,85,2,0,85,0,58,53,44,55,53,40,44,47,57,42,47,50,57,66,75,84,66,84,69,78,63,72,78,72,81,37,7,3,37,3,87,71,24,12,71,27,24,80,71,12,71,68,27,80,12,9,68,9,27,83,80,9,68,83,9,36,65,62,36,74,65,33,36,62,36,86,74,33,62,77,86,77,74,59,33,77,86,59,77,30,46,39,30,49,46,21,30,39,30,18,49,15,21,39,18,15,49,15,39,52,15,52,49];
+const lampDiffTex = fileTex('textures/lamp-diffuser.jpg');
+const lampDiffM = new THREE.MeshBasicMaterial({ map:lampDiffTex }); lampDiffM.color.setScalar(1.3);
+const lampHouseM = lam(0x8e8a84, { side:THREE.DoubleSide });
+{ const f = lampHouseM.onBeforeCompile; lampHouseM.onBeforeCompile = s => { f(s); s.fragmentShader = s.fragmentShader.replace('#include <color_fragment>', ''); }; }
+let lampGeoC = null;
+function lampGeo(){
+  if (lampGeoC) return lampGeoC;
+  const nD = LAMP_DP.length/3, nH = LAMP_HP.length/3, g = new THREE.BufferGeometry();
+  const nor = new Float32Array((nD+nH)*3); for (let k=0;k<nD;k++) nor[k*3+1] = -1; nor.set(LAMP_HN, nD*3);
+  const uv = new Float32Array((nD+nH)*2); uv.set(LAMP_DU);
+  g.setAttribute('position', new THREE.BufferAttribute(new Float32Array([...LAMP_DP, ...LAMP_HP]), 3));
+  g.setAttribute('normal', new THREE.BufferAttribute(nor, 3)); g.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+  g.setIndex([...LAMP_DI, ...LAMP_HI.map(i=>i+nD)]); g.addGroup(0, LAMP_DI.length, 0); g.addGroup(LAMP_DI.length, LAMP_HI.length, 1);
+  return lampGeoC = g;
+}
+function lampify(L){
+  const m = L && L.panelMesh; if (!m || !m.count || m.userData.lamp || !m.parent) return;
+  const n = m.count, nm = new THREE.InstancedMesh(lampGeo(), [lampDiffM, lampHouseM], n); nm.userData.lamp = true;
+  for (let k=0;k<n;k++){ m.getMatrixAt(k, tmpM); tmpM.decompose(tmpV, tmpQ, tmpS);
+    if (tmpS.x > 0.01){ tmpV.y += tmpS.y/2; tmpS.set(1, 1, 1); tmpQ.identity(); tmpM.compose(tmpV, tmpQ, tmpS); }   // tiny = hidden (hotel elevator cars): keep
+    nm.setMatrixAt(k, tmpM); nm.setColorAt(k, tmpC.setRGB(1, 1, 1)); }
+  nm.frustumCulled = false; m.parent.add(nm); m.parent.remove(m); L.panelMesh = nm;
+}
 const pitWallTex = canvasTex(128,128,(g,w,h)=>{
   g.fillStyle='#d8d0a4'; g.fillRect(0,0,w,h);
   for (let y=6;y<h-8;y+=12) for (let x=(y/12%2)*6;x<w;x+=12){ g.fillStyle='rgba(170,160,110,.35)'; g.fillRect(x,y,2,2); }
@@ -3236,7 +3310,7 @@ function updatePartygoers(dt){
    garage side (sill, header, glass, mullions; the edge still blocks movement and sight in `walls`), and a sign over the door. */
 const GROOM_NAMES = ['STORAGE', 'MAINTENANCE', 'ATTENDANT', 'SUPPLY ROOM', 'PARKING OFFICE'];
 function garageRoomShell(L, g, q){
-  const conc = lam(0xffffff, { map: concWallTex }), frame = lam(0x4a4e52), H1 = ZH[1], DW = 1.25;
+  const conc = concWallM, frame = lam(0x4a4e52), H1 = ZH[1], DW = 1.25;
   const [mx, mz] = edgeMid(q.door), vert = q.door < VN, half = CS/2 + 0.1;
   // which way is "out" (into the garage) from the door
   const ci = q.side === 0 ? 1 : q.side === 1 ? -1 : 0, cj = q.side === 2 ? 1 : q.side === 3 ? -1 : 0;
@@ -3287,7 +3361,8 @@ function garageRoomShelves(L, g, q, rng){
     for (const xw of [x0 + 0.3 + D/2, x1 - 0.3 - D/2]) for (let k=0;k<Math.floor((z1-z0-2.6)/2.2);k++){ const z = q.side === 2 ? z0 + 1.9 + k*2.2 : z1 - 1.9 - k*2.2; spots.push([xw, z, false]); } }
   for (const [x, z, a] of spots) if (!near(x, z) && Math.hypot(x - q.ix, z - q.iz) > 2.4 && rng() < 0.85) unit(x, z, a);
 }
-function buildLevel(seed, kind=0){
+function buildLevel(seed, kind=0){ buildLevelRaw(seed, kind); lampify(level); }
+function buildLevelRaw(seed, kind=0){
   if (level && level.seed === seed && level.lk === kind) return;
   LK = kind; if (kind === 0) baseSeed = seed;
   if (level){ scene.remove(level.group); level.group.traverse(o=>{ o.geometry && o.geometry.dispose(); }); for (const s of level.sounds) try{ s.stop(); }catch(e){} }
@@ -3317,8 +3392,8 @@ function buildLevel(seed, kind=0){
   if (kind !== 4){
   instCells(cellPlane(2,false), lam(0xffffff,{map:rugTex}), zc[0], 0);
   instCells(cellPlane(CS/1.2,true), lam(0xffffff,{map:ceilTex}), zc[0], WH);
-  instCells(cellPlane(1,false), lam(0xffffff,{map:concFloorTex}), zc[1], 0);
-  instCells(cellPlane(1,true), lam(0xffffff,{map:concCeilTex}), zc[1], WH);
+  instCells(cellPlane(1,false), concFloorM, zc[1], 0);
+  instCells(cellPlane(1,true), concCeilM, zc[1], WH);
   instCells(cellPlane(CS/0.6,true), lam(0xffffff,{map:tileCeilTex}), zc[2], ZH[2]);
   }
   setPoolVisible(false);
@@ -3327,7 +3402,7 @@ function buildLevel(seed, kind=0){
   if (kind === 0){ L.noDraw = new Uint8Array(E); L.noDraw[labPE()] = 1;   // the lab's blast door is drawn as a shutter
     for (let e=0;e<E;e++) if (edgeCells(e).some(([i,j])=>inGrid(i,j) && inLabCell(i,j))) L.fixed[e] = 1; }
   if (kind === 1){ L.noDraw = new Uint8Array(E); for (const q of L.groom){ for (const e of q.win) L.noDraw[e] = 1; L.noDraw[q.door] = 1; } }   // windows are drawn by buildGarageRoom
-  const wmats = [wallMat, lam(0xffffff,{map:concWallTex}), lam(0xffffff,{map:pitWallTex}), kind === 2 ? tileMats().wall : wallMat, lam(0xffffff,{map:mallWallTex})];
+  const wmats = [wallMat, concWallM, lam(0xffffff,{map:pitWallTex}), kind === 2 ? tileMats().wall : wallMat, lam(0xffffff,{map:mallWallTex})];
   tmpM.makeScale(0.0001,0.0001,0.0001);
   L.wallMeshes = [0,1,2,3,4].map(z=>{ const m = new THREE.InstancedMesh(boxUV(CS+0.2, ZH[z], 0.2), wmats[z], E); for (let e=0;e<E;e++) m.setMatrixAt(e, tmpM); m.frustumCulled=false; g.add(m); return m; });
   applyWalls(true);
