@@ -390,7 +390,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.62.0</div>
+<div class="osd" id="ver">v0.62.1</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -455,7 +455,7 @@
     <b>Find 3 fuses</b>, bring them to the breaker, then find the exit door.<br><br>
     <b>Hide</b> in lockers. It can't open them, but hold your breath when it's close.<br>
     <b>Blind it:</b> hold your flashlight on its face up close to stun it.<br>
-    <b>Escape Level 0</b> and everyone still alive drops into <b>Level 1</b>, a dark parking garage. No Occupant down there: <b>two Lurkers</b> own the dark. Start all 5 generators (it takes a while and it's LOUD: they come for whoever is cranking), keep your light ready, then find the exit. When the lights come on, they run.<br>
+    <b>Escape Level 0</b> and everyone still alive drops into <b>Level 1</b>, a dark parking garage. No Occupant down there: <b>two Lurkers</b> own the dark. Start all 5 generators (it takes a while and it's LOUD: they come for whoever is cranking), keep your light ready, then find the exit. When the lights come on, they run. The <b>lit rooms</b> along the walls (storage, office…) are safe: they can't come in, but if one saw you go in, it may wait outside.<br>
     <b>Escape the garage</b> and you wake up in <b>Level 37, the Poolrooms</b>. Turn all 3 drain valves to empty the great pool, then climb down to the drain at the bottom.<br>
     <b>Adrenaline</b> kicks in when it's close, so run. It stalks slowly, but once it sees you it runs (still slower than your sprint).<br>
     <b>Crouch in the dark</b> with your light off and it can barely see you.<br>
@@ -852,14 +852,32 @@ function garageWalls(rng){
   const R = (a, b) => a + Math.floor(rng()*(b-a+1));
   const nearSpawn = (i, j) => i <= 6 && j <= 6;
   const fill = (i0, j0, i1, j1) => { for (let i=i0;i<=i1;i++) for (let j=j0;j<=j1;j++) if (inGrid(i,j)) solid[i*N+j] = 1; };
+  const roomAt = new Int8Array(N*N).fill(-1), rooms = [];
   const clear = (i0, j0, i1, j1, pad) => { if (i0 < 0 || j0 < 0 || i1 >= N || j1 >= N) return false;
-    for (let i=i0-pad;i<=i1+pad;i++) for (let j=j0-pad;j<=j1+pad;j++){ if (!inGrid(i,j)) continue; if (solid[i*N+j] || nearSpawn(i,j)) return false; } return true; };
+    for (let i=i0-pad;i<=i1+pad;i++) for (let j=j0-pad;j<=j1+pad;j++){ if (!inGrid(i,j)) continue; if (solid[i*N+j] || nearSpawn(i,j) || roomAt[i*N+j] >= 0) return false; } return true; };
   // 1. the outline: two of the three far corners cut away, and a notch in one side
   const corners = [[1,0],[0,1],[1,1]]; for (let k=2;k>0;k--){ const r = Math.floor(rng()*(k+1)); [corners[k], corners[r]] = [corners[r], corners[k]]; }
   for (const [ci, cj] of corners.slice(0, 2)){ const iw = R(6, 10), jh = R(5, 9); fill(ci ? N-iw : 0, cj ? N-jh : 0, ci ? N-1 : iw-1, cj ? N-1 : jh-1); }
   for (let t=0;t<40;t++){ const side = R(0, 3), dep = R(3, 5), len = R(5, 8), p = R(9, N-9-len);
     const box = side === 0 ? [0, p, dep-1, p+len-1] : side === 1 ? [N-dep, p, N-1, p+len-1] : side === 2 ? [p, 0, p+len-1, dep-1] : [p, N-dep, p+len-1, N-1];
     if (clear(box[0], box[1], box[2], box[3], 0)){ fill(...box); break; } }
+  // 1b. v0.62.1 (Ryan): 1-2 rooms against the outer wall (storage / attendant / maintenance): lit, a door, windows, shelves, a phone
+  const nRooms = 1 + (rng() < 0.5 ? 1 : 0);
+  for (let r=0, t=0; r<nRooms && t<300; t++){
+    const side = R(0, 3), len = R(3, 5), dep = R(2, 3), p = R(1, N-1-len);
+    const box = side === 0 ? [0, p, dep-1, p+len-1] : side === 1 ? [N-dep, p, N-1, p+len-1] : side === 2 ? [p, 0, p+len-1, dep-1] : [p, N-dep, p+len-1, N-1];
+    if (!clear(box[0], box[1], box[2], box[3], 1)) continue;
+    if (rooms.some(q=>Math.hypot((q.i0+q.i1)/2 - (box[0]+box[2])/2, (q.j0+q.j1)/2 - (box[1]+box[3])/2) < 9)) continue;
+    // the side facing into the garage: door in the middle, windows either side of it
+    const inner = []; const [i0, j0, i1, j1] = box;
+    if (side === 0) for (let j=j0;j<=j1;j++) inner.push(vIdx(i1+1, j)); else if (side === 1) for (let j=j0;j<=j1;j++) inner.push(vIdx(i0, j));
+    else if (side === 2) for (let i=i0;i<=i1;i++) inner.push(hIdx(i, j1+1)); else for (let i=i0;i<=i1;i++) inner.push(hIdx(i, j0));
+    const out = e => { const [a, b] = edgeCells(e); return roomAt[a[0]*N+a[1]] < 0 && !(a[0] >= i0 && a[0] <= i1 && a[1] >= j0 && a[1] <= j1) ? a : b; };
+    if (inner.some(e=>{ const c = out(e); return !inGrid(c[0], c[1]) || solid[c[0]*N+c[1]]; })) continue;
+    for (let i=i0;i<=i1;i++) for (let j=j0;j<=j1;j++) roomAt[i*N+j] = rooms.length;
+    const di = Math.floor((inner.length-1)/2) + (inner.length % 2 === 0 && rng() < 0.5 ? 1 : 0);
+    let win = inner.filter((e,k)=>k !== di && rng() < 0.75); if (!win.length) win = [inner[di > 0 ? di-1 : di+1]];   // always at least one window
+    rooms.push({ i0, j0, i1, j1, side, door: inner[di], win, inner }); r++; }
   // 2. solid cores inside (stairwells, elevator banks, service rooms)
   for (const [iw, jh] of [[2,2],[3,4],[2,3],[3,2],[2,4],[2,2]]) for (let t=0;t<200;t++){ const a = rng() < 0.5, W0 = a ? iw : jh, H0 = a ? jh : iw, i0 = R(2, N-2-W0), j0 = R(2, N-2-H0);
     if (clear(i0, j0, i0+W0-1, j0+H0-1, 2)){ fill(i0, j0, i0+W0-1, j0+H0-1); break; } }
@@ -868,14 +886,15 @@ function garageWalls(rng){
   for (let r=0, t=0; r<3 && t<300; t++){ const vert = rng() < 0.5, len = R(5, 9), line = R(4, N-4), st = R(2, N-2-len), es = [];
     let okR = true;
     for (let q=0;q<len;q++){ const [i0, j0, i1, j1] = vert ? [line-1, st+q, line, st+q] : [st+q, line-1, st+q, line];
-      if (!inGrid(i0,j0) || !inGrid(i1,j1) || solid[i0*N+j0] || solid[i1*N+j1] || nearSpawn(i0,j0) || nearSpawn(i1,j1)) { okR = false; break; }
+      if (!inGrid(i0,j0) || !inGrid(i1,j1) || solid[i0*N+j0] || solid[i1*N+j1] || nearSpawn(i0,j0) || nearSpawn(i1,j1) || roomAt[i0*N+j0] >= 0 || roomAt[i1*N+j1] >= 0) { okR = false; break; }
       es.push(vert ? vIdx(line, st+q) : hIdx(st+q, line)); }
     if (!okR || runs.some(o=>o.some(e=>es.includes(e)))) continue;
     if (len >= 7) es.splice(R(2, len-3), 1);   // a gap to slip through
     runs.push(es); r++; }
   const build = () => { w.fill(0);
-    for (let e=0;e<E;e++){ if (isBoundary(e)){ w[e] = 1; continue; } const [a, b] = edgeCells(e); if (solid[a[0]*N+a[1]] !== solid[b[0]*N+b[1]]) w[e] = 1; }
-    for (const es of runs) for (const e of es) w[e] = 1; };
+    for (let e=0;e<E;e++){ if (isBoundary(e)){ w[e] = 1; continue; } const [a, b] = edgeCells(e); if (solid[a[0]*N+a[1]] !== solid[b[0]*N+b[1]] || roomAt[a[0]*N+a[1]] !== roomAt[b[0]*N+b[1]]) w[e] = 1; }
+    for (const es of runs) for (const e of es) w[e] = 1;
+    for (const q of rooms) w[q.door] = 0; };
   const reach = () => { const d = new Int16Array(N*N).fill(-1), q = [1*N+1]; d[q[0]] = 0;
     for (let h=0; h<q.length; h++){ const c = q[h], i = Math.floor(c/N), j = c%N;
       for (const [a,b] of nbr4){ const ni = i+a, nj = j+b; if (!inGrid(ni,nj) || d[ni*N+nj] >= 0 || solid[ni*N+nj] || w[edgeBetween(i,j,ni,nj)]) continue; d[ni*N+nj] = d[c]+1; q.push(ni*N+nj); } }
@@ -884,7 +903,7 @@ function garageWalls(rng){
   while (runs.length && [...solid].some((v,k)=>!v && d[k] < 0)){ runs.pop(); build(); d = reach(); }   // never cut part of the garage off
   for (let k=0;k<N*N;k++) if (!solid[k] && d[k] < 0) solid[k] = 1;
   build();
-  return { w, rooms:[], halls:[], tight:[], kind, field:null, corrs:[], solid };
+  return { w, rooms:[], halls:[], tight:[], kind, field:null, corrs:[], solid, groom:rooms, roomAt };
 }
 function genWalls(rng){
   if (LK === 1) return garageWalls(rng);
@@ -3201,6 +3220,61 @@ function updatePartygoers(dt){
   pgGig -= dt; if (pgGig <= 0 && list.length){ pgGig = funNight() ? 3 + Math.random()*5 : 9 + Math.random()*14; let best = null, bd = 18; for (const v of PGV) if (v.m.g.visible){ const d = Math.hypot(v.x-cx, v.z-cz); if (d < bd){ bd = d; best = v; } } if (best) funGiggle(best.x, best.z, best.st >= 3); }
 }
 
+/* v0.62.1 (Ryan): the garage's rooms. Shell = the doorway (two wall pieces + a header, the door swung open inside), the windows on the
+   garage side (sill, header, glass, mullions; the edge still blocks movement and sight in `walls`), and a sign over the door. */
+const GROOM_NAMES = ['STORAGE', 'MAINTENANCE', 'ATTENDANT', 'SUPPLY ROOM', 'PARKING OFFICE'];
+function garageRoomShell(L, g, q){
+  const conc = lam(0xffffff, { map: concWallTex }), frame = lam(0x4a4e52), H1 = ZH[1], DW = 1.25;
+  const [mx, mz] = edgeMid(q.door), vert = q.door < VN, half = CS/2 + 0.1;
+  // which way is "out" (into the garage) from the door
+  const ci = q.side === 0 ? 1 : q.side === 1 ? -1 : 0, cj = q.side === 2 ? 1 : q.side === 3 ? -1 : 0;
+  q.dx = mx + ci*1.2; q.dz = mz + cj*1.2;   // just outside the door
+  q.ix = mx - ci*1.2; q.iz = mz - cj*1.2;   // just inside
+  if (vert){ L.slabs.push([mx-0.1, mx+0.1, mz-half, mz-DW/2], [mx-0.1, mx+0.1, mz+DW/2, mz+half]); }
+  else { L.slabs.push([mx-half, mx-DW/2, mz-0.1, mz+0.1], [mx+DW/2, mx+half, mz-0.1, mz+0.1]); }
+  const hd = new THREE.Mesh(boxUV(vert ? 0.2 : DW, H1-2.15, vert ? DW : 0.2), conc); hd.position.set(mx, 2.15 + (H1-2.15)/2, mz); g.add(hd);
+  // door leaf swung open into the room
+  const piv = new THREE.Group(), hx = vert ? mx : mx - DW/2, hz = vert ? mz - DW/2 : mz; piv.position.set(hx, 0, hz); g.add(piv);
+  const leaf = new THREE.Mesh(new THREE.BoxGeometry(vert ? 0.05 : DW-0.06, 2.1, vert ? DW-0.06 : 0.05), lam(0x5d6a72)); leaf.position.set(vert ? 0 : (DW-0.06)/2, 1.05, vert ? (DW-0.06)/2 : 0); piv.add(leaf);
+  const kn = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.06, 0.06), lam(0xb8b4a0)); kn.position.set(vert ? 0.05 : DW-0.2, 1.0, vert ? DW-0.2 : 0.05); piv.add(kn);
+  piv.rotation.y = (vert ? -ci : cj) * -1.35;
+  L.circles.push({ x: hx + (vert ? -ci*0.55 : 0.35), z: hz + (vert ? 0.35 : -cj*0.55), r: 0.12 });
+  // sign over the door, on the garage side
+  const nm = GROOM_NAMES[(q.i0*7 + q.j0*3 + L.groom.indexOf(q)*2) % GROOM_NAMES.length]; q.name = nm;
+  const sg = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.32), new THREE.MeshBasicMaterial({ map: textTex(nm, 160, 34, (c,w,h,t)=>{ c.fillStyle='#d8d2b8'; c.fillRect(0,0,w,h); c.fillStyle='#1c1c1c'; c.fillRect(2,2,w-4,h-4); c.fillStyle='#e8e2c8'; c.font='bold 17px monospace'; c.textAlign='center'; c.fillText(t,w/2,23); }) }));
+  sg.position.set(mx + ci*0.12, 2.42, mz + cj*0.12); sg.rotation.y = Math.atan2(ci, cj); g.add(sg);
+  // windows: sill + header in concrete, a thin frame, glass you can see the lit room through
+  const glass = new THREE.MeshBasicMaterial({ color: 0xa8c4cc, transparent: true, opacity: 0.16, depthWrite: false, side: THREE.DoubleSide });
+  for (const e of q.win){ const [x, z] = edgeMid(e), v = e < VN, Lw = CS + 0.2;
+    const sill = new THREE.Mesh(boxUV(v ? 0.2 : Lw, 1.0, v ? Lw : 0.2), conc); sill.position.set(x, 0.5, z); g.add(sill);
+    const top = new THREE.Mesh(boxUV(v ? 0.2 : Lw, H1-2.15, v ? Lw : 0.2), conc); top.position.set(x, 2.15 + (H1-2.15)/2, z); g.add(top);
+    for (const o of [-1.6, 0, 1.6]){ const m = new THREE.Mesh(new THREE.BoxGeometry(v ? 0.12 : 0.08, 1.15, v ? 0.08 : 0.12), frame); m.position.set(x + (v ? 0 : o), 1.575, z + (v ? o : 0)); g.add(m); }
+    for (const y of [1.02, 2.12]){ const m = new THREE.Mesh(new THREE.BoxGeometry(v ? 0.12 : CS, 0.06, v ? CS : 0.12), frame); m.position.set(x, y, z); g.add(m); }
+    const gl = new THREE.Mesh(new THREE.PlaneGeometry(CS - 0.1, 1.1), glass); gl.position.set(x, 1.575, z); if (v) gl.rotation.y = Math.PI/2; g.add(gl); }
+}
+// metal shelving along the back and side walls, mostly bare (a few boxes and cans), never in front of the phone, door or windows
+function garageRoomShelves(L, g, q, rng){
+  const post = lam(0x5c6066), board = lam(0x7a7e84), boxM = [lam(0x8a6a3a), lam(0x9a7a48), lam(0x6e5a3a)], can = lam(0x7a2a22);
+  const x0 = q.i0*CS, x1 = (q.i1+1)*CS, z0 = q.j0*CS, z1 = (q.j1+1)*CS, D = 0.5, SW = 1.8, HH = 1.95;
+  const unit = (cx, cz, along) => {   // along: true = runs along x
+    const u = new THREE.Group(); u.position.set(cx, 0, cz); if (!along) u.rotation.y = Math.PI/2; g.add(u);
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) bx(u, 0.05, HH, 0.05, sx*(SW/2-0.03), HH/2, sz*(D/2-0.03), post);
+    for (const y of [0.12, 0.72, 1.32, 1.9]){ bx(u, SW, 0.03, D, 0, y, 0, board);
+      if (y < 1.9 && rng() < 0.45){ const n = 1 + Math.floor(rng()*2); for (let k=0;k<n;k++){ const w = 0.3 + rng()*0.25, h = 0.2 + rng()*0.25; const b = bx(u, w, h, 0.32, (rng()-0.5)*(SW-w), y + 0.015 + h/2, 0, boxM[Math.floor(rng()*3)]); b.rotation.y = (rng()-0.5)*0.3; } }
+      else if (y < 1.9 && rng() < 0.2){ const c = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 0.22, 8), can); c.position.set((rng()-0.5)*1.2, y + 0.125, 0); u.add(c); } }
+    if (along) L.slabs.push([cx - SW/2, cx + SW/2, cz - D/2, cz + D/2, 1]); else L.slabs.push([cx - D/2, cx + D/2, cz - SW/2, cz + SW/2, 1]);
+  };
+  const ph = q.phone, near = (x, z) => ph && Math.hypot(x - ph[0], z - ph[1]) < 1.6;
+  const spots = [];
+  // back wall (the outer wall) and the two side walls
+  if (q.side < 2){ const bxw = q.side === 0 ? x0 + 0.3 + D/2 : x1 - 0.3 - D/2;
+    for (let z = z0 + 1.4; z <= z1 - 1.4; z += 2.3) spots.push([bxw, z, false]);
+    for (const zw of [z0 + 0.3 + D/2, z1 - 0.3 - D/2]) for (let k=0;k<Math.floor((x1-x0-2.6)/2.2);k++){ const x = q.side === 0 ? x0 + 1.9 + k*2.2 : x1 - 1.9 - k*2.2; spots.push([x, zw, true]); } }
+  else { const bzw = q.side === 2 ? z0 + 0.3 + D/2 : z1 - 0.3 - D/2;
+    for (let x = x0 + 1.4; x <= x1 - 1.4; x += 2.3) spots.push([x, bzw, true]);
+    for (const xw of [x0 + 0.3 + D/2, x1 - 0.3 - D/2]) for (let k=0;k<Math.floor((z1-z0-2.6)/2.2);k++){ const z = q.side === 2 ? z0 + 1.9 + k*2.2 : z1 - 1.9 - k*2.2; spots.push([xw, z, false]); } }
+  for (const [x, z, a] of spots) if (!near(x, z) && Math.hypot(x - q.ix, z - q.iz) > 2.4 && rng() < 0.85) unit(x, z, a);
+}
 function buildLevel(seed, kind=0){
   if (level && level.seed === seed && level.lk === kind) return;
   LK = kind; if (kind === 0) baseSeed = seed;
@@ -3222,6 +3296,8 @@ function buildLevel(seed, kind=0){
   const L = level;
   L.solid = gen.solid || null; L.pilH = kind === 1 ? 0.65 : 0.35;   // v0.62: garage cores/outside + thicker garage pillars
   if (L.solid) for (let k=0;k<N*N;k++) if (L.solid[k]) L.used.add(k);
+  L.groom = gen.groom || []; L.roomAt = gen.roomAt || null;   // v0.62.1: the garage's lit rooms
+  if (L.roomAt) for (let k=0;k<N*N;k++) if (L.roomAt[k] >= 0) L.used.add(k);
   // floors + ceilings per zone (pitfalls floor is built later around the holes)
   const zc = [[],[],[],[],[]];
   for (let i=0;i<N;i++) for (let j=0;j<N;j++){ if (kind === 0 && inLabCell(i,j)) continue; zc[zoneOf(i,j)].push([i,j]); }   // the lab builds its own floor/ceiling
@@ -3238,6 +3314,7 @@ function buildLevel(seed, kind=0){
   L.edgeZ = new Uint8Array(E); for (let e=0;e<E;e++) L.edgeZ[e] = edgeZoneOf(e);
   if (kind === 0){ L.noDraw = new Uint8Array(E); L.noDraw[labPE()] = 1;   // the lab's blast door is drawn as a shutter
     for (let e=0;e<E;e++) if (edgeCells(e).some(([i,j])=>inGrid(i,j) && inLabCell(i,j))) L.fixed[e] = 1; }
+  if (kind === 1){ L.noDraw = new Uint8Array(E); for (const q of L.groom) for (const e of q.win) L.noDraw[e] = 1; }   // windows are drawn by buildGarageRoom
   const wmats = [wallMat, lam(0xffffff,{map:concWallTex}), lam(0xffffff,{map:pitWallTex}), kind === 2 ? tileMats().wall : wallMat, lam(0xffffff,{map:mallWallTex})];
   tmpM.makeScale(0.0001,0.0001,0.0001);
   L.wallMeshes = [0,1,2,3,4].map(z=>{ const m = new THREE.InstancedMesh(boxUV(CS+0.2, ZH[z], 0.2), wmats[z], E); for (let e=0;e<E;e++) m.setMatrixAt(e, tmpM); m.frustumCulled=false; g.add(m); return m; });
@@ -3253,7 +3330,7 @@ function buildLevel(seed, kind=0){
   const pil = [[],[]];
   ((kind === 2 ? gen.halls[1] : gen.halls[0]) ? [kind === 2 ? gen.halls[1] : gen.halls[0]] : []).forEach(r=>{ for (let i=r.i0+1;i<=r.i1;i+=2) for (let j=r.j0+1;j<=r.j1;j+=2) pil[0].push([i,j]); });
   if (kind === 1){ for (let i=2;i<N;i+=2) for (let j=2;j<N;j+=2){ if (i<=2 && j<=2) continue;
-      if ([[i-1,j-1],[i,j-1],[i-1,j],[i,j]].some(([a,b])=>L.solid[a*N+b])) continue;
+      if ([[i-1,j-1],[i,j-1],[i-1,j],[i,j]].some(([a,b])=>L.solid[a*N+b] || (L.roomAt && L.roomAt[a*N+b] >= 0))) continue;   // none in the cores or the rooms
       if (walls[vIdx(i,j-1)] || walls[vIdx(i,j)] || walls[hIdx(i-1,j)] || walls[hIdx(i,j)]) continue;
       pil[1].push([i,j]); } }
   else for (let i=N-ZS+1;i<N;i+=2) for (let j=1;j<ZS;j+=2) if (zoneOf(i-1,j-1)===1 && zoneOf(i,j)===1) pil[1].push([i,j]);
@@ -3265,9 +3342,10 @@ function buildLevel(seed, kind=0){
     if (walls[vIdx(i+1,j)]) L.slabs.push([x0+CS-T, x0+CS, z0, z0+CS]);
     if (walls[hIdx(i,j)])   L.slabs.push([x0, x0+CS, z0, z0+T]);
     if (walls[hIdx(i,j+1)]) L.slabs.push([x0, x0+CS, z0+CS-T, z0+CS]); }
+  if (kind === 1) for (const q of L.groom) garageRoomShell(L, g, q);   // v0.62.1: door pieces (slabs), windows, header
   const SH = kind === 2 ? ZH[3] : WH;
   if (L.slabs.length){   // v0.62: one merged mesh with real-size UVs (instanced unit boxes squeezed the paper)
-    const sm = new THREE.Mesh(mergeGeometries(L.slabs.map(([a0,a1,b0,b1])=>{ const q = boxUV(a1-a0, SH, b1-b0); q.translate((a0+a1)/2, SH/2, (b0+b1)/2); return q; })), kind === 2 ? tileMats().wall : wallMat);
+    const sm = new THREE.Mesh(mergeGeometries(L.slabs.filter(q=>!q[4]).map(([a0,a1,b0,b1])=>{ const q = boxUV(a1-a0, SH, b1-b0); q.translate((a0+a1)/2, SH/2, (b0+b1)/2); return q; })), kind === 2 ? tileMats().wall : kind === 1 ? wmats[1] : wallMat);
     sm.frustumCulled = false; g.add(sm); }
   pil.forEach((list,z)=>{ if (!list.length) return; const pm = kind === 2 ? new THREE.InstancedMesh(new THREE.CylinderGeometry(0.42,0.42,ZH[3],14), tileMats().wall, list.length) : new THREE.InstancedMesh(z ? boxUV(L.pilH*2, WH, L.pilH*2) : boxUV(0.7, WH, 0.7), z ? wmats[1] : wallMat, list.length);
     list.forEach(([i,j],k)=>{ tmpM.makeTranslation(i*CS, (kind === 2 ? ZH[3] : WH)/2, j*CS); pm.setMatrixAt(k, tmpM); L.pillarSet.add(i+','+j); }); g.add(pm); });
@@ -3289,11 +3367,13 @@ function buildLevel(seed, kind=0){
     if (kind === 0 && inLabCell(i,j)) continue;
     if (L.solid && L.solid[i*N+j]) continue;
     const t = zoneOf(i,j), chance = [0.8, 0.62, 1.0][t];
-    if (kind !== 2 && (rng() < chance || inRed(i,j) || genAt(i,j) >= 0)){
+    const inRm = !!(L.roomAt && L.roomAt[i*N+j] >= 0);
+    if (kind !== 2 && (rng() < chance || inRed(i,j) || genAt(i,j) >= 0 || inRm)){
       const p = { idx:L.panels.length, i, j, t, x:cc(i), z:cc(j), faulty: rng() < [0.14,0.25,0.12][t], dead: rng()<0.06, red: t===0 && inRed(i,j), ph: rng()*10, b:1 };
       if (p.red) p.dead = false;
       if (inClean(i,j)){ p.faulty = false; p.dead = false; }
       p.gk = genAt(i,j); if (p.gk >= 0){ p.dead = false; p.faulty = false; }
+      if (inRm){ p.room = true; p.dead = false; p.faulty = false; }
       L.panelAt[i*N+j] = p.idx; L.panels.push(p);
     }
   }
@@ -3328,9 +3408,10 @@ function buildLevel(seed, kind=0){
   const slots=[]; for (let s=0;s<4;s++) for (let k=0;k<N;k++) slots.push([s,k]);
   for (let k=slots.length-1;k>0;k--){ const r=Math.floor(rng()*(k+1)); [slots[k],slots[r]]=[slots[r],slots[k]]; }
   const usedSlots = new Set();
-  const takeSlot = (filter) => { for (const [s,k] of slots){ const key=s+','+k; if (usedSlots.has(key)) continue; const p=slotPos(s,k); if (kind === 0 && inLabCell(p.i,p.j)) continue; if (L.solid && L.solid[p.i*N+p.j]) continue; if (filter && !filter(p)) continue; usedSlots.add(key); usedSlots.add(s+','+(k-1)); usedSlots.add(s+','+(k+1)); L.used.add(p.i*N+p.j); return p; } return null; };
+  const takeSlot = (filter, inRoom) => { for (const [s,k] of slots){ const key=s+','+k; if (usedSlots.has(key)) continue; const p=slotPos(s,k); if (kind === 0 && inLabCell(p.i,p.j)) continue; if (L.solid && L.solid[p.i*N+p.j]) continue; if (L.roomAt && (L.roomAt[p.i*N+p.j] >= 0) !== !!inRoom) continue; if (filter && !filter(p)) continue; usedSlots.add(key); usedSlots.add(s+','+(k-1)); usedSlots.add(s+','+(k+1)); L.used.add(p.i*N+p.j); return p; } return null; };
   // exit: far boundary slot
   const exitOk = p => { const k = p.i*N+p.j; if (gen.kind[k] === 2 || zoneOf(p.i,p.j) === 2 || dist0[k] < 0) return false;
+    if (L.groom && L.groom.some(q=>Math.hypot(cc(p.i) - (q.i0+q.i1+1)*CS/2, cc(p.j) - (q.j0+q.j1+1)*CS/2) < 24)) return false;   // v0.62.1: the exit isn't next to a safe room
     for (const [a,b] of nbr4){ const ni = p.i+a, nj = p.j+b; if (inGrid(ni,nj) && (gen.kind[ni*N+nj] === 2 || zoneOf(ni,nj) === 2)) return false; }
     for (const [ci,cj] of [[p.i,p.j],[p.i+1,p.j],[p.i,p.j+1],[p.i+1,p.j+1]]) if (L.pillarSet.has(ci+','+cj)) return false;
     return true; };
@@ -3398,12 +3479,13 @@ function buildLevel(seed, kind=0){
     const m=new THREE.Group(); const b=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.08,0.3,8), lam(0xb8a640)); b.rotation.z=Math.PI/2; b.position.y=0.08; m.add(b);
     const cp=new THREE.Mesh(new THREE.CylinderGeometry(0.081,0.081,0.1,8), lam(0x222222)); cp.rotation.z=Math.PI/2; cp.position.set(0.1,0.08,0); m.add(cp);
     m.position.set(p[0],0,p[1]); m.rotation.y=rng()*6; g.add(m); L.btM.push(m); }
-  // phones on boundary walls
-  for (let k=0;k<3;k++){ const p = takeSlot(); if (!p) break; const ph = new THREE.Group(); ph.position.set(p.x+p.nx*0.13, 1.35, p.z+p.nz*0.13); ph.rotation.y = p.ry; g.add(ph);
+  // phones on boundary walls (v0.62.1: one in every garage room first, on its back wall, then its shelves)
+  for (let k=0;k<3+L.groom.length;k++){ const rq = k < L.groom.length ? L.groom[k] : null; const p = rq ? takeSlot(q=>L.roomAt[q.i*N+q.j] === k && (rq.side === 0 ? q.nx === 1 : rq.side === 1 ? q.nx === -1 : rq.side === 2 ? q.nz === 1 : q.nz === -1) && Math.abs((rq.side < 2 ? q.j : q.i) - (rq.side < 2 ? (rq.j0+rq.j1)/2 : (rq.i0+rq.i1)/2)) < 1.1, true) : takeSlot(); if (!p) { if (rq) continue; break; } if (rq) rq.phone = [p.x, p.z]; const ph = new THREE.Group(); ph.position.set(p.x+p.nx*0.13, 1.35, p.z+p.nz*0.13); ph.rotation.y = p.ry; g.add(ph);
     const base = new THREE.Mesh(new THREE.BoxGeometry(0.26,0.38,0.1), lam(0xb8ac88)); ph.add(base);
     const hs = new THREE.Mesh(new THREE.BoxGeometry(0.07,0.32,0.07), lam(0x2a2a2a)); hs.position.set(-0.16,0,0.06); ph.add(hs);
     const pad = new THREE.Mesh(new THREE.PlaneGeometry(0.12,0.14), lam(0x777766)); pad.position.set(0.03,-0.05,0.051); ph.add(pad);
     const pr = { x:p.x+p.nx*0.7, z:p.z+p.nz*0.7, mesh:ph, hs, zoff:-0.03 }; L.phones.push(pr); phoneModel(pr); }
+  if (kind === 1) for (const q of L.groom) garageRoomShelves(L, g, q, rng);
   // exit signs (they lie)
   L.high = [];
   for (let k=0;k<5;k++){ const p = takeSlot(); if (!p) break; L.high.push({ ...p, sign:1 }); const arrow = ['←','→','↑'][Math.floor(rng()*3)];
@@ -3453,7 +3535,7 @@ function buildLevel(seed, kind=0){
   };
   // against interior walls (those walls are then locked in place)
   const cand = [];
-  for (let e=0;e<E;e++){ if (isBoundary(e) || !walls[e] || L.fixed[e]) continue; const [a,b]=edgeCells(e); if (zoneOf(a[0],a[1])===2 || zoneOf(b[0],b[1])===2) continue; if (gen.kind[a[0]*N+a[1]]===2 || gen.kind[b[0]*N+b[1]]===2) continue; cand.push(e); }
+  for (let e=0;e<E;e++){ if (isBoundary(e) || !walls[e] || L.fixed[e]) continue; const [a,b]=edgeCells(e); if (zoneOf(a[0],a[1])===2 || zoneOf(b[0],b[1])===2) continue; if (gen.kind[a[0]*N+a[1]]===2 || gen.kind[b[0]*N+b[1]]===2) continue; if (L.roomAt && (L.roomAt[a[0]*N+a[1]] >= 0 || L.roomAt[b[0]*N+b[1]] >= 0)) continue; cand.push(e); }
   for (let k=cand.length-1;k>0;k--){ const r=Math.floor(rng()*(k+1)); [cand[k],cand[r]]=[cand[r],cand[k]]; }
   const lockCells = new Set();
   for (const e of cand){
@@ -6047,7 +6129,11 @@ const p2CircAt = (x, z) => Math.floor(cellOf(x)/4)*8 + Math.floor(cellOf(z)/4);
 function inDark(x, z){ if (lrBlackout(x, z)) return true; if (LK === 3 && G.hb > 0.4) return true; if (LK === 0 && G.lbo > 0.4) return true;
   if (LK === 5 && G.po && G.po.length){ const c = p2CircAt(x, z); if (G.po.some(q=>q[0] === c)) return true; } return false; }
 function lrSeen(x, z, ps, far=34){ for (const p of ps){ const dx = x-p.x, dz = z-p.z, d = Math.hypot(dx,dz); if (d > far) continue; if (d < 3) return true; const [fx,,fz] = lookDir(p.yaw||0, 0); if ((dx*fx+dz*fz)/d > -0.2 && losClear(p.x, p.z, x, z)) return true; } return false; }
-const lrBlock = () => { if (LK !== 0) return null; const b = new Uint8Array(N*N); for (let i=0;i<N;i++) for (let j=0;j<N;j++) if (zoneOf(i,j) === 2 || (level.lab && inLabCell(i,j))) b[i*N+j] = 1; return b; };
+// v0.62.1: a lit garage room (Level 1) is safe from the Lurkers, like the Async lab
+function inRoom1(x, z){ if (LK !== 1 || !level || !level.roomAt) return false; const i = cellOf(x), j = cellOf(z); return inGrid(i, j) && level.roomAt[i*N+j] >= 0; }
+const LR_CAMP = [0.3, 0.5, 0.65, 0.8], LR_CAMPT = [[12, 20], [18, 30], [22, 36], [28, 45]];   // chance it waits outside after seeing you go in, and for how long (s)
+const lrBlock = () => { if (LK === 1 && level.roomAt){ const b = new Uint8Array(N*N); for (let k=0;k<N*N;k++) if (level.roomAt[k] >= 0) b[k] = 1; return b; }
+  if (LK !== 0) return null; const b = new Uint8Array(N*N); for (let i=0;i<N;i++) for (let j=0;j<N;j++) if (zoneOf(i,j) === 2 || (level.lab && inLabCell(i,j))) b[i*N+j] = 1; return b; };
 // a dark spot a few cells from `tg`, out of everyone's sight, ideally just round a corner from them
 function lrSpot(tg, ps, d0, d1, avoid){
   const blk = lrBlock(), ti = cellOf(tg.x), tj = cellOf(tg.z); if (blk && blk[ti*N+tj]) return null;
@@ -6072,6 +6158,15 @@ function lrMove(R, tx, tz, sp, dt){
   const st = Math.min(d, sp*dt), ox = R.x, oz = R.z; [R.x, R.z] = collide(R.x + dx/d*st, R.z + dz/d*st, 0.3, ox, oz);
   R.y = Math.atan2(dx, dz); R.mv = sp > 4.5 ? 2 : 1; return true;
 }
+// a spot 2-4 cells from the room's door, outside, that can see the door, darker is better
+function lrCampSpot(R, q, ok){
+  const blk = lrBlock(), d = bfsFrom(cellOf(q.dx), cellOf(q.dz), blk); let best = null, bs = -1e9;
+  for (let k=0;k<N*N;k++){ const s0 = d[k]; if (s0 < 1 || s0 > 4) continue; const x = cc(Math.floor(k/N)), z = cc(k%N);
+    if (!losClear(x, z, q.dx, q.dz)) continue;
+    const sc = -Math.abs(s0 - 2.5) + (lightAtCell(x, z) < 0.3 ? 2 : 0) + (lrSeen(x, z, ok) ? -3 : 0) + Math.random();
+    if (sc > bs){ bs = sc; best = [x, z]; } }
+  return best ? collide(best[0], best[1], 0.3) : null;
+}
 function lrGone(R, cd){ R.st = 0; R.cd = cd; R.tg = null; R.gaze = {}; R.mv = 0; R.back = null; R.call = 0; }
 function lrSnd(k, x, z){ playEventSound(k, x, z); safe(()=>net.room && net.room.emit('snd', { k, x:+x.toFixed(1), z:+z.toFixed(1) })); }
 // v0.62: how many Lurkers a level has (Ryan: the garage gets two and no Occupant)
@@ -6092,16 +6187,16 @@ function hostLurker(dt, alive){
   const key = G.r + '.' + (G.lv|0), n = lrN();
   if (!H.lrs || H.lrs.key !== key){ H.lrs = { key, list:[] }; for (let k=0;k<n;k++) H.lrs.list.push(lrNew(k)); }
   if (!n){ G.lr = []; return; }
-  const ok = alive.filter(p=>!p.hd && !inLab(p.x, p.z));   // a closet/locker keeps you safe from it too, and so does the Async lab
-  const all = H.lrs.list;
-  G.lr = all.map(R=>lurkOne(R, dt, ok, all.filter(o=>o !== R)));
+  const ok = alive.filter(p=>!p.hd && !inLab(p.x, p.z) && !inRoom1(p.x, p.z));   // a closet/locker keeps you safe from it too, and so do the Async lab and the garage rooms
+  const safe = alive.filter(p=>inRoom1(p.x, p.z)), all = H.lrs.list;
+  G.lr = all.map(R=>lurkOne(R, dt, ok, all.filter(o=>o !== R), safe));
 }
 const LR_ZERO = () => [0,0,0,0,0];
-function lurkOne(R, dt, ok, others){
+function lurkOne(R, dt, ok, others, safe){
   if (R.done) return LR_ZERO();
   const df = clamp(G.df|0, 0, 3), loud = ok.filter(p=>(p.m|0) >= 2);
   R.cd -= dt/lrDf('cd') * (loud.length && df ? 2.5 : 1); R.t += dt; R.mv = 0;   // sprinting gives you away: it shows up sooner
-  if (G.grace > 0 || !ok.length){ if (R.st) lrGone(R, 15); return LR_ZERO(); }
+  if (G.grace > 0 || (!ok.length && !(safe && safe.length && (R.st === 1 || R.st === 2 || R.st === 4 || R.st === 5)))){ if (R.st) lrGone(R, 15); return LR_ZERO(); }   // v0.62.1: someone hiding in a garage room keeps a camper around
   // v0.62 garage: once every generator is on and the lights come up, they bolt round a corner and are gone for good
   if (LK === 1 && G.open){
     if (R.st === 0){ R.done = true; return LR_ZERO(); }
@@ -6117,13 +6212,19 @@ function lurkOne(R, dt, ok, others){
   // called away by a generator (garage): slip off to that person, if nobody is looking
   if (R.st === 1 && R.call && !lrSeen(R.x, R.z, ok)){ R.call = 0; lrGone(R, 0); }
   if (!R.st){
-    if (R.cd <= 0){
+    if (R.cd <= 0 && ok.length){
       const pref = ok.find(p=>p.pid === R.pref), pool = pref ? [pref] : loud.length && df ? loud : ok, p = pool[Math.floor(Math.random()*pool.length)], sp = lrSpot(p, ok, 2, 6, others);
       if (sp){ R.x = sp[0]; R.z = sp[1]; R.st = 1; R.tg = p.pid; R.t = 0; R.life = (30 + Math.random()*30)*(df ? 1.3 : 1); R.gaze = {}; R.pref = null; R.y = Math.atan2(p.x-R.x, p.z-R.z); } else R.cd = 3; }
     return LR_ZERO();
   }
   let T = ok.find(p=>p.pid === R.tg);
-  if (!T){ if (R.st === 3){ /* keep running */ } else { lrGone(R, 12); return LR_ZERO(); } }
+  if (!T && R.st !== 3 && R.st !== 5){
+    // v0.62.1: they ran into a lit garage room. If it saw them go in, it sometimes waits outside the door.
+    const inR = (safe || []).find(p=>p.pid === R.tg), q = inR && level.groom[level.roomAt[cellOf(inR.x)*N+cellOf(inR.z)]];
+    const df = clamp(G.df|0, 0, 3), sp = q && nowS() - (R.seen ?? -99) < 2.5 && Math.random() < LR_CAMP[df] ? lrCampSpot(R, q, ok) : null;
+    if (sp){ const [a, b] = LR_CAMPT[df]; R.st = 5; R.cs = sp; R.campP = inR.pid; R.campQ = q; R.campT = a + Math.random()*(b-a); R.t = 0; }
+    else { lrGone(R, 12); return LR_ZERO(); } }
+  if (T && (R.st === 1 || R.st === 2 || R.st === 4) && losClear(R.x, R.z, T.x, T.z)) R.seen = nowS();
   // what they're doing to it: a flashlight on it sends it running; staring at it sets it off
   let lit = null, stare = null;
   for (const p of ok){ const dx = R.x-p.x, dz = R.z-p.z, d = Math.hypot(dx,dz); if (d > 24 || d < 0.05){ R.gaze[p.pid] = 0; continue; }
@@ -6133,6 +6234,16 @@ function lurkOne(R, dt, ok, others){
     if (dot > 0.95){ R.gaze[p.pid] = (R.gaze[p.pid]||0) + dt; if (R.gaze[p.pid] >= lrDf('gaze')) stare = p; } else R.gaze[p.pid] = 0; }
   R.lit = lit ? R.lit + dt : 0;
   if (lit && R.lit > lrDf('light') && R.st !== 3){ R.st = 3; R.t = 0; R.fd = lrHide(R, ok, lit.x, lit.z); R.back = lit.pid; lrSnd('lurkFlee', R.x, R.z); }
+  if (R.st === 5){   // camping outside a garage room's door
+    const q = R.campQ, [cx, cz] = R.cs; R.campT -= dt;
+    if (Math.hypot(cx-R.x, cz-R.z) > 0.4) lrMove(R, cx, cz, lrDf('creep')*0.6, dt); else R.y = Math.atan2(q.dx-R.x, q.dz-R.z);
+    const out = ok.find(p=>p.pid === R.campP), rh = lrDf('runHear');
+    let go = stare || (out && Math.hypot(out.x-R.x, out.z-R.z) < 16 && losClear(out.x, out.z, R.x, R.z) ? out : null);
+    if (!go) go = ok.find(p=>{ const d = Math.hypot(p.x-R.x, p.z-R.z); return d < 2.4 || (rh && (p.m|0) >= 2 && d < rh && losClear(p.x, p.z, R.x, R.z)); });
+    if (go){ R.st = 2; R.tg = go.pid; R.t = 0; }
+    else if (R.campT <= 0 && !lrSeen(R.x, R.z, ok)){ lrGone(R, 20 + Math.random()*25); return LR_ZERO(); }
+    return [+R.x.toFixed(2), +R.z.toFixed(2), +R.y.toFixed(2), 1, R.mv];   // drawn like lurking
+  }
   if (R.st === 1){
     const d = Math.hypot(T.x-R.x, T.z-R.z);
     R.y = Math.atan2(T.x-R.x, T.z-R.z);
@@ -8500,6 +8611,7 @@ function panelBright(p, t, mx, mz){
   if (p.dead) return 0;
   if (LK === 7 && funNight()) return 0;   // Level Fun: lights out
   if (p.circ != null && G.po && G.po.some(q=>q[0] === p.circ)) return 0;   // Level 2: a whole series circuit is out
+  if (p.room) return 1;   // v0.62.1: the garage rooms' lights never go out
   if (LK === 1 && !G.open && (p.gk < 0 || !G.gen || !G.gen[p.gk])) return 0;
   let b = 1;
   if (p.faulty && Math.sin(t*0.8+p.ph*7) > 0.15 && h01(p.idx*131+Math.floor(t*15)) < 0.45) b = 0.05;
@@ -9251,7 +9363,7 @@ function frame(now){
 }
 requestAnimationFrame(frame);
 
-window.__hp = { FR, frOpen, frClose, frJoin, frRender, frToast, FPH, placeFPHand, get flSrc(){ return flSrc; }, updateLab, hostFun, hostPartygoers, funAction, funObj, funNight, funDoorsToWalls, get PGV(){ return PGV; }, get scarePg(){ return scarePg; }, get FL_DRAIN(){ return FL_DRAIN; }, LS_HUNT, startOpt:(v)=>{ startOpt = v; }, hostTick, nextStep, isDead, killSurvivor, get remotes(){ return remotes; }, setRole:(r)=>{ role = r; }, get MON_WALK(){ return MON_WALK; }, get MONS(){ return MONS; }, get LSJ(){ return LSJ; }, get deathT(){ return deathT; }, get scareLs(){ return scareLs; }, hostListener, lsAlert, get LSV(){ return LSV; }, TD, updateTension, tdFakeSteps, DFL, boT, panelBright, collide, gen52, hostSchool52, hostMonitors52, assign52, tardy52, roomAt52, schoolObj52, schoolTarget52, myRoom52, MV52, get HMJ(){ return HMJ; }, S52_LANES, get radio37(){ return radio37; }, get fig37(){ return fig37; }, get zLevel(){ return zLevel; }, get zK(){ return zK; }, deepDay37, deep37, forceFig37:()=>{ figT = 0; }, duskIn37, wakeLay37, nowS, buildLevel, hotelOpen188, hostOutage188, pipeObj2, pipeTarget2, p2Diag, MQV, hostMannequins852, mqSeen852, floorAt852, laneAt852, MLANES, mallObj852, mallTarget852, mallWayTo852, aiTick852, mallMove852, get mallHold(){ return mallHold; }, get guide(){ return guide; }, hostLurker, opusTweak, fillDevices, get LRK(){ return LRK; }, lrSpot, animLurker, get running(){ return me.running; }, get W(){ return W; }, get N(){ return N; }, get stunCharge(){ return stunCharge; }, losClear, me, H, net, hide, unhide, throwCan, contextAction, useSkin, get mySkin(){ return mySkin; }, set mySkin(v){ mySkin=v; }, inPit, zoneOf, get G(){ return G; }, set G(v){ G=v; }, get mode(){ return mode; }, get role(){ return role; }, get level(){ return level; }, get walls(){ return walls; }, mDisp, doShift, monsterPos, ability, get abCD(){ return abCD; }, disguisedFrom, get fakes(){ return fakes; }, enterVent, nearVent, get ventT(){ return ventT; }, get ventCD(){ return ventCD; }, set ventCD(v){ ventCD=v; }, get abCD2(){ return abCD; }, inPit, get LK(){ return LK; }, get crankK(){ return crankK; }, ability, get curRH(){ return curRH; }, get MON(){ return MON; }, sfx, voice, noiseLevel, get settingsOpen(){ return settingsOpen; }, myPid, monsterVoice, pitchDown, dropDust, get silT(){ return silT; }, set silNext(v){ silNext=v; }, advanceLevel, aiObjectives, poolBlock, aiTick, aiReset, bfsFrom, cellOf, cc, floorY, TU, PG, camera, scene, renderer, applyUse, AI_DIFF, set diffOpt(v){ diffOpt=v; }, get M37(){ return M37; }, buildL37test:(sd)=>build37(sd), ripP, ripWho, makeAvatar, animAvatar, buildLevelTest:(sd,k)=>buildLevel(sd,k), fpArm:(roll,axis,curl)=>{ FP_ROLL = roll; FP_AXIS = axis; if (curl) Object.assign(FP_CURL, curl); buildFPArm(survSrc); }, VM, collide, k37, h37, d37, nav37, isNight, dayK, aiTick37, collide37, K37, sdShape, floorAt188, vis188, hostElev188, aiTick188, myCar188, elevPress188, ELV, HO, elDisp, update188, inLab, hostLab, labUse, labSensor, labStatus, startHatch, get hatchT(){ return hatchT; }, connected };
+window.__hp = { inRoom1, lrCampSpot, FR, frOpen, frClose, frJoin, frRender, frToast, FPH, placeFPHand, get flSrc(){ return flSrc; }, updateLab, hostFun, hostPartygoers, funAction, funObj, funNight, funDoorsToWalls, get PGV(){ return PGV; }, get scarePg(){ return scarePg; }, get FL_DRAIN(){ return FL_DRAIN; }, LS_HUNT, startOpt:(v)=>{ startOpt = v; }, hostTick, nextStep, isDead, killSurvivor, get remotes(){ return remotes; }, setRole:(r)=>{ role = r; }, get MON_WALK(){ return MON_WALK; }, get MONS(){ return MONS; }, get LSJ(){ return LSJ; }, get deathT(){ return deathT; }, get scareLs(){ return scareLs; }, hostListener, lsAlert, get LSV(){ return LSV; }, TD, updateTension, tdFakeSteps, DFL, boT, panelBright, collide, gen52, hostSchool52, hostMonitors52, assign52, tardy52, roomAt52, schoolObj52, schoolTarget52, myRoom52, MV52, get HMJ(){ return HMJ; }, S52_LANES, get radio37(){ return radio37; }, get fig37(){ return fig37; }, get zLevel(){ return zLevel; }, get zK(){ return zK; }, deepDay37, deep37, forceFig37:()=>{ figT = 0; }, duskIn37, wakeLay37, nowS, buildLevel, hotelOpen188, hostOutage188, pipeObj2, pipeTarget2, p2Diag, MQV, hostMannequins852, mqSeen852, floorAt852, laneAt852, MLANES, mallObj852, mallTarget852, mallWayTo852, aiTick852, mallMove852, get mallHold(){ return mallHold; }, get guide(){ return guide; }, hostLurker, opusTweak, fillDevices, get LRK(){ return LRK; }, lrSpot, animLurker, get running(){ return me.running; }, get W(){ return W; }, get N(){ return N; }, get stunCharge(){ return stunCharge; }, losClear, me, H, net, hide, unhide, throwCan, contextAction, useSkin, get mySkin(){ return mySkin; }, set mySkin(v){ mySkin=v; }, inPit, zoneOf, get G(){ return G; }, set G(v){ G=v; }, get mode(){ return mode; }, get role(){ return role; }, get level(){ return level; }, get walls(){ return walls; }, mDisp, doShift, monsterPos, ability, get abCD(){ return abCD; }, disguisedFrom, get fakes(){ return fakes; }, enterVent, nearVent, get ventT(){ return ventT; }, get ventCD(){ return ventCD; }, set ventCD(v){ ventCD=v; }, get abCD2(){ return abCD; }, inPit, get LK(){ return LK; }, get crankK(){ return crankK; }, ability, get curRH(){ return curRH; }, get MON(){ return MON; }, sfx, voice, noiseLevel, get settingsOpen(){ return settingsOpen; }, myPid, monsterVoice, pitchDown, dropDust, get silT(){ return silT; }, set silNext(v){ silNext=v; }, advanceLevel, aiObjectives, poolBlock, aiTick, aiReset, bfsFrom, cellOf, cc, floorY, TU, PG, camera, scene, renderer, applyUse, AI_DIFF, set diffOpt(v){ diffOpt=v; }, get M37(){ return M37; }, buildL37test:(sd)=>build37(sd), ripP, ripWho, makeAvatar, animAvatar, buildLevelTest:(sd,k)=>buildLevel(sd,k), fpArm:(roll,axis,curl)=>{ FP_ROLL = roll; FP_AXIS = axis; if (curl) Object.assign(FP_CURL, curl); buildFPArm(survSrc); }, VM, collide, k37, h37, d37, nav37, isNight, dayK, aiTick37, collide37, K37, sdShape, floorAt188, vis188, hostElev188, aiTick188, myCar188, elevPress188, ELV, HO, elDisp, update188, inLab, hostLab, labUse, labSensor, labStatus, startHatch, get hatchT(){ return hatchT; }, connected };
 </script>
 </body>
 </html>
