@@ -390,7 +390,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.62.4</div>
+<div class="osd" id="ver">v0.62.5</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -882,11 +882,25 @@ function lampGeo(){
   g.setIndex([...LAMP_DI, ...LAMP_HI.map(i=>i+nD)]); g.addGroup(0, LAMP_DI.length, 0); g.addGroup(LAMP_DI.length, LAMP_HI.length, 1);
   return lampGeoC = g;
 }
+/* v0.62.5 (Ryan: bigger, lined up with the ceiling tiles, up into the ceiling): every ceiling is a whole number of tiles per
+   4 m cell now, so the tile grid is world-aligned; lampTile(p) = [tile size, tiles per lamp side, snap?]. Even counts sit on a
+   tile corner, odd on a tile centre. LAMP_UP lifts the lamp so only the diffuser (1.2 cm) + rim (3 cm) show below the ceiling. */
+const LAMP_UP = 0.064;
+function lampTile(p){
+  if (LK === 0) return p.lab ? [4/3, 1, true] : p.t === 1 ? [2/3, 2, false] : [2/3, 2, true];   // lab tiles 1.33 m; the parking corner is bare concrete
+  if (LK === 7) return [1, 1, true];   // party rooms: 1 m tiles
+  if (LK === 1 || LK === 5) return [2/3, 2, false];   // concrete ceilings: just the size
+  return [2/3, 2, true];   // hotel, mall stores, school: 0.667 m tiles
+}
 function lampify(L){
   const m = L && L.panelMesh; if (!m || !m.count || m.userData.lamp || !m.parent) return;
   const n = m.count, nm = new THREE.InstancedMesh(lampGeo(), [lampDiffM, lampHouseM], n); nm.userData.lamp = true;
+  const snap = (v, t, odd) => odd ? (Math.floor(v/t) + 0.5)*t : Math.round(v/t)*t;
   for (let k=0;k<n;k++){ m.getMatrixAt(k, tmpM); tmpM.decompose(tmpV, tmpQ, tmpS);
-    if (tmpS.x > 0.01){ tmpV.y += tmpS.y/2; tmpS.set(1, 1, 1); tmpQ.identity(); tmpM.compose(tmpV, tmpQ, tmpS); }   // tiny = hidden (hotel elevator cars): keep
+    if (tmpS.x > 0.01){   // tiny = hidden (hotel elevator cars): keep
+      const pend = tmpS.y > 0.2, p = L.panels && L.panels[k], [t, c, sn] = pend ? [0.8, 1, false] : p ? lampTile(p) : [2/3, 2, false], sz = t*c, odd = c % 2 === 1;   // pend = the mall's pendant lamps on cables (not in a ceiling)
+      if (sn){ tmpV.x = snap(tmpV.x, t, odd); tmpV.z = snap(tmpV.z, t, odd); }
+      tmpV.y += tmpS.y/2 + (pend ? 0 : LAMP_UP); tmpS.set(sz/0.8, 1, sz/0.8); tmpQ.identity(); tmpM.compose(tmpV, tmpQ, tmpS); }
     nm.setMatrixAt(k, tmpM); nm.setColorAt(k, tmpC.setRGB(1, 1, 1)); }
   nm.frustumCulled = false; m.parent.add(nm); m.parent.remove(m); L.panelMesh = nm;
 }
@@ -1295,7 +1309,7 @@ function buildLevel852(seed){
     } }
   const inst = (geo, mat, list, tint) => { if (!list.length) return null; const m = new THREE.InstancedMesh(geo, mat, list.length); list.forEach((p,k)=>{ tmpM.makeTranslation(p[0], p[1], p[2]); m.setMatrixAt(k, tmpM); if (tint) m.setColorAt(k, tmpC.setHex(p[3])); }); m.frustumCulled = false; g.add(m); return m; };
   inst(cellPlane(2,false), tileM, lists.tile); inst(cellPlane(3,false), checkM, lists.check); inst(cellPlane(2,false), carpetM, lists.carpet, true); inst(cellPlane(1,false), concM, lists.conc);
-  inst(cellPlane(2,true), ceilM, lists.ceil); inst(cellPlane(CS/0.6,true), ceilM, lists.sceil); inst(cellPlane(1,true), lam(0xffffff,{ map:mallSlabTex }), lists.cceil);
+  inst(cellPlane(2,true), ceilM, lists.ceil); inst(cellPlane(6,true), ceilM, lists.sceil); inst(cellPlane(1,true), lam(0xffffff,{ map:mallSlabTex }), lists.cceil);
   { const sg = new THREE.PlaneGeometry(3.2,3.2); sg.rotateX(Math.PI/2); inst(sg, new THREE.MeshBasicMaterial({ color:0x26303e }), lists.sky.map(p=>[p[0],p[1]+0.01,p[2]]));
     const fr = new THREE.InstancedMesh(new THREE.BoxGeometry(CS,0.06,0.4), lam(0xcfcac0), Math.max(1, lists.sky.length*2)); lists.sky.forEach((p,k)=>{ for (const s of [0,1]){ tmpM.makeTranslation(p[0], p[1]-0.02, p[2]+(s?1.8:-1.8)); fr.setMatrixAt(k*2+s, tmpM); } }); fr.frustumCulled = false; g.add(fr);
     inst(cellPlane(2,true), ceilM, lists.sky.map(p=>[p[0],p[1]+0.6,p[2]])); }
@@ -2049,7 +2063,7 @@ function buildLevel52(seed){
       lists.ceil.push([x,Y+CH,z]); } }
   const inst = (geo, mat, list) => { if (!list.length) return null; const m = new THREE.InstancedMesh(geo, mat, list.length); list.forEach((p,k)=>{ tmpM.makeTranslation(p[0], p[1], p[2]); m.setMatrixAt(k, tmpM); }); m.frustumCulled = false; g.add(m); return m; };
   inst(cellPlane(2,false), hallM, lists.hall); inst(cellPlane(4,false), roomM, lists.room); inst(cellPlane(4,false), cafeM, lists.cafe); inst(cellPlane(6,false), bathM, lists.bath); inst(cellPlane(2,false), carpM, lists.carp); inst(cellPlane(1,false), stairM, lists.conc);
-  inst(cellPlane(CS/0.6,true), ceilM, lists.ceil);
+  inst(cellPlane(6,true), ceilM, lists.ceil);
   // ---- walls: cinderblock; around the lower stairwell they go up to the next floor; headers over the stair openings; window walls onto the courtyard; night windows outside
   const wl = [], seen = new Set(), win = [], night = [], frames = [];
   for (let f=0; f<2; f++){ const Y = Yf(f);
@@ -3391,10 +3405,10 @@ function buildLevelRaw(seed, kind=0){
   const instCells = (geo, mat, cells, y) => { const m = new THREE.InstancedMesh(geo, mat, cells.length); cells.forEach(([i,j],k)=>{ tmpM.makeTranslation(cc(i), y, cc(j)); m.setMatrixAt(k, tmpM); }); m.frustumCulled=false; g.add(m); return m; };
   if (kind !== 4){
   instCells(cellPlane(2,false), lam(0xffffff,{map:rugTex}), zc[0], 0);
-  instCells(cellPlane(CS/1.2,true), lam(0xffffff,{map:ceilTex}), zc[0], WH);
+  instCells(cellPlane(3,true), lam(0xffffff,{map:ceilTex}), zc[0], WH);   // v0.62.5: 6 tiles of 0.667 m per cell (was 6.67 → the grid broke at every cell edge)
   instCells(cellPlane(1,false), concFloorM, zc[1], 0);
   instCells(cellPlane(1,true), concCeilM, zc[1], WH);
-  instCells(cellPlane(CS/0.6,true), lam(0xffffff,{map:tileCeilTex}), zc[2], ZH[2]);
+  instCells(cellPlane(6,true), lam(0xffffff,{map:tileCeilTex}), zc[2], ZH[2]);
   }
   setPoolVisible(false);
   // walls (one instanced mesh per zone, every edge slot in each; hidden ones are scaled to zero)
@@ -4886,7 +4900,7 @@ function buildLab(L, g, rng, dist0, far){
   const dec = m => { m.polygonOffset = true; m.polygonOffsetFactor = -2; m.polygonOffsetUnits = -6; return m; };   // decals: never fight the surface under them (PSX snapping)
   // floor, ceiling, concrete walls (in front of the shared wallpaper wall boxes)
   const fl = labPlane(LAB_W, LAB_D, LAB_W/0.6, LAB_D/0.6, lam(0xffffff, { map:labTileTex })); fl.rotation.x = -Math.PI/2; fl.position.set(LAB_W/2, 0.003, LAB_D/2); g.add(fl);
-  const ce = labPlane(LAB_W, LAB_D, LAB_W/1.2, LAB_D/1.2, lam(0xffffff, { map:labCeilTex })); ce.rotation.x = Math.PI/2; ce.position.set(LAB_W/2, LAB_H, LAB_D/2); g.add(ce);
+  const ce = labPlane(LAB_W, LAB_D, LAB_W*0.75, LAB_D*0.75, lam(0xffffff, { map:labCeilTex })); ce.rotation.x = Math.PI/2; ce.position.set(LAB_W/2, LAB_H, LAB_D/2); g.add(ce);
   const wall = (w, h, x, y, z, ry) => { const m = labPlane(w, h, w/4, h/4, wallM); m.position.set(x, y, z); m.rotation.y = ry; g.add(m); return m; };
   const I = 0.15;
   wall(LAB_W, LAB_H, LAB_W/2, LAB_H/2, I, 0);
@@ -5331,7 +5345,7 @@ function buildLevel188(seed){
     m.frustumCulled = false; g.add(m); }
   // floors + ceilings
   { const cells = []; for (let f=0;f<3;f++) for (const c of L.hcells[f]) cells.push(c);
-    const fm = new THREE.InstancedMesh(cellPlane(2,false), carpetM, cells.length), cm = new THREE.InstancedMesh(cellPlane(CS/0.6,true), ceilM, cells.length);
+    const fm = new THREE.InstancedMesh(cellPlane(2,false), carpetM, cells.length), cm = new THREE.InstancedMesh(cellPlane(6,true), ceilM, cells.length);
     cells.forEach(([i,j],k)=>{ const [x,z,y] = hv(cc(i), cc(j)); tmpM.makeTranslation(x, y, z); fm.setMatrixAt(k, tmpM); tmpM.makeTranslation(x, y+HCH, z); cm.setMatrixAt(k, tmpM); });
     fm.frustumCulled = cm.frustumCulled = false; g.add(fm, cm); }
   // ---- the courtyard: window walls on every floor, the lawn, the roof

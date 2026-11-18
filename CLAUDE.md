@@ -6,7 +6,7 @@ First-person co-op Backrooms horror game for 1–4 players, played in the browse
 
 - Live: https://rytheguy18.github.io/Haunted-Pines/ (GitHub Pages, `main` branch, repo root)
 - Owner: Ryan (GitHub `rytheguy18` / `RyTheGuy18`). Plays it with friends and younger brothers, mostly on phones.
-- Current version: **v0.62.4** (shown bottom-right of the menu, `#ver`)
+- Current version: **v0.62.5** (shown bottom-right of the menu, `#ver`)
 
 ## Files
 
@@ -350,3 +350,5 @@ Controls (desktop): WASD, Shift sprint, C crouch, Left click / F flashlight, E h
 **v0.62.4 (Ryan): garage concrete + new ceiling lights.**
 - **Concrete** (`textures/garage-conc.jpg` = Ryan's Poly Haven `concrete_floor_worn_001` diffuse at 256 px = 2 m, `garage-conc-nor.png` = its GL normal map at 256 px from the 4k EXR; roughness/displacement not used — Lambert): `concPhotoTex` canvases tile the photo under the old overlays (wall: yellow/black stripes, base strip, seams, "P2" — drawn in the old 128 px layout stretched to 512×358 = 4 m × 2.8 m; floor: the white parking line; ceiling: the beam). Brightness ×1.35 / 0.84 / 0.92 to match the old greys. `concMat(map)` = Lambert + psx + **world-space UVs** in the shader (`vCW`/`vCN`; vertical faces: across = dot(xz, cross(up, n)) / 4 m, up = y / 2.8; horizontal: (x, −z) / 4; normal map every 2 m, derivative TBN) → no stretching on pillars, sills, headers, slabs. Used by `concWallM/concFloorM/concCeilM`: garage walls/pillars/slabs/room shells, Level 0's parking corner.
 - **Ceiling lights**: Ryan's "low-poly fluorescent lamp with diffuser" (0.8 m square troffer, 9.5 cm deep). Its ON mesh is inlined as arrays (`LAMP_DP/DU/DI/HP/HN/HI`), diffuser texture `textures/lamp-diffuser.jpg` (its emissive map, 128 px). `buildLevel` = `buildLevelRaw` + `lampify(level)`: swaps `L.panelMesh` (scaled unit boxes) for an InstancedMesh of the lamp (materials [diffuser MeshBasic ×1.3 tinted by instance colour = brightness, housing Lambert ignoring instance colour]) with its top where the old box's top was; hidden instances (scale < 0.01) stay hidden. All levels with panels (0, 1, hotel, mall, pipes, school, Fun); not the Poolrooms' pool lamps.
+
+**v0.62.5 (Ryan: lamps bigger, lined up with the ceiling tiles, up inside the ceiling):** every tiled ceiling is now a whole number of tiles per 4 m cell, so the tile grid is world-aligned: office `cellPlane(3)` (0.667 m tiles, was 6.67/cell), pitfalls / hotel / mall stores / school `cellPlane(6)` (0.667 m, were CS/0.6), lab `labPlane(..., LAB_W*0.75, LAB_D*0.75)` (1.333 m tiles); Fun stays 1 m. `lampTile(p)` = [tile, tiles per lamp side, snap]: 2×2 tiles (1.333 m) everywhere, 1 tile in the lab (1.333 m) and Level Fun (1 m); even counts snap to a tile corner, odd to a tile centre; garage + Pipe Dreams (concrete) only get the size. `LAMP_UP` 0.064 lifts the housing into the ceiling (diffuser 1.2 cm, rim 3 cm below it). The mall's atrium pendants (box sy > 0.2) stay 0.8 m on their cables.
