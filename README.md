@@ -137,3 +137,4 @@ v0.62.7: Level 0 ceiling tiles use the OfficeCeiling001 texture (speckled acoust
 v0.62.8: smaller objective box and popup messages on phones
 v0.63.0: THE BASEMENT - new last level: keep the furnace fed or the lights die, search the crates for the cellar key, and don't stand still - something lives under the floorboards
 v0.63.1: basement beams and posts are made of the wood from the wall texture; lights sit between the beams
+v0.63.2: The Basement is much smaller (11×11), far fewer posts, beams made from the dark wooden planks texture
