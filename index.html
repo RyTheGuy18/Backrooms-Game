@@ -408,7 +408,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.64.0</div>
+<div class="osd" id="ver">v0.64.1</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -892,7 +892,7 @@ const LAMP_DP=[0.3706,-0.0759,0.3707,-0.3704,-0.0759,0.3707,0.3706,-0.0759,-0.37
 const lampDiffTex = fileTex('textures/lamp-diffuser.jpg');
 const lampDiffM = new THREE.MeshBasicMaterial({ map:lampDiffTex }); lampDiffM.color.setScalar(1.3);
 const lampHouseM = lam(0x8e8a84, { side:THREE.DoubleSide });
-{ const f = lampHouseM.onBeforeCompile; lampHouseM.onBeforeCompile = s => { f(s); s.fragmentShader = s.fragmentShader.replace('#include <color_fragment>', ''); }; }
+{ const f = lampHouseM.onBeforeCompile; lampHouseM.onBeforeCompile = s => { f(s); s.fragmentShader = s.fragmentShader.replace('#include <color_fragment>', '#ifdef USE_COLOR\n diffuseColor.rgb *= 0.18 + 0.82*clamp(vColor.g*1.2, 0.0, 1.0);\n#endif'); }; }   // v0.64.1: the housing goes dark with the lamp (Ryan: dead lamps still showed up pale in the dark garage)
 let lampGeoC = null;
 function lampGeo(){
   if (lampGeoC) return lampGeoC;
@@ -4798,7 +4798,7 @@ function buildLevel37(seed){
   const lockM = lam(0x56604c);   // one material, so they merge
   const locker = (x, z, ry) => { const lk = new THREE.Group(); lk.position.set(x, 0.3, z); lk.rotation.y = ry; g.add(lk); bx(lk, 0.62,1.95,0.5, 0,0.975,0, lockM); bx(lk, 0.64,0.05,0.52, 0,1.97,0, lam(0x3c4436));
     L.lockers.push({ x, z, ry, fx: x + Math.sin(ry)*0.75, fz: z + Math.cos(ry)*0.75 }); L.circles.push({ x, z, r:0.32 }); };
-  const lampMat = new THREE.MeshBasicMaterial({ color:0xffe2b4 });
+  const lampMat = new THREE.MeshBasicMaterial({ color:0xffe2b4 }); L.lampMat37 = lampMat;
   const roomLamp = (x, z) => { bx(g, 1.2, 0.07, 0.42, x, CEIL37-0.05, z, lampMat); L.lamps.push({ x, z, y:CEIL37-0.5, col:0xffd7a8, i:1.25, always:true }); };
   const drain = (r, x, z) => { const gr = new THREE.Group(); gr.position.set(x, 0.3, z); g.add(gr); const dm = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.02, 0.62), lam(0x1a1d1c)); dm.position.y = 0.006; gr.add(dm);
     for (let k=-2;k<=2;k++) bx(gr, 0.05, 0.03, 0.56, k*0.11, 0.014, 0, lam(0x6d7470));
@@ -5226,7 +5226,7 @@ function update37(dt){
   const k = dayK(G.tod||0);
   TU.uDay.value = k;
   PG.water.material.uniforms.time.value = TU.uTime.value; PG.water.material.uniforms.uDay.value = k;
-  sunL.intensity = 0.06 + 0.55*k; sunL.color.setRGB(lerp(0.55,1,k), lerp(0.65,0.94,k), lerp(0.95,0.85,k));
+  sunL.intensity = 0.015 + 0.595*k; sunL.color.setRGB(lerp(0.55,1,k), lerp(0.65,0.94,k), lerp(0.95,0.85,k));
   ZFOG[3].copy(NIGHTC.fog).lerp(DAYC.fog, k); ZSKY[3].copy(NIGHTC.sky).lerp(DAYC.sky, k); ZGND[3].copy(NIGHTC.gnd).lerp(DAYC.gnd, k); ZDENS[3] = lerp(0.055, 0.02, k);
   for (const f of level.floats || []){ const u = f.userData; f.position.set(u.x + Math.sin(TU.uTime.value*0.1+u.p)*1.2, 0.2 + Math.sin(TU.uTime.value*1.3+u.p)*0.03, u.z); f.rotation.z = TU.uTime.value*0.05 + u.p; }
   const n = k < 0.5;
@@ -9214,8 +9214,8 @@ let localLight = 1, boWas = false;
 function updatePanels(t){
   const L = level, mx = mDisp.x, mz = mDisp.z;
   if (LK === 2){ const k = dayK(G.tod||0), cx = camera.position.x, cz = camera.position.z, near = (L.lamps||[]).map(p=>[Math.hypot(p.x-cx,p.z-cz), p]).sort((a,b)=>a[0]-b[0]);
-    for (let i=0;i<PL.length;i++){ const l = PL[i], e = near[i]; if (!e || e[0] > 30){ l.intensity = 0; continue; } const q = e[1]; l.position.set(q.x, q.y ?? -1.6, q.z); l.color.setHex(q.col || 0x5fe0ff); l.intensity = q.always ? LI*(q.i||1) : LI*1.6*(1-k*0.85); }
-    localLight = 0.15 + 0.85*k; poolLampMat.color.setRGB(0.3+0.5*(1-k), 0.9, 1.0); return; }
+    for (let i=0;i<PL.length;i++){ const l = PL[i], e = near[i]; if (!e || e[0] > 30){ l.intensity = 0; continue; } const q = e[1]; l.position.set(q.x, q.y ?? -1.6, q.z); l.color.setHex(q.col || 0x5fe0ff); l.intensity = q.always ? LI*(q.i||1)*(0.1 + 0.9*k) : LI*(0.45 - 0.21*k); }   // v0.64.1 (Ryan: dark means DARK): room lamps die down at night, the pool lights only glow faintly
+    localLight = 0.08 + 0.92*k; poolLampMat.color.setRGB(lerp(0.12, 0.3, k), lerp(0.3, 0.9, k), lerp(0.36, 1.0, k)); if (L.lampMat37) L.lampMat37.color.setHex(0xffe2b4).multiplyScalar(0.08 + 0.92*k); return; }
   for (const p of L.panels){
     p.b = panelBright(p, t, mx, mz);
     if (p.col) tmpC.setHex(p.col).multiplyScalar(0.06 + 0.94*Math.min(1, p.b));
@@ -9223,7 +9223,8 @@ function updatePanels(t){
     else if (p.t===1) tmpC.setRGB(0.06+0.8*p.b, 0.07+0.93*p.b, 0.07+0.86*p.b);
     else if (p.t===2) tmpC.setRGB(0.08+0.92*p.b, 0.08+0.92*p.b, 0.07+0.86*p.b);
     else tmpC.setRGB(0.07+0.93*p.b, 0.07+0.9*p.b, 0.05+0.78*p.b);
-    if (((LK === 3 && G.hb > 0) || (LK === 0 && G.ph === 'play' && G.lbo > 0) || (G.ph === 'play' && boT() > 0)) && p.b === 0) tmpC.setRGB(0.012, 0.012, 0.012);   // hotel outage / lab power failure: the tubes are dead black
+    // v0.64.1 (Ryan: dead lamps still glowed grey at night — when it's dark they should be DARK): any lamp that's off is near-black
+    if (p.b < 0.03) tmpC.setRGB(0, 0, 0);
     L.panelMesh.setColorAt(p.idx, tmpC);
   }
   if (L.panelMesh.instanceColor) L.panelMesh.instanceColor.needsUpdate = true;
@@ -9311,7 +9312,7 @@ function updateZoneEnv(dt){
   if (lit1) _fogT.setHex(0x4a4c4e); else { _fogT.copy(ZFOG[z]); if (role==='monster') _fogT.multiplyScalar(LK === 1 ? 1.4 : LK === 2 ? 1 : 0.7); }
   scene.fog.color.lerp(_fogT, k); scene.background.copy(scene.fog.color);
   scene.fog.density = lerp(scene.fog.density, lit1 ? 0.016 : role==='monster' ? (LK === 1 ? 0.06 : LK === 2 ? 0.03 : LK === 4 || LK === 6 ? 0.05 : LK === 5 ? 0.05 : 0.11) : ZDENS[z]*(LK === 0 && mode !== 'menu' && mode !== 'lobby' && mode !== 'end' ? 1.45 : 1)*(1 - 0.6*zK), k);
-  amb.intensity = lerp(amb.intensity, lit1 ? (role === 'monster' ? 1.5 : 0.75) : role==='monster' ? (LK === 1 ? 1.5 : LK === 2 ? lerp(0.6, 1.1, dayK(G.tod||0)) : 0.34) : LK === 2 ? lerp(0.2, 1.0, dayK(G.tod||0)) : LK === 1 ? 0.09 : 0.16, k);
+  amb.intensity = lerp(amb.intensity, lit1 ? (role === 'monster' ? 1.5 : 0.75) : role==='monster' ? (LK === 1 ? 1.5 : LK === 2 ? lerp(0.6, 1.1, dayK(G.tod||0)) : 0.34) : LK === 2 ? lerp(0.05, 1.0, dayK(G.tod||0)) : LK === 1 ? 0.09 : 0.16, k);
   if (lit1){ amb.color.lerp(_lit1S, k); amb.groundColor.lerp(_lit1G, k); } else { amb.color.lerp(ZSKY[z], k); amb.groundColor.lerp(ZGND[z], k); }
 }
 const _lit1S = new THREE.Color(0xd8dce2), _lit1G = new THREE.Color(0x7a7874), LAB_SKY = new THREE.Color(0xc8ccd0), LAB_GND = new THREE.Color(0x4a4a46);

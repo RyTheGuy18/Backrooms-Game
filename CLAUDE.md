@@ -6,7 +6,7 @@ First-person co-op Backrooms horror game for 1–4 players, played in the browse
 
 - Live: https://rytheguy18.github.io/Haunted-Pines/ (GitHub Pages, `main` branch, repo root)
 - Owner: Ryan (GitHub `rytheguy18` / `RyTheGuy18`). Plays it with friends and younger brothers, mostly on phones.
-- Current version: **v0.64.0** (shown bottom-right of the menu, `#ver`)
+- Current version: **v0.64.1** (shown bottom-right of the menu, `#ver`)
 
 ## Files
 
@@ -376,3 +376,5 @@ Controls (desktop): WASD, Shift sprint, C crouch, Left click / F flashlight, E h
 **v0.63.2 (Ryan: posts sparser, map much smaller, beams from the dark planks texture):** `BS_N` 18 → 11 (44 m), rooms = furnace, coal, storage, laundry, workshop (spawn-corner exclusion 3×3), 6 partitions, `BS_CRATES` 7 (6 m apart), 4 wardrobes (9 m), 6 batteries (7 m). Posts: corner 42%, mid-edge 10%, cell centres never (~22–50 posts, was ~400). `textures/bs-beam.jpg` = one clean plank cut from `dark_wooden_planks_diff_4k` (rows between the seams at 164/387 of 1024, full width = seamless, ×1.6 brighter, 512×64), `BS_BEAM_L` 2 m (joists, posts, caps). Tested 12 seeds: every crate, pile, feed point, exit and wardrobe reachable.
 
 **v0.64.0 (Ryan: his "Wooden Support Beam" glb by Cianon (Sketchfab, CC BY 4.0) — use it or build it yourself with the dark plank texture):** built in code after it (the glb is NOT in the repo; it's a 274-vert mine-shaft frame: two posts, a header beam, two 45° knee braces, one post leaning). Every basement post is now 0.2 m (collider 0.13), runs up to the header beam (joists 0.2 × 0.22 along x every 2 m), and has two knee braces (0.11 m, 45°, 0.6 m out along the beam each side, merged into the joist mesh); 30% of posts lean 0.02–0.05 rad about their top. Caps removed. Credit line "support beams built after …" in HOW TO PLAY · CREDITS. 12 seeds still fully reachable.
+
+**v0.64.1 (Ryan: lights that are off were still dim-but-visible in the dark, mostly in the garage — "when dark they should be darkkkk"):** `updatePanels`: any panel with `p.b < 0.03` gets instance colour 0 (it used to keep a 0.07 grey floor, which after sRGB output + the 1.3× diffuser read as a pale glowing panel); the lamp housing (`lampHouseM`) now multiplies by `0.18 + 0.82·vColor.g` so the metal goes dark with its lamp too. Poolrooms nights darker: room lamps (`always`) ×(0.1 + 0.9·day), their mesh (`L.lampMat37`) dims the same, pool lights LI×(0.45 − 0.21·day) (were 1.6 LI at night), pool lamp spheres dimmer, survivor ambient 0.05 at night (was 0.2), moonlight 0.015.
