@@ -409,7 +409,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.65.2</div>
+<div class="osd" id="ver">v0.65.3</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -7419,6 +7419,32 @@ function onUse(m){ if (!amHost() || !m) return; applyUse(String(m.pid||''), m); 
 function onSnd(m){ if (!m) return; if (m.k === 'lure' && m.pid !== myPid) return; playEventSound(m.k, +m.x||0, +m.z||0, m); }
 /* ---- PeerJS networking (same approach as Hordefall): host's browser is the hub ---- */
 const PEER_PREFIX = 'level0-v1-';
+// v0.65.3: TURN relays so online play works on locked-down networks (school/work Wi-Fi, some mobile data).
+// PeerJS's built-in TURN only listens on port 3478, which those networks block. A relay on port 443 over TLS
+// looks like normal HTTPS and gets through almost anything. Free key: metered.ca → Open Relay / TURN server
+// (20 GB a month free). Paste the app name (the part before .metered.live) and the API key here.
+const TURN_APP = '';
+const TURN_KEY = '';
+const ICE_BASE = [{ urls:'stun:stun.l.google.com:19302' }, { urls:['turn:eu-0.turn.peerjs.com:3478','turn:us-0.turn.peerjs.com:3478'], username:'peerjs', credential:'peerjsp' }];
+let iceCache = null, iceP = null;
+function iceList(){
+  if (iceCache) return Promise.resolve(iceCache);
+  if (!TURN_APP || !TURN_KEY) return Promise.resolve(iceCache = ICE_BASE);
+  if (iceP) return iceP;
+  iceP = Promise.race([
+    fetch(`https://${TURN_APP}.metered.live/api/v1/turn/credentials?apiKey=${encodeURIComponent(TURN_KEY)}`, { cache:'no-store' }).then(r=>r.ok ? r.json() : []),
+    new Promise(r=>setTimeout(()=>r(null), 5000)),
+  ]).catch(()=>null).then(list=>{
+    iceP = null;
+    if (!Array.isArray(list) || !list.length) return ICE_BASE;      // not cached: try again next time
+    // relays first, TLS on 443 included; credentials are short-lived, so refresh after 30 min
+    iceCache = [...ICE_BASE.slice(0, 1), ...list, ICE_BASE[1]]; setTimeout(()=>{ iceCache = null; }, 30 * 60 * 1000);
+    return iceCache;
+  });
+  return iceP;
+}
+const iceNow = () => iceCache || ICE_BASE;
+queueMicrotask(()=>{ if (!inClaude) iceList(); });
 // v0.65.2: the main menu's #netnote is hidden on the JOIN page, so join errors were invisible ("nothing happens"). Write to both.
 function setNote(t){ for (const id of ['netnote','joinnote']){ const el = document.getElementById(id); if (el) el.textContent = t; } }
 class Emitter{constructor(){this._h={}}on(e,f){(this._h[e]=this._h[e]||[]).push(f);return this}emit(e,...a){(this._h[e]||[]).forEach(f=>{try{f(...a)}catch(err){console.error(err)}})}}
@@ -7444,7 +7470,7 @@ function nsend(conn,o){ try { if (conn && conn.open) conn.send(JSON.stringify(o)
 function nparse(d,fn){ if (typeof d==='string'){ let o; try{ o=JSON.parse(d); }catch(e){ return; } fn(o); } else if (d && typeof d==='object') fn(d); }
 // Wraps PeerJS in a small room API: emit / on / presence / onPeers / leave
 function openPeerRoom(code, host){
-  return loadPeerLib().then(P => new Promise((resolve, reject)=>{
+  return Promise.all([loadPeerLib(), iceList()]).then(([P, ice]) => new Promise((resolve, reject)=>{
     const handlers = {}; let peersFn = null, myPres = null, done = false;
     const fire = (t,d)=>(handlers[t]||[]).forEach(f=>{ try{ f(d); }catch(e){ console.error(e); } });
     const finish = (err, api)=>{ if (done) return; done = true; err ? reject(err) : resolve(api); };
@@ -7453,7 +7479,7 @@ function openPeerRoom(code, host){
     const timer = setTimeout(()=>{ try{ api.peer && api.peer.destroy(); }catch(e){} finish({type: stage ? 'p2p-timeout' : 'timeout'}); }, host ? 12000 : 20000);
     if (host){
       const conns = new Map();
-      const peer = api.peer = new P(PEER_PREFIX+code, { debug:0 });
+      const peer = api.peer = new P(PEER_PREFIX+code, { debug:0, config:{ iceServers: ice } });
       const list = () => [...conns.values()].filter(o=>o.pres).map(o=>o.pres);
       const pushPeers = () => peersFn && peersFn(list().map(d=>({presence:d})));
       peer.on('open', ()=>{ clearTimeout(timer); finish(null, api); });
@@ -7478,7 +7504,7 @@ function openPeerRoom(code, host){
       api._tick = setInterval(()=>{ const l = list(); if (myPres) l.push(myPres); for (const o of conns.values()) nsend(o.conn,{t:'P',list:l}); }, 100);
       api.leave = ()=>{ clearInterval(api._tick); try{ peer.destroy(); }catch(e){} };
     } else {
-      const peer = api.peer = new P(undefined, { debug:0 });
+      const peer = api.peer = new P(undefined, { debug:0, config:{ iceServers: ice } });
       let hc = null;
       peer.on('open', ()=>{
         stage = 1;
@@ -7567,7 +7593,7 @@ function frStart(){
   FR.starting = true;
   loadPeerLib().then(P=>{
     FR.starting = false; if (FR.peer) return;
-    const peer = FR.peer = new P(FR_PREFIX + FR.id, { debug:0 });
+    const peer = FR.peer = new P(FR_PREFIX + FR.id, { debug:0, config:{ iceServers: iceNow() } });
     const dead = ()=>{ if (FR.peer !== peer) return; try { peer.destroy(); } catch(_){} FR.peer = null; FR.ready = false; frRender(); setTimeout(frStart, 15000); };
     peer.on('open', ()=>{ FR.ready = true; frRender(); frRetry(); if ($('friends').classList.contains('show')) frPingAll(); });
     peer.on('connection', c=>{ c.on('data', d=>nparse(d, m=>frOnMsg(c, m))); c.on('error', ()=>{}); setTimeout(()=>{ try { c.close(); } catch(_){} }, 10000); });
