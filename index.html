@@ -483,7 +483,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.67.0</div>
+<div class="osd" id="ver">v0.68.0</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -633,6 +633,8 @@
         <div class="sr sel" data-k="cmo"></div>
         <div class="sr sel" data-k="aexp"></div>
         <div class="sr sel" data-k="bloom"></div>
+        <div class="sr sel" data-k="mblur"></div>
+        <div class="sr sel" data-k="sharp"></div>
         <div class="sr sel" data-k="noise"></div>
         <div class="sh">PERFORMANCE</div>
         <div class="sr sel" data-k="fps"></div>
@@ -645,6 +647,11 @@
         <div class="sr sel" data-k="lq"></div>
         <div class="sr sel" data-k="shd"></div>
         <div class="sr sel" data-k="shq"></div>
+        <div class="sr sel" data-k="ao"></div>
+        <div class="sr sel" data-k="shaft"></div>
+        <div class="sh">TEXTURES &amp; EDGES</div>
+        <div class="sr sel" data-k="tex"></div>
+        <div class="sr sel" data-k="aa"></div>
         <div class="sh">WATER</div>
         <div class="sr sel" data-k="refl"></div>
       </div>
@@ -3939,7 +3946,7 @@ function garageRoomShelves(L, g, q, rng){
     for (const xw of [x0 + 0.3 + D/2, x1 - 0.3 - D/2]) for (let k=0;k<Math.floor((z1-z0-2.6)/2.2);k++){ const z = q.side === 2 ? z0 + 1.9 + k*2.2 : z1 - 1.9 - k*2.2; spots.push([xw, z, false]); } }
   for (const [x, z, a] of spots) if (!near(x, z) && Math.hypot(x - q.ix, z - q.iz) > 2.4 && rng() < 0.85) unit(x, z, a);
 }
-function buildLevel(seed, kind=0){ if (!(level && level.seed === seed && level.lk === kind)) doorWait.length = 0; buildLevelRaw(seed, kind); lampify(level); if (renderer.shadowMap.enabled) shadowFlags(false); }
+function buildLevel(seed, kind=0){ if (!(level && level.seed === seed && level.lk === kind)) doorWait.length = 0; buildLevelRaw(seed, kind); lampify(level); if (renderer.shadowMap.enabled) shadowFlags(false); if (SET.tex !== 'pixel') texSweep(); }
 function buildLevelRaw(seed, kind=0){
   if (level && level.seed === seed && level.lk === kind) return;
   LK = kind; if (kind === 0) baseSeed = seed;
@@ -3981,7 +3988,7 @@ function buildLevelRaw(seed, kind=0){
   if (kind === 0){ L.noDraw = new Uint8Array(E); L.noDraw[labPE()] = 1;   // the lab's blast door is drawn as a shutter
     for (let e=0;e<E;e++) if (edgeCells(e).some(([i,j])=>inGrid(i,j) && inLabCell(i,j))) L.fixed[e] = 1; }
   if (kind === 1){ L.noDraw = new Uint8Array(E); for (const q of L.groom){ for (const e of q.win) L.noDraw[e] = 1; L.noDraw[q.door] = 1; } }   // windows are drawn by buildGarageRoom
-  const wmats = [wallMat, concWallM, lam(0xffffff,{map:pitWallTex}), kind === 2 ? tileMats().wall : wallMat, lam(0xffffff,{map:mallWallTex})];
+  const wmats = [wallMat, concWallM, wallMat /* v0.68: the pitfalls use the normal Level 0 wallpaper (Ryan) */, kind === 2 ? tileMats().wall : wallMat, lam(0xffffff,{map:mallWallTex})];
   tmpM.makeScale(0.0001,0.0001,0.0001);
   L.wallMeshes = [0,1,2,3,4].map(z=>{ const m = new THREE.InstancedMesh(boxUV(CS+0.2, ZH[z], 0.2), wmats[z], E); for (let e=0;e<E;e++) m.setMatrixAt(e, tmpM); m.frustumCulled=false; g.add(m); return m; });
   applyWalls(true);
@@ -7853,16 +7860,19 @@ setTimeout(frStart, 1500);
    resolution + lighting + shadows + reflections; touching one of those makes it CUSTOM. MEDIUM = the old look. */
 const SET_DEF = { vol:100, vv:100, sens:100, fov:74, mg:isIOS ? 220 : 160, mic:'', spk:'',
   gq:'med', res:'psx', lq:'med', shd:'off', shq:'low', refl:'med', wob:'psx', grain:'normal', bri:100, fps:'off', showFps:'off', invY:'off',
-  cam:'camcorder', lens:'normal', cmo:'steady', aexp:'off', bloom:'off', noise:'off' };
+  cam:'camcorder', lens:'normal', cmo:'steady', aexp:'off', bloom:'off', noise:'off',
+  mblur:'off', sharp:'off', tex:'pixel', aa:'off', ao:'off', shaft:'off' };
 const SET = { ...SET_DEF };
 try { Object.assign(SET, JSON.parse(localStorage.getItem('lvl0_set') || '{}')); } catch(e){}
-const GQ = { low:{ res:'low', lq:'low', shd:'off', shq:'low', refl:'low' }, med:{ res:'psx', lq:'med', shd:'off', shq:'low', refl:'med' },
-  high:{ res:'sharp', lq:'high', shd:'mine', shq:'high', refl:'high' }, ultra:{ res:'hd', lq:'ultra', shd:'all', shq:'high', refl:'ultra' } };
+const GQ = { low:{ res:'low', lq:'low', shd:'off', shq:'low', refl:'low', tex:'pixel', aa:'off', ao:'off', shaft:'off' },
+  med:{ res:'psx', lq:'med', shd:'off', shq:'low', refl:'med', tex:'pixel', aa:'off', ao:'off', shaft:'off' },
+  high:{ res:'sharp', lq:'high', shd:'mine', shq:'high', refl:'high', tex:'clean', aa:'fxaa', ao:'on', shaft:'on' },
+  ultra:{ res:'hd', lq:'ultra', shd:'all', shq:'high', refl:'ultra', tex:'smooth', aa:'fxaa', ao:'high', shaft:'on' } };
 const OFFON = [['off','OFF'],['on','ON']];
 /* v0.67 (Ryan, after playing Bodycam: "ultra realistic"): CAMERA STYLE = a preset over lens / motion / exposure / bloom / noise
    (+ it turns the PSX wobble and film grain off for BODYCAM, back on for CAMCORDER). Post effects live in renderMain (POST). */
-const CAMS = { camcorder:{ lens:'normal', cmo:'steady', aexp:'off', bloom:'off', noise:'off', wob:'psx', grain:'normal' },
-  bodycam:{ lens:'fisheye', cmo:'body', aexp:'on', bloom:'high', noise:'on', wob:'off', grain:'off' } };
+const CAMS = { camcorder:{ lens:'normal', cmo:'steady', aexp:'off', bloom:'off', noise:'off', wob:'psx', grain:'normal', mblur:'off', sharp:'off' },
+  bodycam:{ lens:'fisheye', cmo:'body', aexp:'on', bloom:'high', noise:'on', wob:'off', grain:'off', mblur:'low', sharp:'on' } };
 const PRESETS = [['gq', () => GQ], ['cam', () => CAMS]];
 const SXK = {
   res:{ t:'Render Resolution', d:'How many pixels the game draws before it gets stretched to your screen. Low and PSX are the crunchy camcorder look the game was made with. Higher is sharper and costs more.',
@@ -7890,7 +7900,15 @@ const SXK = {
     o:[['steady','STEADY','Smooth (default).'],['body','BODY','Strapped to your chest.'],['heavy','HEAVY','Even more bounce and shake.']] },
   aexp:{ t:'Auto Exposure', d:'The camera adjusts to the light like a real one: walk into the dark and it\'s black for a moment before the picture slowly gains up (with more noise); point your light at a wall up close and everything else dims.',
     o:[['off','OFF','Default.'],['on','ON']] },
-  bloom:{ t:'Bloom', d:'Bright lights glow and bleed into the picture like an overexposed camera sensor.', o:[['off','OFF','Default.'],['low','LOW'],['high','HIGH']] },
+  bloom:{ t:'Bloom', d:'Bright lights glow and bleed into the picture like an overexposed camera sensor.', o:[['off','OFF','Default.'],['low','LOW'],['high','HIGH'],['max','MAX','Big, wide glow around every light.']] },
+  mblur:{ t:'Motion Blur', d:'The picture smears when you turn quickly, like a real camera\'s shutter.', o:[['off','OFF','Default.'],['low','LOW','A light smear on fast turns.'],['high','HIGH','Strong smear.']] },
+  sharp:{ t:'Sharpening', d:'Crisper edges and detail, like the over-sharpened picture of a cheap digital camera.', o:OFFON },
+  tex:{ t:'Texture Filtering', d:'How textures look up close and far away. Fixes walls, carpet and ceilings shimmering and crawling when you move.',
+    o:[['pixel','PIXELATED','The original look: crunchy pixels, some shimmer in the distance (default).'],['clean','CLEAN','Still pixelated up close, but no shimmer or crawling further away.'],['smooth','SMOOTH','Smooth textures at every distance, sharp at angles. The most realistic.']] },
+  aa:{ t:'Anti-Aliasing', d:'Smooths jagged, flickering edges (FXAA). Also smooths how the picture is stretched to your screen.', o:[['off','OFF','Default.'],['fxaa','FXAA']] },
+  ao:{ t:'Ambient Occlusion', d:'Soft contact shadows where walls meet the floor and ceiling, in corners, and under and behind objects. Makes rooms look solid and lived-in.',
+    o:[['off','OFF','Default.'],['on','ON'],['high','HIGH','Darker, stronger corners.']] },
+  shaft:{ t:'Volumetric Flashlight', d:'Your flashlight beam shows up in the dusty air as a cone of light, stopping where it hits a wall.', o:OFFON },
   noise:{ t:'Sensor Noise', d:'Digital camera noise: speckled colour grain in the dark, stronger when the camera has to gain up. (Film grain is the separate older effect.)', o:[['off','OFF','Default.'],['on','ON']] },
 };
 let settingsOpen = false;
@@ -7939,10 +7957,27 @@ function applyGfx(){
   if (PL.length !== LQN[SET.lq]) setPL(LQN[SET.lq] || 8);
   if (PG.water){ const z = reflSz(), rt = PG.water.getRenderTarget(); if (rt.width !== z) rt.setSize(z, z); }
   $('fpsc').style.display = SET.showFps === 'on' ? 'block' : 'none';
-  { const on = SET.lens !== 'normal' || SET.aexp === 'on' || SET.bloom !== 'off' || SET.noise === 'on'; if (on && !POST.on) POST.init = true; POST.on = on; }
+  { const on = SET.lens !== 'normal' || SET.aexp === 'on' || SET.bloom !== 'off' || SET.noise === 'on' || SET.mblur !== 'off' || SET.sharp === 'on' || SET.aa !== 'off' || SET.ao !== 'off' || SET.shaft === 'on';
+    if (on && !POST.on) POST.init = true; POST.on = on; }
+  $('game').style.imageRendering = SET.aa === 'fxaa' || SET.tex === 'smooth' ? 'auto' : '';
+  texSweep();
   applyShadows();
 }
 addEventListener('resize', ()=>{ if (SET.res === 'native' || SET.res === 'hd' || SET.res === 'sharp'){ const r = resFor(); if (r !== RH){ RH = r; curRH = r; resize(); } } });
+/* v0.68 TEXTURE FILTERING: every texture on a world material is switched between its original look (nearest + nearest mip),
+   CLEAN (nearest up close, trilinear mips + 4× anisotropic further away: no shimmer) and SMOOTH (linear, trilinear, 8× anisotropic).
+   Runs on change, after every buildLevel and with the periodic sweep (models that load later). */
+const TEX_KEYS = ['map', 'normalMap', 'emissiveMap'];
+function texSweep(){
+  const mode = SET.tex, maxA = renderer.capabilities.getMaxAnisotropy();
+  const fix = t => { if (!t || !t.isTexture || t.isRenderTargetTexture || t.isVideoTexture || t.userData.tf === mode) return;
+    if (!t.userData.f0) t.userData.f0 = [t.magFilter, t.minFilter, t.anisotropy];
+    const f = t.userData.f0;
+    if (mode === 'pixel'){ t.magFilter = f[0]; t.minFilter = f[1]; t.anisotropy = f[2]; }
+    else { t.magFilter = mode === 'smooth' ? THREE.LinearFilter : f[0]; t.minFilter = THREE.LinearMipmapLinearFilter; t.generateMipmaps = true; t.anisotropy = Math.min(maxA, mode === 'smooth' ? 8 : 4); }
+    t.userData.tf = mode; t.needsUpdate = true; };
+  scene.traverse(o => { if (!o.material) return; for (const m of Array.isArray(o.material) ? o.material : [o.material]) if (m) for (const key of TEX_KEYS) fix(m[key]); });
+}
 /* ---- v0.66 the settings screen ---- */
 const SX_TABS = ['video', 'gfx', 'audio', 'game', 'ctrl'];
 let sxTab = 'video', sxRow = null;
@@ -10272,48 +10307,108 @@ function menuSpot(){
 buildLevel(hashStr('menu-level'));
 let menuT = 0, tvT = 0; const pageT0 = nowS();
 let last = performance.now();
-/* ===== v0.67 camera post-processing (BODYCAM): lens bend + colour fringing, bloom, auto-exposure, sensor noise =====
-   Only runs when one of those settings is on (POST.on); otherwise the scene renders straight to the screen like before.
-   scene → POST.rt (half-float when the GPU can) → [bright pass + 2× separable blur at 1/4 size → b1] → [16×16 log-luminance → lum
-   → 1×1 exposure, ping-ponged and eased on the GPU: darkens fast, gains up slowly like a real camera] → composite to the screen.
-   The lens: a barrel bend with the centre magnified by (1 + k), so the scene is rendered with a wider FOV to make up for it. */
-const POST = { on:false, init:true, dt:0.016, ei:0 };
-const LENS_K = { normal:0, wide:0.16, fisheye:0.38 }, LENS_CA = { normal:0, wide:0.004, fisheye:0.009 }, BLOOM_K = { off:0, low:0.55, high:1.1 };
-const _pv2 = new THREE.Vector2();
+/* ===== v0.67/v0.68 camera post-processing =====
+   Only runs when one of its settings is on (POST.on); otherwise the scene renders straight to the screen like before.
+   scene → POST.rt (colour, half-float when the GPU can, + a depth texture)
+     → FXAA (rt → rt2)                                  [ANTI-ALIASING]
+     → half-res ambient occlusion from depth (+ blur)   [AMBIENT OCCLUSION: normal-oriented SSAO, normals rebuilt from depth]
+     → half-res flashlight light shafts (ray-march)     [VOLUMETRIC FLASHLIGHT: your spot's cone, stops at the first surface]
+     → bright pass + separable blurs at 1/4 size        [BLOOM]
+     → 16×16 log-luminance → 1×1 exposure (GPU ping-pong) [AUTO EXPOSURE]
+     → composite: lens bend + colour fringing, motion blur along the camera's turn, sharpening, AO, shafts, bloom,
+       exposure, sensor noise, vignette → screen.
+   The lens: a barrel bend with the centre magnified by (1 + k), so the scene is rendered with a wider FOV to cancel it. */
+const POST = { on:false, init:true, dt:0.016, ei:0, pf:null };
+const LENS_K = { normal:0, wide:0.16, fisheye:0.38 }, LENS_CA = { normal:0, wide:0.004, fisheye:0.009 };
+const BLOOM_K = { off:0, low:0.55, high:1.1, max:1.8 }, MBLUR_K = { off:0, low:0.45, high:0.9 };
+const _pv2 = new THREE.Vector2(), _pv3 = new THREE.Vector3(), _pv4 = new THREE.Vector3(), _pq = new THREE.Quaternion();
 function postInit(){
   if (POST.ready) return; POST.ready = true;
   const ex = renderer.extensions, hf = renderer.capabilities.isWebGL2 && (ex.has('EXT_color_buffer_float') || ex.has('EXT_color_buffer_half_float'));
   POST.hf = hf; const type = hf ? THREE.HalfFloatType : THREE.UnsignedByteType;
   const mk = (w, h, near) => new THREE.WebGLRenderTarget(w, h, { type, depthBuffer:false, minFilter: near ? THREE.NearestFilter : THREE.LinearFilter, magFilter: near ? THREE.NearestFilter : THREE.LinearFilter });
   POST.rt = new THREE.WebGLRenderTarget(4, 4, { type, depthBuffer:true, minFilter:THREE.LinearFilter, magFilter:THREE.LinearFilter });
-  POST.b1 = mk(8, 8); POST.b2 = mk(8, 8); POST.lum = mk(16, 16, true); POST.ex = [mk(1, 1, true), mk(1, 1, true)];
+  POST.rt.depthTexture = new THREE.DepthTexture(4, 4); POST.rt.depthTexture.type = THREE.UnsignedIntType;
+  POST.rt2 = mk(4, 4); POST.b1 = mk(8, 8); POST.b2 = mk(8, 8); POST.ao = mk(8, 8); POST.ao2 = mk(8, 8); POST.vl = mk(8, 8); POST.vl2 = mk(8, 8);
+  POST.lum = mk(16, 16, true); POST.ex = [mk(1, 1, true), mk(1, 1, true)];
   POST.cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1); POST.sc = new THREE.Scene();
   POST.quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2)); POST.quad.frustumCulled = false; POST.sc.add(POST.quad);
   const vs = 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }';
   const M = (fs, u) => new THREE.ShaderMaterial({ vertexShader:vs, fragmentShader:fs, uniforms:u, depthTest:false, depthWrite:false });
+  const V2 = () => ({ value:new THREE.Vector2() }), V3 = () => ({ value:new THREE.Vector3() }), F = (v = 0) => ({ value:v }), T = () => ({ value:null });
+  // view-space position from depth (symmetric perspective)
+  const DEPTH = `#include <packing>
+    uniform sampler2D tD; uniform float near, far, p0, p1;
+    float vz(vec2 uv){ return perspectiveDepthToViewZ(texture2D(tD, uv).x, near, far); }
+    vec3 vp(vec2 uv){ float z = vz(uv); vec2 n = uv*2.0 - 1.0; return vec3(n.x*-z/p0, n.y*-z/p1, z); }`;
+  POST.mFxaa = M(`uniform sampler2D t; uniform vec2 px; varying vec2 vUv;
+    float L(vec3 c){ return sqrt(max(dot(c, vec3(0.299, 0.587, 0.114)), 0.0)); }
+    void main(){ vec3 cM = texture2D(t, vUv).rgb;
+      float lNW = L(texture2D(t, vUv + vec2(-1.0, -1.0)*px).rgb), lNE = L(texture2D(t, vUv + vec2(1.0, -1.0)*px).rgb),
+            lSW = L(texture2D(t, vUv + vec2(-1.0, 1.0)*px).rgb), lSE = L(texture2D(t, vUv + vec2(1.0, 1.0)*px).rgb), lM = L(cM);
+      float lMin = min(lM, min(min(lNW, lNE), min(lSW, lSE))), lMax = max(lM, max(max(lNW, lNE), max(lSW, lSE)));
+      vec2 dir = vec2(-((lNW + lNE) - (lSW + lSE)), (lNW + lSW) - (lNE + lSE));
+      float red = max((lNW + lNE + lSW + lSE)*0.03125, 1.0/128.0), rcp = 1.0/(min(abs(dir.x), abs(dir.y)) + red);
+      dir = clamp(dir*rcp, -8.0, 8.0)*px;
+      vec3 A = 0.5*(texture2D(t, vUv + dir*(1.0/3.0 - 0.5)).rgb + texture2D(t, vUv + dir*(2.0/3.0 - 0.5)).rgb);
+      vec3 B = A*0.5 + 0.25*(texture2D(t, vUv - dir*0.5).rgb + texture2D(t, vUv + dir*0.5).rgb);
+      float lB = L(B); gl_FragColor = vec4((lB < lMin || lB > lMax) ? A : B, 1.0); }`, { t:T(), px:V2() });
+  POST.mAO = M(DEPTH + `uniform vec2 px; uniform float str; varying vec2 vUv;
+    void main(){
+      if (texture2D(tD, vUv).x >= 0.9999){ gl_FragColor = vec4(1.0); return; }
+      vec3 P = vp(vUv);
+      vec3 a1 = vp(vUv + vec2(px.x, 0.0)), a2 = vp(vUv - vec2(px.x, 0.0)), b1 = vp(vUv + vec2(0.0, px.y)), b2 = vp(vUv - vec2(0.0, px.y));
+      vec3 dx = abs(a1.z - P.z) < abs(P.z - a2.z) ? a1 - P : P - a2, dy = abs(b1.z - P.z) < abs(P.z - b2.z) ? b1 - P : P - b2;
+      vec3 N = normalize(cross(dx, dy)); if (dot(N, -P) < 0.0) N = -N;
+      float R = 0.5, rad = R*p1*0.5/max(-P.z, 0.3), asp = px.x/px.y;
+      float a0 = fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233)))*43758.5453)*6.2831, occ = 0.0;
+      for (int i = 0; i < 12; i++){ float fi = float(i), r = rad*(fi + 0.5)/12.0, an = a0 + fi*2.39996;
+        vec3 S = vp(vUv + vec2(cos(an)*asp, sin(an))*r); vec3 v = S - P; float l = length(v) + 1e-4;
+        occ += max(0.0, dot(N, v/l) - 0.1)*(1.0 - smoothstep(R*0.6, R*1.6, l)); }
+      float ao = clamp(1.0 - occ/12.0*2.2*str, 0.0, 1.0);
+      ao = mix(1.0, ao, smoothstep(26.0, 10.0, -P.z)*smoothstep(0.7, 1.1, -P.z));
+      gl_FragColor = vec4(ao, ao, ao, 1.0); }`, { tD:T(), near:F(), far:F(), p0:F(), p1:F(), px:V2(), str:F(1) });
+  POST.mVol = M(DEPTH + `uniform vec3 Lp, Ld, col; uniform float cosO, cosI, str, tm; varying vec2 vUv;
+    void main(){
+      vec3 dir = normalize(vec3((vUv.x*2.0 - 1.0)/p0, (vUv.y*2.0 - 1.0)/p1, -1.0));
+      float z = vz(vUv), tEnd = min(z/dir.z, 14.0), j = fract(sin(dot(gl_FragCoord.xy + tm, vec2(12.9898, 78.233)))*43758.5453), acc = 0.0;
+      for (int i = 0; i < 14; i++){ float t = (float(i) + j)/14.0*tEnd; vec3 v = dir*t - Lp; float dl = length(v) + 1e-3;
+        float cone = smoothstep(cosO, cosI, dot(v/dl, Ld)); acc += cone/(1.0 + dl*dl*0.09)*smoothstep(0.0, 0.6, dl); }
+      gl_FragColor = vec4(col*acc/14.0*tEnd*str, 1.0); }`,
+    { tD:T(), near:F(), far:F(), p0:F(), p1:F(), Lp:V3(), Ld:V3(), col:V3(), cosO:F(), cosI:F(), str:F(), tm:F() });
   POST.mBright = M(`uniform sampler2D t; uniform vec2 px; varying vec2 vUv;
     void main(){ vec3 c = vec3(0.0); for (int i=-1;i<=1;i++) for (int j=-1;j<=1;j++) c += texture2D(t, vUv + vec2(float(i), float(j))*px).rgb; c /= 9.0;
-      float l = dot(c, vec3(0.299, 0.587, 0.114)); gl_FragColor = vec4(c*smoothstep(0.42, 1.0, l), 1.0); }`, { t:{ value:null }, px:{ value:new THREE.Vector2() } });
+      float l = dot(c, vec3(0.299, 0.587, 0.114)); gl_FragColor = vec4(c*smoothstep(0.42, 1.0, l), 1.0); }`, { t:T(), px:V2() });
   POST.mBlur = M(`uniform sampler2D t; uniform vec2 d; varying vec2 vUv;
     void main(){ vec3 c = texture2D(t, vUv).rgb*0.227; c += (texture2D(t, vUv + d*1.385).rgb + texture2D(t, vUv - d*1.385).rgb)*0.316;
-      c += (texture2D(t, vUv + d*3.23).rgb + texture2D(t, vUv - d*3.23).rgb)*0.07; gl_FragColor = vec4(c, 1.0); }`, { t:{ value:null }, d:{ value:new THREE.Vector2() } });
+      c += (texture2D(t, vUv + d*3.23).rgb + texture2D(t, vUv - d*3.23).rgb)*0.07; gl_FragColor = vec4(c, 1.0); }`, { t:T(), d:V2() });
   // centre-weighted metering, like a real camera
   POST.mLum = M(`uniform sampler2D t; varying vec2 vUv;
     void main(){ float s = 0.0; for (int i=0;i<4;i++) for (int j=0;j<4;j++){ vec2 o = (vec2(float(i), float(j)) + 0.5)/4.0 - 0.5; vec3 c = texture2D(t, vUv + o/16.0).rgb;
-      s += log(dot(c, vec3(0.2126, 0.7152, 0.0722)) + 0.004); } float w = 1.0 - 0.6*length(vUv - 0.5); gl_FragColor = vec4(s/16.0*w, w, 0.0, 1.0); }`, { t:{ value:null } });
+      s += log(dot(c, vec3(0.2126, 0.7152, 0.0722)) + 0.004); } float w = 1.0 - 0.6*length(vUv - 0.5); gl_FragColor = vec4(s/16.0*w, w, 0.0, 1.0); }`, { t:T() });
   POST.mAdapt = M(`uniform sampler2D tl; uniform sampler2D tp; uniform float dt, init; varying vec2 vUv;
     void main(){ float s = 0.0, ws = 0.0; for (int i=0;i<16;i++) for (int j=0;j<16;j++){ vec2 q = texture2D(tl, (vec2(float(i), float(j)) + 0.5)/16.0).rg; s += q.r; ws += q.g; }
       float avg = exp(s/ws), tgt = clamp(pow(0.09/avg, 0.6), 0.55, 1.55), p = texture2D(tp, vec2(0.5)).r;
       if (init > 0.5) p = tgt; float r = tgt > p ? 0.55 : 2.6; gl_FragColor = vec4(mix(p, tgt, 1.0 - exp(-r*dt)), 0.0, 0.0, 1.0); }`,
-    { tl:{ value:null }, tp:{ value:null }, dt:{ value:0 }, init:{ value:1 } });
-  POST.mComp = M(`uniform sampler2D tS; uniform sampler2D tB; uniform sampler2D tE; uniform float k, ca, bl, ns, eo, tm, asp;
+    { tl:T(), tp:T(), dt:F(), init:F(1) });
+  POST.mComp = M(`uniform sampler2D tS; uniform sampler2D tB; uniform sampler2D tE; uniform sampler2D tA; uniform sampler2D tV;
+    uniform float k, ca, bl, ns, eo, tm, asp, aoOn, vOn, sh; uniform vec2 vel, px;
     varying vec2 vUv;
     float h(vec2 p, float o){ return fract(sin(dot(p, vec2(12.9898, 78.233)) + tm*7.13 + o)*43758.5453); }
     vec2 bend(vec2 uv, float kk){ vec2 p = (uv - 0.5)*vec2(asp, 1.0); float r2 = dot(p, p)/((asp*asp + 1.0)*0.25); return p*(1.0 + kk*r2)/(1.0 + kk)/vec2(asp, 1.0) + 0.5; }
+    vec3 samp(vec2 u){ if (ca <= 0.0) return texture2D(tS, bend(u, k)).rgb;
+      return vec3(texture2D(tS, bend(u, k + ca)).r, texture2D(tS, bend(u, k)).g, texture2D(tS, bend(u, max(0.0, k - ca))).b); }
     void main(){
       vec2 u = vUv, p = (u - 0.5)*vec2(asp, 1.0); float r2 = dot(p, p)/((asp*asp + 1.0)*0.25);
-      vec3 c = vec3(texture2D(tS, bend(u, k + ca)).r, texture2D(tS, bend(u, k)).g, texture2D(tS, bend(u, max(0.0, k - ca))).b);
-      c += texture2D(tB, bend(u, k)).rgb*bl;
+      vec3 c;
+      if (dot(vel, vel) > 1e-7){ c = vec3(0.0); for (int i = 0; i < 7; i++) c += samp(u + vel*(float(i)/6.0 - 0.5)); c /= 7.0; }
+      else c = samp(u);
+      vec2 bu = bend(u, k);
+      if (sh > 0.0){ vec3 nb = (texture2D(tS, bu + vec2(px.x, 0.0)).rgb + texture2D(tS, bu - vec2(px.x, 0.0)).rgb + texture2D(tS, bu + vec2(0.0, px.y)).rgb + texture2D(tS, bu - vec2(0.0, px.y)).rgb)*0.25;
+        c = max(c + (c - nb)*sh, 0.0); }
+      if (aoOn > 0.5) c *= texture2D(tA, bu).r;
+      if (vOn > 0.5) c += texture2D(tV, bu).rgb;
+      c += texture2D(tB, bu).rgb*bl;
       float e = eo > 0.5 ? texture2D(tE, vec2(0.5)).r : 1.0; c *= e;
       if (ns > 0.0){ float l = dot(c, vec3(0.299, 0.587, 0.114)), g = 0.03 + 0.08*clamp(e - 1.0, 0.0, 0.6);
         vec2 q = floor(u*vec2(1280.0, 720.0)/1.5); float n = h(q, 0.0) - 0.5; vec3 cn = vec3(h(q, 1.3), h(q, 2.7), h(q, 4.1)) - 0.5;
@@ -10321,29 +10416,55 @@ function postInit(){
       c *= 1.0 - 0.28*k*r2*r2 - 0.18*r2*step(0.001, k);
       gl_FragColor = vec4(c, 1.0);
       #include <colorspace_fragment>
-    }`, { tS:{ value:null }, tB:{ value:null }, tE:{ value:null }, k:{ value:0 }, ca:{ value:0 }, bl:{ value:0 }, ns:{ value:0 }, eo:{ value:0 }, tm:{ value:0 }, asp:{ value:1 } });
+    }`, { tS:T(), tB:T(), tE:T(), tA:T(), tV:T(), k:F(), ca:F(), bl:F(), ns:F(), eo:F(), tm:F(), asp:F(1), aoOn:F(), vOn:F(), sh:F(), vel:V2(), px:V2() });
 }
 function postPass(m, t){ POST.quad.material = m; renderer.setRenderTarget(t); renderer.render(POST.sc, POST.cam); }
+function postSize(t, w, h){ if (t.width !== w || t.height !== h) t.setSize(w, h); }
+function blurPass(a, b, sp){ const B = POST.mBlur.uniforms;
+  B.t.value = a.texture; B.d.value.set(sp/a.width, 0); postPass(POST.mBlur, b);
+  B.t.value = b.texture; B.d.value.set(0, sp/a.height); postPass(POST.mBlur, a); }
 function renderMain(){
-  if (!POST.on || tvRoomOn()){ renderer.render(scene, camera); return; }
+  if (!POST.on || tvRoomOn()){ renderer.render(scene, camera); POST.pf = null; return; }
   postInit();
-  const sz = renderer.getDrawingBufferSize(_pv2), w = sz.x, h = sz.y;
-  if (POST.rt.width !== w || POST.rt.height !== h){ POST.rt.setSize(w, h); const bw = Math.max(8, w >> 2), bh = Math.max(8, h >> 2); POST.b1.setSize(bw, bh); POST.b2.setSize(bw, bh); }
+  const sz = renderer.getDrawingBufferSize(_pv2), w = sz.x, h = sz.y, hw = Math.max(8, w >> 1), hh = Math.max(8, h >> 1);
+  postSize(POST.rt, w, h); postSize(POST.rt2, w, h); postSize(POST.b1, Math.max(8, w >> 2), Math.max(8, h >> 2)); postSize(POST.b2, POST.b1.width, POST.b1.height);
   const k = LENS_K[SET.lens] || 0, f0 = camera.fov;
   if (k){ camera.fov = 2*Math.atan(Math.tan(f0*Math.PI/360)*(1 + k))*180/Math.PI; camera.updateProjectionMatrix(); }
+  const pm = camera.projectionMatrix.elements, p0 = pm[0], p1 = pm[5], near = camera.near, far = camera.far, fovR = camera.fov*Math.PI/180;
+  camera.updateMatrixWorld(); const mvi = camera.matrixWorldInverse;
   renderer.setRenderTarget(POST.rt); renderer.render(scene, camera);
   if (k){ camera.fov = f0; camera.updateProjectionMatrix(); }
-  const bl = BLOOM_K[SET.bloom] || 0, C = POST.mComp.uniforms;
-  if (bl){ const bw = POST.b1.width, bh = POST.b1.height;
-    POST.mBright.uniforms.t.value = POST.rt.texture; POST.mBright.uniforms.px.value.set(1/w, 1/h); postPass(POST.mBright, POST.b1);
-    for (const sp of [1, 2.2]){ POST.mBlur.uniforms.t.value = POST.b1.texture; POST.mBlur.uniforms.d.value.set(sp/bw, 0); postPass(POST.mBlur, POST.b2);
-      POST.mBlur.uniforms.t.value = POST.b2.texture; POST.mBlur.uniforms.d.value.set(0, sp/bh); postPass(POST.mBlur, POST.b1); } }
+  const C = POST.mComp.uniforms; let src = POST.rt;
+  if (SET.aa === 'fxaa'){ POST.mFxaa.uniforms.t.value = POST.rt.texture; POST.mFxaa.uniforms.px.value.set(1/w, 1/h); postPass(POST.mFxaa, POST.rt2); src = POST.rt2; }
+  const dep = { tD:POST.rt.depthTexture, near, far, p0, p1 }, setD = U => { for (const q in dep) U[q].value = dep[q]; };
+  const ao = SET.ao !== 'off';
+  if (ao){ postSize(POST.ao, hw, hh); postSize(POST.ao2, hw, hh); const A = POST.mAO.uniforms; setD(A); A.px.value.set(1/hw, 1/hh); A.str.value = SET.ao === 'high' ? 1.4 : 1;
+    postPass(POST.mAO, POST.ao); blurPass(POST.ao, POST.ao2, 1); }
+  const sp0 = spots[0], vOn = SET.shaft === 'on' && sp0.intensity > 0.05 && role === 'survivor';
+  if (vOn){ postSize(POST.vl, hw, hh); postSize(POST.vl2, hw, hh); const U = POST.mVol.uniforms; setD(U);
+    _pv3.copy(sp0.position).applyMatrix4(mvi); U.Lp.value.copy(_pv3);
+    _pv4.copy(sp0.target.position).applyMatrix4(mvi).sub(_pv3).normalize(); U.Ld.value.copy(_pv4);
+    U.cosO.value = Math.cos(sp0.angle); U.cosI.value = Math.cos(sp0.angle*(1 - sp0.penumbra*0.8));
+    U.col.value.set(sp0.color.r, sp0.color.g, sp0.color.b); U.str.value = 0.0065*sp0.intensity; U.tm.value = nowS() % 50;
+    postPass(POST.mVol, POST.vl); blurPass(POST.vl, POST.vl2, 1.2); }
+  const bl = BLOOM_K[SET.bloom] || 0;
+  if (bl){ const B = POST.mBright.uniforms; B.t.value = src.texture; B.px.value.set(1/w, 1/h); postPass(POST.mBright, POST.b1);
+    for (const sp of SET.bloom === 'max' ? [1, 2.2, 4] : [1, 2.2]) blurPass(POST.b1, POST.b2, sp); }
   const ae = SET.aexp === 'on' && POST.hf;
-  if (ae){ POST.mLum.uniforms.t.value = POST.rt.texture; postPass(POST.mLum, POST.lum);
-    const A = POST.mAdapt.uniforms, src = POST.ex[POST.ei], dst = POST.ex[1 - POST.ei];
-    A.tl.value = POST.lum.texture; A.tp.value = src.texture; A.dt.value = POST.dt; A.init.value = POST.init ? 1 : 0; postPass(POST.mAdapt, dst); POST.ei = 1 - POST.ei; POST.init = false; }
-  C.tS.value = POST.rt.texture; C.tB.value = POST.b1.texture; C.tE.value = POST.ex[POST.ei].texture;
+  if (ae){ POST.mLum.uniforms.t.value = src.texture; postPass(POST.mLum, POST.lum);
+    const A = POST.mAdapt.uniforms, s0 = POST.ex[POST.ei], d0 = POST.ex[1 - POST.ei];
+    A.tl.value = POST.lum.texture; A.tp.value = s0.texture; A.dt.value = POST.dt; A.init.value = POST.init ? 1 : 0; postPass(POST.mAdapt, d0); POST.ei = 1 - POST.ei; POST.init = false; }
+  // motion blur: how far the view turned this frame, in screen units
+  const mb = MBLUR_K[SET.mblur] || 0; C.vel.value.set(0, 0);
+  camera.getWorldQuaternion(_pq); _pv3.set(0, 0, -1).applyQuaternion(_pq);
+  if (mb && POST.pf){ const f = POST.pf, yaw0 = Math.atan2(f.x, f.z), yaw1 = Math.atan2(_pv3.x, _pv3.z);
+    let dy = yaw1 - yaw0; dy = ((dy + Math.PI*3) % (Math.PI*2)) - Math.PI; const dp = Math.asin(clamp(_pv3.y, -1, 1)) - Math.asin(clamp(f.y, -1, 1));
+    const vx = dy/(2*Math.atan(Math.tan(fovR/2)*w/h))*mb, vy = dp/fovR*mb, l = Math.hypot(vx, vy), m = 0.06;
+    if (l > 0.0015) C.vel.value.set(vx, vy).multiplyScalar(l > m ? m/l : 1); }
+  POST.pf = (POST.pf || new THREE.Vector3()).copy(_pv3);
+  C.tS.value = src.texture; C.tB.value = POST.b1.texture; C.tE.value = POST.ex[POST.ei].texture; C.tA.value = POST.ao.texture; C.tV.value = POST.vl.texture;
   C.k.value = k; C.ca.value = LENS_CA[SET.lens] || 0; C.bl.value = bl; C.ns.value = SET.noise === 'on' ? 1 : 0; C.eo.value = ae ? 1 : 0; C.tm.value = (nowS() % 100); C.asp.value = w/h;
+  C.aoOn.value = ao ? 1 : 0; C.vOn.value = vOn ? 1 : 0; C.sh.value = SET.sharp === 'on' ? 0.55 : 0; C.px.value.set(1/w, 1/h);
   postPass(POST.mComp, null);
 }
 let lastDraw = 0, fpsN = 0, fpsT = 0;
@@ -10352,7 +10473,7 @@ function frame(now){
   { const cap = +SET.fps; if (cap && now - lastDraw < 1000/cap - 2) return; lastDraw = now; }   // v0.66: FRAME RATE LIMIT
   const dt = Math.min(0.05, (now-last)/1000); last = now;
   fpsN++; fpsT += dt; if (fpsT >= 0.5){ if (SET.showFps === 'on') $('fpsc').textContent = Math.round(fpsN/fpsT) + ' FPS'; fpsN = 0; fpsT = 0; }
-  if (renderer.shadowMap.enabled && now - shdT > 1200){ shdT = now; shadowFlags(false); }   // new models / avatars pick up shadows (real time, not game time)
+  if ((renderer.shadowMap.enabled || SET.tex !== 'pixel') && now - shdT > 1200){ shdT = now; if (renderer.shadowMap.enabled) shadowFlags(false); if (SET.tex !== 'pixel') texSweep(); }   // new models / avatars pick up shadows (real time, not game time)
   const t = nowS();
   if (mode==='play' && myRound===G.r && !soloPaused()) updateMe(dt);
   if (!(mode==='play' && myRound===G.r && !soloPaused() && G.ph==='play')){ sfx.wade(me, 0, null); sfx.puff(0); me.puffing = false; crankK = -1; }
