@@ -147,3 +147,4 @@ v0.65.2: join errors now show on the JOIN page (before you couldn't see them, so
 v0.65.3: online play can use a relay on port 443 so it works on school/work Wi-Fi that blocks games
 v0.65.4: online play now goes through a relay when a network blocks direct connections (school Wi-Fi, mobile data), so blocked friends can join
 v0.66.0: new settings menu with tabs (Video, Graphics, Audio, Game, Controls), graphics presets LOW/MEDIUM/HIGH/ULTRA, flashlight shadows, lighting quality, reflection quality, render resolution, brightness, vertex wobble, film grain, frame rate limit, FPS counter, invert look
+v0.67.0: BODYCAM camera style (Settings > Video > Camera): fisheye lens, body-mounted camera motion, auto exposure, bloom, sensor noise; CAMCORDER keeps the original look
