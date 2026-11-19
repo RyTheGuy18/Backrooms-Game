@@ -141,3 +141,8 @@ v0.63.2: The Basement is much smaller (11×11), far fewer posts, beams made from
 v0.64.0: Basement beams rebuilt like a mine-shaft frame (posts, header beams, diagonal braces, some leaning posts), based on "Wooden Support Beam" by Cianon
 v0.64.1: Lights that are off are actually dark now (no more pale panels in the dark garage), darker nights in the Poolrooms
 v0.64.2: Fixed doors clipping into the walls on Level 0 and Level 1 (the doors to nowhere and the EXIT door)
+v0.65.0: EXIT signs use the EXIT SIGN 0001 model (red edge-lit acrylic sign)
+v0.65.1: two of the lying exit signs on Levels 0/1 are the hanging running-man sign
+v0.65.2: join errors now show on the JOIN page (before you couldn't see them, so a failed join looked like nothing happened), joining waits up to 20 s, clearer message when your network blocks the connection to the host, dropped players don't hold a lobby slot
+v0.65.3: online play can use a relay on port 443 so it works on school/work Wi-Fi that blocks games
+v0.65.4: online play now goes through a relay when a network blocks direct connections (school Wi-Fi, mobile data), so blocked friends can join
