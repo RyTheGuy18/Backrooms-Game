@@ -86,6 +86,7 @@
   .picker .pv small{display:block;font-size:15px;color:var(--dim);letter-spacing:.25em}
   #netnote{color:#e0a48e;font-size:19px;min-height:0;text-align:center}
   #netnote:empty{display:none}
+  #joinnote{font:13px monospace;color:#e2785a;margin-top:12px;max-width:420px;line-height:1.35}#joinnote:empty{display:none}
   details.how{border-top:1px solid var(--line);padding-top:8px;font-size:19px;color:#b9ae8c;line-height:1.25}
   details.how summary{cursor:pointer;letter-spacing:.25em;color:var(--dim);list-style:none}
   details.how summary::before{content:'+ '} details.how[open] summary::before{content:'– '}
@@ -408,7 +409,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.65.1</div>
+<div class="osd" id="ver">v0.65.2</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -465,7 +466,7 @@
 </div>
 <div class="msub" id="pJoin">
   <div class="mhead"><button class="vbtn back" data-back>◀ BACK</button><h2>JOIN A LOBBY</h2><button class="vbtn sm frbtn" data-fr>FRIENDS<span class="frbadge"></span></button></div>
-  <div class="jbox"><div class="lbl">ENTER THE ROOM CODE</div><div class="row code"><input id="joincode" maxlength="4" placeholder="CODE" autocomplete="off"><button class="vbtn" id="bJoin">JOIN</button></div></div>
+  <div class="jbox"><div class="lbl">ENTER THE ROOM CODE</div><div class="row code"><input id="joincode" maxlength="4" placeholder="CODE" autocomplete="off"><button class="vbtn" id="bJoin">JOIN</button></div><div id="joinnote"></div></div>
 </div>
 <div class="msub" id="pInfo">
   <div class="mhead"><button class="vbtn back" data-back>◀ BACK</button><h2>HOW TO PLAY</h2></div>
@@ -7418,6 +7419,8 @@ function onUse(m){ if (!amHost() || !m) return; applyUse(String(m.pid||''), m); 
 function onSnd(m){ if (!m) return; if (m.k === 'lure' && m.pid !== myPid) return; playEventSound(m.k, +m.x||0, +m.z||0, m); }
 /* ---- PeerJS networking (same approach as Hordefall): host's browser is the hub ---- */
 const PEER_PREFIX = 'level0-v1-';
+// v0.65.2: the main menu's #netnote is hidden on the JOIN page, so join errors were invisible ("nothing happens"). Write to both.
+function setNote(t){ for (const id of ['netnote','joinnote']){ const el = document.getElementById(id); if (el) el.textContent = t; } }
 class Emitter{constructor(){this._h={}}on(e,f){(this._h[e]=this._h[e]||[]).push(f);return this}emit(e,...a){(this._h[e]||[]).forEach(f=>{try{f(...a)}catch(err){console.error(err)}})}}
 // #localnet: same-browser test transport over BroadcastChannel
 class LocalConn extends Emitter{constructor(lp,remote,cid){super();this._p=lp;this.peer=remote;this.cid=cid;this.open=false}send(d){if(this.open)this._p.bc.postMessage({k:'d',to:this.peer,cid:this.cid,d})}close(){if(!this.open)return;this.open=false;this._p.bc.postMessage({k:'x',to:this.peer,cid:this.cid});this.emit('close')}}
@@ -7446,7 +7449,8 @@ function openPeerRoom(code, host){
     const fire = (t,d)=>(handlers[t]||[]).forEach(f=>{ try{ f(d); }catch(e){ console.error(e); } });
     const finish = (err, api)=>{ if (done) return; done = true; err ? reject(err) : resolve(api); };
     const api = { on:(t,f)=>{ (handlers[t]=handlers[t]||[]).push(f); }, onPeers:f=>{ peersFn=f; }, peer:null };
-    const timer = setTimeout(()=>{ try{ api.peer && api.peer.destroy(); }catch(e){} finish({type:'timeout'}); }, 12000);
+    let stage = 0;   // client: 1 = reached the server, looking for the host
+    const timer = setTimeout(()=>{ try{ api.peer && api.peer.destroy(); }catch(e){} finish({type: stage ? 'p2p-timeout' : 'timeout'}); }, host ? 12000 : 20000);
     if (host){
       const conns = new Map();
       const peer = api.peer = new P(PEER_PREFIX+code, { debug:0 });
@@ -7456,9 +7460,13 @@ function openPeerRoom(code, host){
       peer.on('error', e=>{ if (!done){ clearTimeout(timer); try{ peer.destroy(); }catch(_){} finish(e); } });
       peer.on('disconnected', ()=>{ try{ peer.reconnect && peer.reconnect(); }catch(_){} });
       peer.on('connection', conn=>{
-        const ent = { conn, pres:null };
-        conn.on('open', ()=>{ if (conns.size >= 3){ nsend(conn,{t:'full'}); setTimeout(()=>{ try{conn.close();}catch(_){} },300); return; } conns.set(conn.peer, ent); });
+        const ent = { conn, pres:null, t:performance.now() };
+        conn.on('open', ()=>{
+          // v0.65.2: drop players whose phone vanished without closing (no data for 8 s), so they don't hold a slot
+          if (conns.size >= 3) for (const [k, o] of conns) if (performance.now() - o.t > 8000){ conns.delete(k); try { o.conn.close(); } catch(_){} }
+          if (conns.size >= 3){ nsend(conn,{t:'full'}); setTimeout(()=>{ try{conn.close();}catch(_){} },300); return; } conns.set(conn.peer, ent); });
         conn.on('data', d=>nparse(d, m=>{
+          ent.t = performance.now();
           if (m.t==='p'){ ent.pres = m.d; pushPeers(); }
           else if (m.t==='e'){ fire(m.topic, m.data); for (const o of conns.values()) if (o!==ent) nsend(o.conn, m); }
         }));
@@ -7473,6 +7481,7 @@ function openPeerRoom(code, host){
       const peer = api.peer = new P(undefined, { debug:0 });
       let hc = null;
       peer.on('open', ()=>{
+        stage = 1;
         hc = peer.connect(PEER_PREFIX+code, { reliable:true });
         hc.on('open', ()=>{ clearTimeout(timer); finish(null, api); });
         hc.on('data', d=>nparse(d, m=>{
@@ -7492,24 +7501,25 @@ function openPeerRoom(code, host){
 }
 const inClaude = (()=>{ try { return window.self !== window.top; } catch(e){ return true; } })();
 if (!inClaude && 'serviceWorker' in navigator && location.protocol === 'https:'){ try { navigator.serviceWorker.register('sw.js').catch(()=>{}); } catch(e){} }
-if (inClaude && location.hash !== '#localnet') $('netnote').textContent = 'Solo works here. Online play needs the hosted link (it doesn\'t work inside the Claude preview).';
+if (inClaude && location.hash !== '#localnet') setNote('Solo works here. Online play needs the hosted link (it doesn\'t work inside the Claude preview).');
 
 function netErrText(e){
   const t = e && e.type;
   if (t==='peer-unavailable') return 'No game with that code. Check it and try again.';
   if (t==='browser-incompatible') return "This browser doesn't support online play.";
+  if (t==='p2p-timeout') return "Found the game but couldn't connect to the host's device. Their or your network (school/work Wi-Fi, some mobile data, VPN) is blocking it — try switching between Wi-Fi and mobile data, then join again.";
   if (e && (e.message==='load' || e.message==='timeout' || e.message==='nopeer') || t==='network' || t==='server-error' || t==='socket-error' || t==='timeout')
     return inClaude ? "Online play doesn't work inside the Claude preview. Open the hosted link instead." : "Couldn't reach the online server. Check your internet and try again.";
   return 'Connection problem (' + (t || (e && e.message) || 'unknown') + '). Try again.';
 }
 async function connect(code, host){
-  $('netnote').textContent = host ? 'Creating game…' : 'Joining…';
+  setNote(host ? 'Creating game…' : 'Joining… (can take up to 20 s)');
   let room = null, tries = 0;
   while (!room){
     try { room = await openPeerRoom(code, host); }
     catch(e){
       if (host && e && e.type==='unavailable-id' && tries++ < 5){ code = genCode(); continue; }
-      $('netnote').textContent = netErrText(e); return false;
+      setNote(netErrText(e)); return false;
     }
   }
   leaveRoom();
@@ -7519,7 +7529,7 @@ async function connect(code, host){
   room.on('_hostgone', ()=>{ if (net.room !== room) return; leaveRoom(); goMenu('The host left the game.'); });
   room.on('_full', ()=>{ if (net.room !== room) return; leaveRoom(); goMenu('That game is full (4 players max).'); });
   room.onPeers(onPeers);
-  $('netnote').textContent = '';
+  setNote('');
   buildLevel(hashStr(code));
   G = freshState(); myRound = -1; monChoice = 'random';
   sendPresence();
@@ -7765,13 +7775,13 @@ function micHelp(e){
       : '<ol><li>Tap <b>aA</b> (or the ⋯ / page icon) next to the web address.</li><li><b>Website Settings</b> → <b>Microphone</b> → <b>Allow</b> (or Ask).</li><li>Tap <b>RELOAD &amp; ASK AGAIN</b> below and pick <b>Allow</b>.</li></ol><div class="devnote">If that list isn\'t there: Settings app → Apps → Safari → Microphone → Ask.</div>')
       : '<ol><li>Tap the lock / settings icon next to the web address.</li><li>Set <b>Microphone</b> to <b>Allow</b>.</li><li>Tap <b>RELOAD &amp; ASK AGAIN</b>.</li></ol>'; }
   $('mhWhy').textContent = why + (n ? ` (${n})` : ''); $('mhSteps').innerHTML = steps; $('micHelp').style.display = 'flex';
-  $('netnote').textContent = 'The microphone is off. Voice chat needs it.';
+  setNote('The microphone is off. Voice chat needs it.');
 }
 $('mhTry').onclick = ()=>{ $('micHelp').style.display = 'none'; sfx.init(); voiceEnable(true); };   // straight from the tap, so the phone can show its prompt
 $('mhReload').onclick = ()=>{ try { localStorage.setItem('lvl0_voice','1'); localStorage.setItem('lvl0_askmic','1'); } catch(e){} location.reload(); };
 $('mhClose').onclick = ()=>{ $('micHelp').style.display = 'none'; };
 // after "reload & ask again": the very first tap anywhere asks for the mic (the phone only shows its prompt after a tap)
-try { if (localStorage.getItem('lvl0_askmic') === '1'){ localStorage.removeItem('lvl0_askmic'); const ask = ()=>{ removeEventListener('pointerdown', ask, true); sfx.init(); voiceEnable(true); }; addEventListener('pointerdown', ask, true); queueMicrotask(()=>{ $('netnote').textContent = 'Tap anywhere and your phone will ask to use the microphone.'; }); } } catch(e){}
+try { if (localStorage.getItem('lvl0_askmic') === '1'){ localStorage.removeItem('lvl0_askmic'); const ask = ()=>{ removeEventListener('pointerdown', ask, true); sfx.init(); voiceEnable(true); }; addEventListener('pointerdown', ask, true); queueMicrotask(()=>{ setNote('Tap anywhere and your phone will ask to use the microphone.'); }); } } catch(e){}
 const micConstraints = id => ({ audio:{ deviceId: id ? { exact:id } : undefined, echoCancellation:true, noiseSuppression:true, autoGainControl:true, channelCount:1 }, video:false });
 async function getMic(){
   setAudioSession(true);   // iOS only hands out the mic in a recording-capable session
@@ -7811,7 +7821,7 @@ async function switchMic(){ if (!voice.raw) return; try { plugMic(await getMic()
 function applyMute(){ for (const st of [voice.raw, voice.stream]) if (st) st.getAudioTracks().forEach(t=>t.enabled = !voice.muted); }
 async function voiceEnable(on){
   if (on && !voice.stream){
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ $('netnote').textContent = "This browser can't use a microphone here."; voice.want = false; showVoice(); return false; }
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ setNote("This browser can't use a microphone here."); voice.want = false; showVoice(); return false; }
     sfx.init();
     let raw; try { raw = await getMic(); }
     catch(e){ voice.want = false; try { localStorage.setItem('lvl0_voice','0'); } catch(_){} showVoice(); setAudioSession(); micHelp(e); return false; }
@@ -8011,7 +8021,7 @@ function goMenu(note){
   mode='menu'; role='none'; VM.visible = false; amb.intensity = 0.16; PHANTOM.g.visible = false; $('hud').style.display='none'; $('black').style.opacity=0; $('white').style.opacity=0; setTouchUI(false); showScreen('menu');
   canvas.style.filter=''; canvas.style.transform='';
   try { document.exitPointerLock && document.exitPointerLock(); } catch(e){}
-  if (note !== undefined) $('netnote').textContent = note;
+  if (note !== undefined) setNote(note);
 }
 function monLabel(){
   if (monChoice === 'random') return 'RANDOM';
@@ -8895,10 +8905,12 @@ $('bSolo').onclick = ()=>{
   hostStartRound();
 };
 $('bHost').onclick = async ()=>{ if (voice.want && !voice.stream) voiceEnable(true); readName(); sfx.init(); if (isTouch) goFull(); if (await connect(genCode(), true)) sfx.bindLevel(); };
-$('bJoin').onclick = async ()=>{ if (voice.want && !voice.stream) voiceEnable(true);
+let joining = false;
+$('bJoin').onclick = async ()=>{ if (joining) return; if (voice.want && !voice.stream) voiceEnable(true);
   const c = $('joincode').value.trim().toUpperCase();
-  if (!/^[A-Z]{4}$/.test(c)){ $('netnote').textContent = 'Enter the 4-letter room code.'; return; }
-  readName(); sfx.init(); if (isTouch) goFull(); if (await connect(c, false)) sfx.bindLevel();
+  if (!/^[A-Z]{4}$/.test(c)){ setNote('Enter the 4-letter room code.'); return; }
+  readName(); sfx.init(); if (isTouch) goFull();
+  joining = true; try { if (await connect(c, false)) sfx.bindLevel(); } finally { joining = false; }
 };
 $('joincode').addEventListener('input', e=>{ e.target.value = e.target.value.toUpperCase().replace(/[^A-Z]/g,''); });
 $('bLv').onclick = ()=>{ if (!amHost()) return; lvPickFilter(); $('lvPick').classList.add('show'); };
