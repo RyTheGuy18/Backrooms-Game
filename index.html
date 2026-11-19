@@ -483,7 +483,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.66.0</div>
+<div class="osd" id="ver">v0.67.0</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -627,6 +627,13 @@
         <div class="sr rng" data-id="sFov" data-t="Field of View" data-d="How wide you see. Wider shows more around you; narrower feels closer and more claustrophobic."><span class="sl">Field of View</span><span class="sv"><span class="svt" id="vFov"></span><input type="range" id="sFov" min="60" max="100"></span></div>
         <div class="sr sel" data-k="wob"></div>
         <div class="sr sel" data-k="grain"></div>
+        <div class="sh">CAMERA</div>
+        <div class="sr sel" data-k="cam"></div>
+        <div class="sr sel" data-k="lens"></div>
+        <div class="sr sel" data-k="cmo"></div>
+        <div class="sr sel" data-k="aexp"></div>
+        <div class="sr sel" data-k="bloom"></div>
+        <div class="sr sel" data-k="noise"></div>
         <div class="sh">PERFORMANCE</div>
         <div class="sr sel" data-k="fps"></div>
         <div class="sr sel" data-k="showFps"></div>
@@ -7845,12 +7852,18 @@ setTimeout(frStart, 1500);
    flashlight spots: yours / everyone's), shadow quality, water reflection size (Poolrooms Reflector). The preset sets
    resolution + lighting + shadows + reflections; touching one of those makes it CUSTOM. MEDIUM = the old look. */
 const SET_DEF = { vol:100, vv:100, sens:100, fov:74, mg:isIOS ? 220 : 160, mic:'', spk:'',
-  gq:'med', res:'psx', lq:'med', shd:'off', shq:'low', refl:'med', wob:'psx', grain:'normal', bri:100, fps:'off', showFps:'off', invY:'off' };
+  gq:'med', res:'psx', lq:'med', shd:'off', shq:'low', refl:'med', wob:'psx', grain:'normal', bri:100, fps:'off', showFps:'off', invY:'off',
+  cam:'camcorder', lens:'normal', cmo:'steady', aexp:'off', bloom:'off', noise:'off' };
 const SET = { ...SET_DEF };
 try { Object.assign(SET, JSON.parse(localStorage.getItem('lvl0_set') || '{}')); } catch(e){}
 const GQ = { low:{ res:'low', lq:'low', shd:'off', shq:'low', refl:'low' }, med:{ res:'psx', lq:'med', shd:'off', shq:'low', refl:'med' },
   high:{ res:'sharp', lq:'high', shd:'mine', shq:'high', refl:'high' }, ultra:{ res:'hd', lq:'ultra', shd:'all', shq:'high', refl:'ultra' } };
 const OFFON = [['off','OFF'],['on','ON']];
+/* v0.67 (Ryan, after playing Bodycam: "ultra realistic"): CAMERA STYLE = a preset over lens / motion / exposure / bloom / noise
+   (+ it turns the PSX wobble and film grain off for BODYCAM, back on for CAMCORDER). Post effects live in renderMain (POST). */
+const CAMS = { camcorder:{ lens:'normal', cmo:'steady', aexp:'off', bloom:'off', noise:'off', wob:'psx', grain:'normal' },
+  bodycam:{ lens:'fisheye', cmo:'body', aexp:'on', bloom:'high', noise:'on', wob:'off', grain:'off' } };
+const PRESETS = [['gq', () => GQ], ['cam', () => CAMS]];
 const SXK = {
   res:{ t:'Render Resolution', d:'How many pixels the game draws before it gets stretched to your screen. Low and PSX are the crunchy camcorder look the game was made with. Higher is sharper and costs more.',
     o:[['low','LOW','Extra crunchy, the fastest.'],['psx','PSX','The original look (default).'],['sharp','SHARP','480 lines: clearer, still pixelated.'],['hd','HD','720 lines: clean. Heavier on phones.'],['native','NATIVE','Your screen\'s full resolution. Heaviest.']] },
@@ -7869,6 +7882,16 @@ const SXK = {
   shq:{ t:'Shadow Quality', d:'Sharpness of flashlight shadows. Does nothing while shadows are off.', o:[['low','LOW','512 px, hard edges.'],['high','HIGH','1024 px, soft edges.']] },
   refl:{ t:'Reflections Quality', d:'Detail of the reflections in the Poolrooms water.', o:[['low','LOW','Blurry.'],['med','MEDIUM','Default.'],['high','HIGH'],['ultra','ULTRA','Mirror-sharp.']] },
   invY:{ t:'Invert Look', d:'Flips up and down when you look around.', o:OFFON },
+  cam:{ t:'Camera Style', d:'What camera you\'re "filming" through. Sets the lens, camera motion, exposure, bloom, noise, wobble and grain together.',
+    o:[['camcorder','CAMCORDER','The original look: an old camcorder, PS1 wobble, film grain (default).'],['bodycam','BODYCAM','A chest-mounted body camera: fisheye lens, the camera moves with your body, auto-exposure, blown-out lights, digital noise. Best with HD resolution.'],['custom','CUSTOM','You mixed your own below.']] },
+  lens:{ t:'Lens', d:'How wide the camera lens is. Fisheye bends the edges of the picture like a real body cam and shows more around you.',
+    o:[['normal','NORMAL','A flat picture (default).'],['wide','WIDE','A little bend at the edges.'],['fisheye','FISHEYE','Strong body-cam bend, with colour fringing at the edges.']] },
+  cmo:{ t:'Camera Motion', d:'How the camera moves with you. BODY makes it feel strapped to your chest: it lags a little behind your turns, tilts into them, bounces with every step and shakes when you run.',
+    o:[['steady','STEADY','Smooth (default).'],['body','BODY','Strapped to your chest.'],['heavy','HEAVY','Even more bounce and shake.']] },
+  aexp:{ t:'Auto Exposure', d:'The camera adjusts to the light like a real one: walk into the dark and it\'s black for a moment before the picture slowly gains up (with more noise); point your light at a wall up close and everything else dims.',
+    o:[['off','OFF','Default.'],['on','ON']] },
+  bloom:{ t:'Bloom', d:'Bright lights glow and bleed into the picture like an overexposed camera sensor.', o:[['off','OFF','Default.'],['low','LOW'],['high','HIGH']] },
+  noise:{ t:'Sensor Noise', d:'Digital camera noise: speckled colour grain in the dark, stronger when the camera has to gain up. (Film grain is the separate older effect.)', o:[['off','OFF','Default.'],['on','ON']] },
 };
 let settingsOpen = false;
 function saveSet(){ try { localStorage.setItem('lvl0_set', JSON.stringify(SET)); } catch(e){} }
@@ -7916,6 +7939,7 @@ function applyGfx(){
   if (PL.length !== LQN[SET.lq]) setPL(LQN[SET.lq] || 8);
   if (PG.water){ const z = reflSz(), rt = PG.water.getRenderTarget(); if (rt.width !== z) rt.setSize(z, z); }
   $('fpsc').style.display = SET.showFps === 'on' ? 'block' : 'none';
+  { const on = SET.lens !== 'normal' || SET.aexp === 'on' || SET.bloom !== 'off' || SET.noise === 'on'; if (on && !POST.on) POST.init = true; POST.on = on; }
   applyShadows();
 }
 addEventListener('resize', ()=>{ if (SET.res === 'native' || SET.res === 'hd' || SET.res === 'sharp'){ const r = resFor(); if (r !== RH){ RH = r; curRH = r; resize(); } } });
@@ -7938,8 +7962,8 @@ function sxPaint(r){
 }
 function sxSet(k, v){
   SET[k] = v;
-  if (k === 'gq' && GQ[v]) Object.assign(SET, GQ[v]);
-  else if (k in GQ.med){ const m = Object.keys(GQ).find(p => Object.entries(GQ[p]).every(([a, b]) => SET[a] === b)); SET.gq = m || 'custom'; }
+  for (const [pk, pm] of PRESETS){ const M = pm(); if (k === pk && M[v]) Object.assign(SET, M[v]); }
+  for (const [pk, pm] of PRESETS){ const M = pm(), first = Object.values(M)[0]; if (k !== pk && k in first) SET[pk] = Object.keys(M).find(p => Object.entries(M[p]).every(([a, b]) => SET[a] === b)) || 'custom'; }
   saveSet(); applyGfx(); applySet();
 }
 function sxStep(r, dir){
@@ -10057,6 +10081,27 @@ function updateHUD(dt){
   if (msgTimer > 0){ msgTimer -= dt; if (msgTimer <= 0) $('msg').style.opacity = 0; }
   updateButtons();
 }
+/* v0.67 CAMERA MOTION (body cam): the camera feels strapped to your chest — it trails your turns a little and tilts into them,
+   bobs and sways with each step (more when running), shakes while sprinting, and breathes when you stand still. Look only, never aim:
+   the flashlight follows the camera, and the lag is capped at a few degrees. */
+const BC = { yaw:null, pitch:0, vy:0, roll:0, t:0 };
+function bodyCam(dt){
+  const S = SET.cmo === 'heavy' ? 1.7 : 1, run = me.vmRun || 0;
+  if (BC.yaw === null){ BC.yaw = me.yaw; BC.pitch = me.pitch; }
+  const py = BC.yaw; BC.yaw = angLerp(BC.yaw, me.yaw, 1 - Math.exp(-16/S*dt)); BC.pitch = lerp(BC.pitch, me.pitch, 1 - Math.exp(-18/S*dt));
+  const dy = ((me.yaw - BC.yaw + Math.PI*3) % (Math.PI*2)) - Math.PI, vy = dt > 0 ? ((BC.yaw - py + Math.PI*3) % (Math.PI*2) - Math.PI)/dt : 0;
+  BC.vy = lerp(BC.vy, vy, 1 - Math.exp(-10*dt)); BC.roll = lerp(BC.roll, clamp(-BC.vy*0.018*S, -0.07, 0.07), 1 - Math.exp(-8*dt));
+  BC.t += dt; const b = me.bob; BC.mv = lerp(BC.mv || 0, me.moving ? 1 : 0, 1 - Math.exp(-6*dt)); const mv = BC.mv;
+  const lagY = clamp(dy, -0.07, 0.07)*0.6, lagP = clamp(me.pitch - BC.pitch, -0.05, 0.05)*0.6;
+  const swayX = Math.sin(b*0.5)*0.028*S*(0.6 + run)*mv, bobY = (Math.abs(Math.sin(b*0.5)) - 0.5)*0.035*S*(1 + run*1.2)*mv;
+  const breathe = Math.sin(BC.t*1.6)*0.004*S, shk = run*0.006*S;
+  const R = () => (h01(Math.floor(BC.t*30)*7.3 + 1.1) - 0.5);
+  camera.rotation.x += -lagP + Math.abs(Math.sin(b))*0.01*S*(0.4 + run)*mv + breathe + R()*shk;
+  camera.rotation.y += -lagY + R()*shk*0.7;
+  camera.rotation.z += BC.roll + Math.sin(b*0.5)*0.016*S*(0.5 + run)*mv;
+  const sn = Math.sin(me.yaw), cs = Math.cos(me.yaw);
+  camera.position.x += cs*swayX; camera.position.z -= sn*swayX; camera.position.y += bobY + Math.sin(BC.t*1.6)*0.006*S;
+}
 function placeCamera(dt){
   if (mode==='play'){
     const eye = role==='monster' ? Math.min(2.5, (MON.headH||2.7)*0.9) : me.crouch ? 1.0 : me.hidden>=0 ? 1.55 : EYE;
@@ -10067,6 +10112,7 @@ function placeCamera(dt){
     VM.position.set(0.28 + Math.sin(me.bob*0.5)*0.012, -0.3 + Math.abs(Math.cos(me.bob*0.5))*0.012 - me.vmRun*0.03, -0.5);
     VM.userData.lens.material.color.setHex(lightOn() ? 0xfff6d8 : 0x333333);
     camera.rotation.set(me.pitch, me.yaw, Math.sin(me.bob*0.5)*(role==='monster'?0.02:0.006));
+    if (SET.cmo !== 'steady' && me.hidden < 0) bodyCam(dt);
     { const fv = lerp(camera.fov, dashT > 0 ? SET.fov + 16 : lerp(SET.fov, ZOOM_FOV, zK), 1-Math.exp(-14*dt)); if (Math.abs(fv-camera.fov) > 0.01){ camera.fov = fv; camera.updateProjectionMatrix(); } }
   } else if (mode==='deadAnim'){
     // JUMPSCARE: it snaps into your face, the camera zooms and shakes, the light strobes, then a hard cut to black
@@ -10226,6 +10272,80 @@ function menuSpot(){
 buildLevel(hashStr('menu-level'));
 let menuT = 0, tvT = 0; const pageT0 = nowS();
 let last = performance.now();
+/* ===== v0.67 camera post-processing (BODYCAM): lens bend + colour fringing, bloom, auto-exposure, sensor noise =====
+   Only runs when one of those settings is on (POST.on); otherwise the scene renders straight to the screen like before.
+   scene → POST.rt (half-float when the GPU can) → [bright pass + 2× separable blur at 1/4 size → b1] → [16×16 log-luminance → lum
+   → 1×1 exposure, ping-ponged and eased on the GPU: darkens fast, gains up slowly like a real camera] → composite to the screen.
+   The lens: a barrel bend with the centre magnified by (1 + k), so the scene is rendered with a wider FOV to make up for it. */
+const POST = { on:false, init:true, dt:0.016, ei:0 };
+const LENS_K = { normal:0, wide:0.16, fisheye:0.38 }, LENS_CA = { normal:0, wide:0.004, fisheye:0.009 }, BLOOM_K = { off:0, low:0.55, high:1.1 };
+const _pv2 = new THREE.Vector2();
+function postInit(){
+  if (POST.ready) return; POST.ready = true;
+  const ex = renderer.extensions, hf = renderer.capabilities.isWebGL2 && (ex.has('EXT_color_buffer_float') || ex.has('EXT_color_buffer_half_float'));
+  POST.hf = hf; const type = hf ? THREE.HalfFloatType : THREE.UnsignedByteType;
+  const mk = (w, h, near) => new THREE.WebGLRenderTarget(w, h, { type, depthBuffer:false, minFilter: near ? THREE.NearestFilter : THREE.LinearFilter, magFilter: near ? THREE.NearestFilter : THREE.LinearFilter });
+  POST.rt = new THREE.WebGLRenderTarget(4, 4, { type, depthBuffer:true, minFilter:THREE.LinearFilter, magFilter:THREE.LinearFilter });
+  POST.b1 = mk(8, 8); POST.b2 = mk(8, 8); POST.lum = mk(16, 16, true); POST.ex = [mk(1, 1, true), mk(1, 1, true)];
+  POST.cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1); POST.sc = new THREE.Scene();
+  POST.quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2)); POST.quad.frustumCulled = false; POST.sc.add(POST.quad);
+  const vs = 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }';
+  const M = (fs, u) => new THREE.ShaderMaterial({ vertexShader:vs, fragmentShader:fs, uniforms:u, depthTest:false, depthWrite:false });
+  POST.mBright = M(`uniform sampler2D t; uniform vec2 px; varying vec2 vUv;
+    void main(){ vec3 c = vec3(0.0); for (int i=-1;i<=1;i++) for (int j=-1;j<=1;j++) c += texture2D(t, vUv + vec2(float(i), float(j))*px).rgb; c /= 9.0;
+      float l = dot(c, vec3(0.299, 0.587, 0.114)); gl_FragColor = vec4(c*smoothstep(0.42, 1.0, l), 1.0); }`, { t:{ value:null }, px:{ value:new THREE.Vector2() } });
+  POST.mBlur = M(`uniform sampler2D t; uniform vec2 d; varying vec2 vUv;
+    void main(){ vec3 c = texture2D(t, vUv).rgb*0.227; c += (texture2D(t, vUv + d*1.385).rgb + texture2D(t, vUv - d*1.385).rgb)*0.316;
+      c += (texture2D(t, vUv + d*3.23).rgb + texture2D(t, vUv - d*3.23).rgb)*0.07; gl_FragColor = vec4(c, 1.0); }`, { t:{ value:null }, d:{ value:new THREE.Vector2() } });
+  // centre-weighted metering, like a real camera
+  POST.mLum = M(`uniform sampler2D t; varying vec2 vUv;
+    void main(){ float s = 0.0; for (int i=0;i<4;i++) for (int j=0;j<4;j++){ vec2 o = (vec2(float(i), float(j)) + 0.5)/4.0 - 0.5; vec3 c = texture2D(t, vUv + o/16.0).rgb;
+      s += log(dot(c, vec3(0.2126, 0.7152, 0.0722)) + 0.004); } float w = 1.0 - 0.6*length(vUv - 0.5); gl_FragColor = vec4(s/16.0*w, w, 0.0, 1.0); }`, { t:{ value:null } });
+  POST.mAdapt = M(`uniform sampler2D tl; uniform sampler2D tp; uniform float dt, init; varying vec2 vUv;
+    void main(){ float s = 0.0, ws = 0.0; for (int i=0;i<16;i++) for (int j=0;j<16;j++){ vec2 q = texture2D(tl, (vec2(float(i), float(j)) + 0.5)/16.0).rg; s += q.r; ws += q.g; }
+      float avg = exp(s/ws), tgt = clamp(pow(0.09/avg, 0.6), 0.55, 1.55), p = texture2D(tp, vec2(0.5)).r;
+      if (init > 0.5) p = tgt; float r = tgt > p ? 0.55 : 2.6; gl_FragColor = vec4(mix(p, tgt, 1.0 - exp(-r*dt)), 0.0, 0.0, 1.0); }`,
+    { tl:{ value:null }, tp:{ value:null }, dt:{ value:0 }, init:{ value:1 } });
+  POST.mComp = M(`uniform sampler2D tS; uniform sampler2D tB; uniform sampler2D tE; uniform float k, ca, bl, ns, eo, tm, asp;
+    varying vec2 vUv;
+    float h(vec2 p, float o){ return fract(sin(dot(p, vec2(12.9898, 78.233)) + tm*7.13 + o)*43758.5453); }
+    vec2 bend(vec2 uv, float kk){ vec2 p = (uv - 0.5)*vec2(asp, 1.0); float r2 = dot(p, p)/((asp*asp + 1.0)*0.25); return p*(1.0 + kk*r2)/(1.0 + kk)/vec2(asp, 1.0) + 0.5; }
+    void main(){
+      vec2 u = vUv, p = (u - 0.5)*vec2(asp, 1.0); float r2 = dot(p, p)/((asp*asp + 1.0)*0.25);
+      vec3 c = vec3(texture2D(tS, bend(u, k + ca)).r, texture2D(tS, bend(u, k)).g, texture2D(tS, bend(u, max(0.0, k - ca))).b);
+      c += texture2D(tB, bend(u, k)).rgb*bl;
+      float e = eo > 0.5 ? texture2D(tE, vec2(0.5)).r : 1.0; c *= e;
+      if (ns > 0.0){ float l = dot(c, vec3(0.299, 0.587, 0.114)), g = 0.03 + 0.08*clamp(e - 1.0, 0.0, 0.6);
+        vec2 q = floor(u*vec2(1280.0, 720.0)/1.5); float n = h(q, 0.0) - 0.5; vec3 cn = vec3(h(q, 1.3), h(q, 2.7), h(q, 4.1)) - 0.5;
+        c += (n*0.8 + cn*0.35)*g*ns*(1.0 - smoothstep(0.05, 0.6, l)); c = max(c, 0.0); }
+      c *= 1.0 - 0.28*k*r2*r2 - 0.18*r2*step(0.001, k);
+      gl_FragColor = vec4(c, 1.0);
+      #include <colorspace_fragment>
+    }`, { tS:{ value:null }, tB:{ value:null }, tE:{ value:null }, k:{ value:0 }, ca:{ value:0 }, bl:{ value:0 }, ns:{ value:0 }, eo:{ value:0 }, tm:{ value:0 }, asp:{ value:1 } });
+}
+function postPass(m, t){ POST.quad.material = m; renderer.setRenderTarget(t); renderer.render(POST.sc, POST.cam); }
+function renderMain(){
+  if (!POST.on || tvRoomOn()){ renderer.render(scene, camera); return; }
+  postInit();
+  const sz = renderer.getDrawingBufferSize(_pv2), w = sz.x, h = sz.y;
+  if (POST.rt.width !== w || POST.rt.height !== h){ POST.rt.setSize(w, h); const bw = Math.max(8, w >> 2), bh = Math.max(8, h >> 2); POST.b1.setSize(bw, bh); POST.b2.setSize(bw, bh); }
+  const k = LENS_K[SET.lens] || 0, f0 = camera.fov;
+  if (k){ camera.fov = 2*Math.atan(Math.tan(f0*Math.PI/360)*(1 + k))*180/Math.PI; camera.updateProjectionMatrix(); }
+  renderer.setRenderTarget(POST.rt); renderer.render(scene, camera);
+  if (k){ camera.fov = f0; camera.updateProjectionMatrix(); }
+  const bl = BLOOM_K[SET.bloom] || 0, C = POST.mComp.uniforms;
+  if (bl){ const bw = POST.b1.width, bh = POST.b1.height;
+    POST.mBright.uniforms.t.value = POST.rt.texture; POST.mBright.uniforms.px.value.set(1/w, 1/h); postPass(POST.mBright, POST.b1);
+    for (const sp of [1, 2.2]){ POST.mBlur.uniforms.t.value = POST.b1.texture; POST.mBlur.uniforms.d.value.set(sp/bw, 0); postPass(POST.mBlur, POST.b2);
+      POST.mBlur.uniforms.t.value = POST.b2.texture; POST.mBlur.uniforms.d.value.set(0, sp/bh); postPass(POST.mBlur, POST.b1); } }
+  const ae = SET.aexp === 'on' && POST.hf;
+  if (ae){ POST.mLum.uniforms.t.value = POST.rt.texture; postPass(POST.mLum, POST.lum);
+    const A = POST.mAdapt.uniforms, src = POST.ex[POST.ei], dst = POST.ex[1 - POST.ei];
+    A.tl.value = POST.lum.texture; A.tp.value = src.texture; A.dt.value = POST.dt; A.init.value = POST.init ? 1 : 0; postPass(POST.mAdapt, dst); POST.ei = 1 - POST.ei; POST.init = false; }
+  C.tS.value = POST.rt.texture; C.tB.value = POST.b1.texture; C.tE.value = POST.ex[POST.ei].texture;
+  C.k.value = k; C.ca.value = LENS_CA[SET.lens] || 0; C.bl.value = bl; C.ns.value = SET.noise === 'on' ? 1 : 0; C.eo.value = ae ? 1 : 0; C.tm.value = (nowS() % 100); C.asp.value = w/h;
+  postPass(POST.mComp, null);
+}
 let lastDraw = 0, fpsN = 0, fpsT = 0;
 function frame(now){
   requestAnimationFrame(frame);
@@ -10287,7 +10407,7 @@ function frame(now){
   const tvr = tvRoomOn(); if (tvr) tvAcc += dt;
   if (!tvr || tvAcc >= 0.07){
     if (LK === 3 || LK === 4 || LK === 6) visPass188();
-    renderer.render(scene, camera);
+    POST.dt = Math.min(0.1, tvr ? tvAcc : dt); renderMain();
     if (tvr){ updateCRT(tvAcc); tvAcc = 0; }
     if (LK === 3 || LK === 4 || LK === 6) visRestore188();
   }
