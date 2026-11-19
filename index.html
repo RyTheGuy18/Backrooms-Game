@@ -483,7 +483,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.68.0</div>
+<div class="osd" id="ver">v0.68.1</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -7866,8 +7866,8 @@ const SET = { ...SET_DEF };
 try { Object.assign(SET, JSON.parse(localStorage.getItem('lvl0_set') || '{}')); } catch(e){}
 const GQ = { low:{ res:'low', lq:'low', shd:'off', shq:'low', refl:'low', tex:'pixel', aa:'off', ao:'off', shaft:'off' },
   med:{ res:'psx', lq:'med', shd:'off', shq:'low', refl:'med', tex:'pixel', aa:'off', ao:'off', shaft:'off' },
-  high:{ res:'sharp', lq:'high', shd:'mine', shq:'high', refl:'high', tex:'clean', aa:'fxaa', ao:'on', shaft:'on' },
-  ultra:{ res:'hd', lq:'ultra', shd:'all', shq:'high', refl:'ultra', tex:'smooth', aa:'fxaa', ao:'high', shaft:'on' } };
+  high:{ res:'sharp', lq:'med', shd:'mine', shq:'high', refl:'high', tex:'clean', aa:'fxaa', ao:'on', shaft:'on' },
+  ultra:{ res:'hd', lq:'high', shd:'all', shq:'high', refl:'ultra', tex:'smooth', aa:'fxaa', ao:'high', shaft:'on' } };
 const OFFON = [['off','OFF'],['on','ON']];
 /* v0.67 (Ryan, after playing Bodycam: "ultra realistic"): CAMERA STYLE = a preset over lens / motion / exposure / bloom / noise
    (+ it turns the PSX wobble and film grain off for BODYCAM, back on for CAMCORDER). Post effects live in renderMain (POST). */
@@ -7876,7 +7876,7 @@ const CAMS = { camcorder:{ lens:'normal', cmo:'steady', aexp:'off', bloom:'off',
 const PRESETS = [['gq', () => GQ], ['cam', () => CAMS]];
 const SXK = {
   res:{ t:'Render Resolution', d:'How many pixels the game draws before it gets stretched to your screen. Low and PSX are the crunchy camcorder look the game was made with. Higher is sharper and costs more.',
-    o:[['low','LOW','Extra crunchy, the fastest.'],['psx','PSX','The original look (default).'],['sharp','SHARP','480 lines: clearer, still pixelated.'],['hd','HD','720 lines: clean. Heavier on phones.'],['native','NATIVE','Your screen\'s full resolution. Heaviest.']] },
+    o:[['low','LOW','Extra crunchy, the fastest.'],['psx','PSX','The original look (default).'],['sharp','SHARP','480 lines: clearer, still pixelated.'],['hd','HD','720 lines: clean. Heavier on phones.'],['native','NATIVE','Your screen\'s full resolution (up to 1440p). Heaviest.']] },
   bri:{ t:'Brightness', d:'Makes the picture brighter or darker. The game is meant to be dark: turn it up only if you can\'t see anything at all.', min:50, max:150, step:5, u:'%' },
   wob:{ t:'Vertex Wobble', d:'The PS1-style jitter where walls and objects snap to a coarse grid as you move.',
     o:[['psx','PSX','Full wobble (default).'],['subtle','SUBTLE','Half as much.'],['off','OFF','Rock steady. Nicer with high resolution.']] },
@@ -7886,7 +7886,7 @@ const SXK = {
   gq:{ t:'Graphics Preset', d:'Sets render resolution, lighting, shadows and reflections in one go. Change any of them on their own and this turns to CUSTOM.',
     o:[['low','LOW','For older phones.'],['med','MEDIUM','The original look (default).'],['high','HIGH','Sharper, more lamps lit, your flashlight casts shadows.'],['ultra','ULTRA','HD, every lamp near you lit, everyone\'s flashlight casts soft shadows. Needs a good PC.'],['custom','CUSTOM','You picked your own settings below.']] },
   lq:{ t:'Lighting Quality', d:'How many of the ceiling lights near you give off real light. More = rooms lit further out and softer pools of light.',
-    o:[['low','LOW','The 4 nearest lights.'],['med','MEDIUM','8 (default).'],['high','HIGH','12.'],['ultra','ULTRA','16.']] },
+    o:[['low','LOW','The 4 nearest lights.'],['med','MEDIUM','8 (default).'],['high','HIGH','12.'],['ultra','ULTRA','16. Heavy: every light costs a little on every pixel.']] },
   shd:{ t:'Flashlight Shadows', d:'Real-time shadows from flashlights: walls, pillars, other players and the things hunting you throw shadows where your beam hits.',
     o:[['off','OFF','No shadows (default, fastest).'],['mine','YOURS','Only your own flashlight.'],['all','EVERYONE\'S','Your teammates\' flashlights too. Each one costs about one extra render.']] },
   shq:{ t:'Shadow Quality', d:'Sharpness of flashlight shadows. Does nothing while shadows are off.', o:[['low','LOW','512 px, hard edges.'],['high','HIGH','1024 px, soft edges.']] },
@@ -7924,13 +7924,13 @@ for (const [id, key] of [['sVol','vol'],['sVv','vv'],['sSens','sens'],['sFov','f
 /* ---- v0.66 graphics ---- */
 const LQN = { low:4, med:8, high:12, ultra:16 };
 function resFor(){ const h = innerHeight*Math.min(devicePixelRatio || 1, 2);
-  return Math.round(Math.min(h, { low:isTouch ? 200 : 240, psx:isTouch ? 270 : 320, sharp:480, hd:720, native:h }[SET.res] || 320)); }
+  return Math.round(Math.min(h, { low:isTouch ? 200 : 240, psx:isTouch ? 270 : 320, sharp:480, hd:720, native:Math.min(h, 1440) }[SET.res] || 320)); }
 function reflSz(){ return { low:128, med:isTouch ? 256 : 384, high:512, ultra:1024 }[SET.refl] || 256; }
 const briF = () => SET.bri !== 100 ? `brightness(${SET.bri/100})` : '';
 let shdKey = '', shdT = 0;
 function applyShadows(){
   const on = SET.shd !== 'off', hi = SET.shq === 'high', size = hi ? 1024 : 512, key = SET.shd + SET.shq;
-  if (key === shdKey) return; shdKey = key;
+  if (key === shdKey) return; shdKey = key; shTeam = -1;
   renderer.shadowMap.enabled = on; renderer.shadowMap.type = hi ? THREE.PCFSoftShadowMap : THREE.PCFShadowMap;
   spots.forEach((s, i)=>{ const c = on && (i === 0 || SET.shd === 'all');
     s.castShadow = c; s.shadow.mapSize.set(size, size); if (s.shadow.map){ s.shadow.map.dispose(); s.shadow.map = null; }
@@ -7942,7 +7942,10 @@ function shadowFlags(force){
   const on = renderer.shadowMap.enabled;
   const walk = o => { if (o === camera) return;
     if (o.isMesh){ const ms = Array.isArray(o.material) ? o.material : [o.material];
-      const cast = on && !o.userData.noShd && ms.every(m => m && !m.transparent && m.blending === THREE.NormalBlending && m.visible !== false && !m.isShaderMaterial);
+      // v0.68.1: flat horizontal things (floors, ceilings, decals, lamp diffusers) never cast: a hand-held light is always between them and the room
+      if (o.userData.flat === undefined){ const g = o.geometry; if (g && !g.boundingBox) g.computeBoundingBox(); const bb = g && g.boundingBox;
+        o.userData.flat = !!bb && !o.isInstancedMesh && (bb.max.y - bb.min.y)*Math.abs(o.scale.y) < 0.06; }
+      const cast = on && !o.userData.noShd && !o.userData.flat && ms.every(m => m && !m.transparent && m.blending === THREE.NormalBlending && m.visible !== false && !m.isShaderMaterial);
       const rec = on && ms.some(m => m && (m.isMeshLambertMaterial || m.isMeshStandardMaterial || m.isMeshPhongMaterial));
       o.castShadow = cast; o.receiveShadow = rec;
       if (force) for (const m of ms) if (m) m.needsUpdate = true; }
@@ -10320,7 +10323,7 @@ let last = performance.now();
    The lens: a barrel bend with the centre magnified by (1 + k), so the scene is rendered with a wider FOV to cancel it. */
 const POST = { on:false, init:true, dt:0.016, ei:0, pf:null };
 const LENS_K = { normal:0, wide:0.16, fisheye:0.38 }, LENS_CA = { normal:0, wide:0.004, fisheye:0.009 };
-const BLOOM_K = { off:0, low:0.55, high:1.1, max:1.8 }, MBLUR_K = { off:0, low:0.45, high:0.9 };
+const BLOOM_K = { off:0, low:0.45, high:0.8, max:1.3 }, MBLUR_K = { off:0, low:0.45, high:0.9 };
 const _pv2 = new THREE.Vector2(), _pv3 = new THREE.Vector3(), _pv4 = new THREE.Vector3(), _pq = new THREE.Quaternion();
 function postInit(){
   if (POST.ready) return; POST.ready = true;
@@ -10378,7 +10381,7 @@ function postInit(){
     { tD:T(), near:F(), far:F(), p0:F(), p1:F(), Lp:V3(), Ld:V3(), col:V3(), cosO:F(), cosI:F(), str:F(), tm:F() });
   POST.mBright = M(`uniform sampler2D t; uniform vec2 px; varying vec2 vUv;
     void main(){ vec3 c = vec3(0.0); for (int i=-1;i<=1;i++) for (int j=-1;j<=1;j++) c += texture2D(t, vUv + vec2(float(i), float(j))*px).rgb; c /= 9.0;
-      float l = dot(c, vec3(0.299, 0.587, 0.114)); gl_FragColor = vec4(c*smoothstep(0.42, 1.0, l), 1.0); }`, { t:T(), px:V2() });
+      float l = dot(c, vec3(0.299, 0.587, 0.114)); gl_FragColor = vec4(c*smoothstep(0.7, 1.5, l), 1.0); }`, { t:T(), px:V2() });
   POST.mBlur = M(`uniform sampler2D t; uniform vec2 d; varying vec2 vUv;
     void main(){ vec3 c = texture2D(t, vUv).rgb*0.227; c += (texture2D(t, vUv + d*1.385).rgb + texture2D(t, vUv - d*1.385).rgb)*0.316;
       c += (texture2D(t, vUv + d*3.23).rgb + texture2D(t, vUv - d*3.23).rgb)*0.07; gl_FragColor = vec4(c, 1.0); }`, { t:T(), d:V2() });
@@ -10414,6 +10417,8 @@ function postInit(){
         vec2 q = floor(u*vec2(1280.0, 720.0)/1.5); float n = h(q, 0.0) - 0.5; vec3 cn = vec3(h(q, 1.3), h(q, 2.7), h(q, 4.1)) - 0.5;
         c += (n*0.8 + cn*0.35)*g*ns*(1.0 - smoothstep(0.05, 0.6, l)); c = max(c, 0.0); }
       c *= 1.0 - 0.28*k*r2*r2 - 0.18*r2*step(0.001, k);
+      // soft highlight shoulder above 0.6: hot spots roll off toward white instead of clipping to a flat blob
+      c = mix(c, 0.6 + 0.4*(1.0 - exp(-(c - 0.6)/0.4)), step(0.6, c));
       gl_FragColor = vec4(c, 1.0);
       #include <colorspace_fragment>
     }`, { tS:T(), tB:T(), tE:T(), tA:T(), tV:T(), k:F(), ca:F(), bl:F(), ns:F(), eo:F(), tm:F(), asp:F(1), aoOn:F(), vOn:F(), sh:F(), vel:V2(), px:V2() });
@@ -10423,7 +10428,21 @@ function postSize(t, w, h){ if (t.width !== w || t.height !== h) t.setSize(w, h)
 function blurPass(a, b, sp){ const B = POST.mBlur.uniforms;
   B.t.value = a.texture; B.d.value.set(sp/a.width, 0); postPass(POST.mBlur, b);
   B.t.value = b.texture; B.d.value.set(0, sp/a.height); postPass(POST.mBlur, a); }
+/* v0.68.1: a flashlight's shadow map is only redrawn while that light is on (and a teammate's only within 22 m of you):
+   with EVERYONE'S shadows the 3 unused flashlight slots used to re-render the whole scene every frame for nothing. */
+let shTeam = -1;
+function shadowGate(){
+  if (!renderer.shadowMap.enabled) return;
+  // EVERYONE'S: only as many teammate slots cast as there are living teammates in the room (changes on join/leave/death only,
+  // so shaders recompile rarely) — an unused casting slot still costs a shadow-map lookup on every pixel.
+  if (SET.shd === 'all'){ let n = 0; for (const r of remotes.values()) if (r.pid !== G.mo && !isDead(r.pid) && !isEsc(r.pid)) n++;
+    n = Math.min(n, spots.length - 1); if (n !== shTeam){ shTeam = n; for (let i = 1; i < spots.length; i++) spots[i].castShadow = i <= n; } }
+  else shTeam = -1;
+  for (let i = 0; i < spots.length; i++){ const sp = spots[i];
+    sp.shadow.autoUpdate = sp.castShadow && sp.intensity > 0.02 && (i === 0 || sp.position.distanceToSquared(camera.position) < 22*22); }
+}
 function renderMain(){
+  shadowGate();
   if (!POST.on || tvRoomOn()){ renderer.render(scene, camera); POST.pf = null; return; }
   postInit();
   const sz = renderer.getDrawingBufferSize(_pv2), w = sz.x, h = sz.y, hw = Math.max(8, w >> 1), hh = Math.max(8, h >> 1);
@@ -10445,7 +10464,7 @@ function renderMain(){
     _pv3.copy(sp0.position).applyMatrix4(mvi); U.Lp.value.copy(_pv3);
     _pv4.copy(sp0.target.position).applyMatrix4(mvi).sub(_pv3).normalize(); U.Ld.value.copy(_pv4);
     U.cosO.value = Math.cos(sp0.angle); U.cosI.value = Math.cos(sp0.angle*(1 - sp0.penumbra*0.8));
-    U.col.value.set(sp0.color.r, sp0.color.g, sp0.color.b); U.str.value = 0.0065*sp0.intensity; U.tm.value = nowS() % 50;
+    U.col.value.set(sp0.color.r, sp0.color.g, sp0.color.b); U.str.value = 0.004*sp0.intensity; U.tm.value = nowS() % 50;
     postPass(POST.mVol, POST.vl); blurPass(POST.vl, POST.vl2, 1.2); }
   const bl = BLOOM_K[SET.bloom] || 0;
   if (bl){ const B = POST.mBright.uniforms; B.t.value = src.texture; B.px.value.set(1/w, 1/h); postPass(POST.mBright, POST.b1);
@@ -10537,7 +10556,7 @@ function frame(now){
 }
 requestAnimationFrame(frame);
 
-window.__hp = { killSurvivor, hostCreaker, hostBS, bsUse, bsObj, bsCold, get CRV(){ return CRV; }, inRoom1, lrCampSpot, FR, frOpen, frClose, frJoin, frRender, frToast, FPH, placeFPHand, get flSrc(){ return flSrc; }, updateLab, hostFun, hostPartygoers, funAction, funObj, funNight, funDoorsToWalls, get PGV(){ return PGV; }, get scarePg(){ return scarePg; }, get FL_DRAIN(){ return FL_DRAIN; }, LS_HUNT, startOpt:(v)=>{ startOpt = v; }, hostTick, nextStep, isDead, killSurvivor, get remotes(){ return remotes; }, setRole:(r)=>{ role = r; }, get MON_WALK(){ return MON_WALK; }, get MONS(){ return MONS; }, get LSJ(){ return LSJ; }, get deathT(){ return deathT; }, get scareLs(){ return scareLs; }, hostListener, lsAlert, get LSV(){ return LSV; }, TD, updateTension, tdFakeSteps, DFL, boT, panelBright, collide, gen52, hostSchool52, hostMonitors52, assign52, tardy52, roomAt52, schoolObj52, schoolTarget52, myRoom52, MV52, get HMJ(){ return HMJ; }, S52_LANES, get radio37(){ return radio37; }, get fig37(){ return fig37; }, get zLevel(){ return zLevel; }, get zK(){ return zK; }, deepDay37, deep37, forceFig37:()=>{ figT = 0; }, duskIn37, wakeLay37, nowS, buildLevel, hotelOpen188, hostOutage188, pipeObj2, pipeTarget2, p2Diag, MQV, hostMannequins852, mqSeen852, floorAt852, laneAt852, MLANES, mallObj852, mallTarget852, mallWayTo852, aiTick852, mallMove852, get mallHold(){ return mallHold; }, get guide(){ return guide; }, hostLurker, opusTweak, fillDevices, get LRK(){ return LRK; }, lrSpot, animLurker, get running(){ return me.running; }, get W(){ return W; }, get N(){ return N; }, get stunCharge(){ return stunCharge; }, losClear, me, H, net, hide, unhide, throwCan, contextAction, useSkin, get mySkin(){ return mySkin; }, set mySkin(v){ mySkin=v; }, inPit, zoneOf, get G(){ return G; }, set G(v){ G=v; }, get mode(){ return mode; }, get role(){ return role; }, get level(){ return level; }, get walls(){ return walls; }, mDisp, doShift, monsterPos, ability, get abCD(){ return abCD; }, disguisedFrom, get fakes(){ return fakes; }, enterVent, nearVent, get ventT(){ return ventT; }, get ventCD(){ return ventCD; }, set ventCD(v){ ventCD=v; }, get abCD2(){ return abCD; }, inPit, get LK(){ return LK; }, get crankK(){ return crankK; }, ability, get curRH(){ return curRH; }, get MON(){ return MON; }, sfx, voice, noiseLevel, get settingsOpen(){ return settingsOpen; }, myPid, monsterVoice, pitchDown, dropDust, get silT(){ return silT; }, set silNext(v){ silNext=v; }, advanceLevel, aiObjectives, poolBlock, aiTick, aiReset, bfsFrom, cellOf, cc, floorY, TU, PG, camera, scene, renderer, applyUse, AI_DIFF, set diffOpt(v){ diffOpt=v; }, get M37(){ return M37; }, buildL37test:(sd)=>build37(sd), ripP, ripWho, makeAvatar, animAvatar, buildLevelTest:(sd,k)=>buildLevel(sd,k), fpArm:(roll,axis,curl)=>{ FP_ROLL = roll; FP_AXIS = axis; if (curl) Object.assign(FP_CURL, curl); buildFPArm(survSrc); }, VM, collide, k37, h37, d37, nav37, isNight, dayK, aiTick37, collide37, K37, sdShape, floorAt188, vis188, hostElev188, aiTick188, myCar188, elevPress188, ELV, HO, elDisp, update188, inLab, hostLab, labUse, labSensor, labStatus, startHatch, get hatchT(){ return hatchT; }, connected };
+window.__hp = { setGfx:(o)=>{ Object.assign(SET, o); applyGfx(); applySet(); }, get SET(){ return SET; }, spots, killSurvivor, hostCreaker, hostBS, bsUse, bsObj, bsCold, get CRV(){ return CRV; }, inRoom1, lrCampSpot, FR, frOpen, frClose, frJoin, frRender, frToast, FPH, placeFPHand, get flSrc(){ return flSrc; }, updateLab, hostFun, hostPartygoers, funAction, funObj, funNight, funDoorsToWalls, get PGV(){ return PGV; }, get scarePg(){ return scarePg; }, get FL_DRAIN(){ return FL_DRAIN; }, LS_HUNT, startOpt:(v)=>{ startOpt = v; }, hostTick, nextStep, isDead, killSurvivor, get remotes(){ return remotes; }, setRole:(r)=>{ role = r; }, get MON_WALK(){ return MON_WALK; }, get MONS(){ return MONS; }, get LSJ(){ return LSJ; }, get deathT(){ return deathT; }, get scareLs(){ return scareLs; }, hostListener, lsAlert, get LSV(){ return LSV; }, TD, updateTension, tdFakeSteps, DFL, boT, panelBright, collide, gen52, hostSchool52, hostMonitors52, assign52, tardy52, roomAt52, schoolObj52, schoolTarget52, myRoom52, MV52, get HMJ(){ return HMJ; }, S52_LANES, get radio37(){ return radio37; }, get fig37(){ return fig37; }, get zLevel(){ return zLevel; }, get zK(){ return zK; }, deepDay37, deep37, forceFig37:()=>{ figT = 0; }, duskIn37, wakeLay37, nowS, buildLevel, hotelOpen188, hostOutage188, pipeObj2, pipeTarget2, p2Diag, MQV, hostMannequins852, mqSeen852, floorAt852, laneAt852, MLANES, mallObj852, mallTarget852, mallWayTo852, aiTick852, mallMove852, get mallHold(){ return mallHold; }, get guide(){ return guide; }, hostLurker, opusTweak, fillDevices, get LRK(){ return LRK; }, lrSpot, animLurker, get running(){ return me.running; }, get W(){ return W; }, get N(){ return N; }, get stunCharge(){ return stunCharge; }, losClear, me, H, net, hide, unhide, throwCan, contextAction, useSkin, get mySkin(){ return mySkin; }, set mySkin(v){ mySkin=v; }, inPit, zoneOf, get G(){ return G; }, set G(v){ G=v; }, get mode(){ return mode; }, get role(){ return role; }, get level(){ return level; }, get walls(){ return walls; }, mDisp, doShift, monsterPos, ability, get abCD(){ return abCD; }, disguisedFrom, get fakes(){ return fakes; }, enterVent, nearVent, get ventT(){ return ventT; }, get ventCD(){ return ventCD; }, set ventCD(v){ ventCD=v; }, get abCD2(){ return abCD; }, inPit, get LK(){ return LK; }, get crankK(){ return crankK; }, ability, get curRH(){ return curRH; }, get MON(){ return MON; }, sfx, voice, noiseLevel, get settingsOpen(){ return settingsOpen; }, myPid, monsterVoice, pitchDown, dropDust, get silT(){ return silT; }, set silNext(v){ silNext=v; }, advanceLevel, aiObjectives, poolBlock, aiTick, aiReset, bfsFrom, cellOf, cc, floorY, TU, PG, camera, scene, renderer, applyUse, AI_DIFF, set diffOpt(v){ diffOpt=v; }, get M37(){ return M37; }, buildL37test:(sd)=>build37(sd), ripP, ripWho, makeAvatar, animAvatar, buildLevelTest:(sd,k)=>buildLevel(sd,k), fpArm:(roll,axis,curl)=>{ FP_ROLL = roll; FP_AXIS = axis; if (curl) Object.assign(FP_CURL, curl); buildFPArm(survSrc); }, VM, collide, k37, h37, d37, nav37, isNight, dayK, aiTick37, collide37, K37, sdShape, floorAt188, vis188, hostElev188, aiTick188, myCar188, elevPress188, ELV, HO, elDisp, update188, inLab, hostLab, labUse, labSensor, labStatus, startHatch, get hatchT(){ return hatchT; }, connected };
 </script>
 </body>
 </html>
