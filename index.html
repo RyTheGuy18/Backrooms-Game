@@ -409,7 +409,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.65.3</div>
+<div class="osd" id="ver">v0.65.4</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -7421,30 +7421,22 @@ function onSnd(m){ if (!m) return; if (m.k === 'lure' && m.pid !== myPid) return
 const PEER_PREFIX = 'level0-v1-';
 // v0.65.3: TURN relays so online play works on locked-down networks (school/work Wi-Fi, some mobile data).
 // PeerJS's built-in TURN only listens on port 3478, which those networks block. A relay on port 443 over TLS
-// looks like normal HTTPS and gets through almost anything. Free key: metered.ca → Open Relay / TURN server
-// (20 GB a month free). Paste the app name (the part before .metered.live) and the API key here.
-const TURN_APP = '';
-const TURN_KEY = '';
-const ICE_BASE = [{ urls:'stun:stun.l.google.com:19302' }, { urls:['turn:eu-0.turn.peerjs.com:3478','turn:us-0.turn.peerjs.com:3478'], username:'peerjs', credential:'peerjsp' }];
-let iceCache = null, iceP = null;
-function iceList(){
-  if (iceCache) return Promise.resolve(iceCache);
-  if (!TURN_APP || !TURN_KEY) return Promise.resolve(iceCache = ICE_BASE);
-  if (iceP) return iceP;
-  iceP = Promise.race([
-    fetch(`https://${TURN_APP}.metered.live/api/v1/turn/credentials?apiKey=${encodeURIComponent(TURN_KEY)}`, { cache:'no-store' }).then(r=>r.ok ? r.json() : []),
-    new Promise(r=>setTimeout(()=>r(null), 5000)),
-  ]).catch(()=>null).then(list=>{
-    iceP = null;
-    if (!Array.isArray(list) || !list.length) return ICE_BASE;      // not cached: try again next time
-    // relays first, TLS on 443 included; credentials are short-lived, so refresh after 30 min
-    iceCache = [...ICE_BASE.slice(0, 1), ...list, ICE_BASE[1]]; setTimeout(()=>{ iceCache = null; }, 30 * 60 * 1000);
-    return iceCache;
-  });
-  return iceP;
-}
+// looks like normal HTTPS and gets through almost anything (v0.65.4: Metered credentials filled in).
+// Ryan's Metered relay (app level0-backrooms, free 500 MB/month plan). These are client credentials:
+// they're meant to sit in the page. Usage: dashboard.metered.ca.
+const TURN_U = '1801491a25219ce8e2f47d89', TURN_P = 'bmPUpgl+6z0k+9LM';
+const ICE_BASE = [
+  { urls:'stun:stun.relay.metered.ca:80' },
+  { urls:'turn:global.relay.metered.ca:80', username:TURN_U, credential:TURN_P },
+  { urls:'turn:global.relay.metered.ca:80?transport=tcp', username:TURN_U, credential:TURN_P },
+  { urls:'turn:global.relay.metered.ca:443', username:TURN_U, credential:TURN_P },
+  { urls:'turns:global.relay.metered.ca:443?transport=tcp', username:TURN_U, credential:TURN_P },
+  { urls:'stun:stun.l.google.com:19302' },
+  { urls:['turn:eu-0.turn.peerjs.com:3478','turn:us-0.turn.peerjs.com:3478'], username:'peerjs', credential:'peerjsp' },
+];
+let iceCache = ICE_BASE;
+const iceList = () => Promise.resolve(ICE_BASE);
 const iceNow = () => iceCache || ICE_BASE;
-queueMicrotask(()=>{ if (!inClaude) iceList(); });
 // v0.65.2: the main menu's #netnote is hidden on the JOIN page, so join errors were invisible ("nothing happens"). Write to both.
 function setNote(t){ for (const id of ['netnote','joinnote']){ const el = document.getElementById(id); if (el) el.textContent = t; } }
 class Emitter{constructor(){this._h={}}on(e,f){(this._h[e]=this._h[e]||[]).push(f);return this}emit(e,...a){(this._h[e]||[]).forEach(f=>{try{f(...a)}catch(err){console.error(err)}})}}
