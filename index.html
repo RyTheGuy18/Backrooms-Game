@@ -392,12 +392,86 @@
   #tapeEnd .tmid h2{margin:0;font:400 clamp(30px,7vw,72px) 'Special Elite',monospace;color:#e25a44;letter-spacing:.08em}
   #tapeEnd .tmid p{margin:10px 0 0;font:clamp(13px,2.2vw,18px) monospace;letter-spacing:.3em;color:#c9c0a0}
   #tapeEnd .tbar{position:absolute;left:0;right:0;height:9%;background:rgba(255,255,255,.08);mix-blend-mode:screen}
+
+  /* ---------- v0.66 settings overhaul (Ryan's reference: a tabbed PC-game settings screen) ---------- */
+  #settings{--sx:#e8735a;--sxd:rgba(232,115,90,.5);background:rgba(8,6,6,.97);padding:max(12px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left));overflow:hidden;align-items:stretch;justify-content:center}
+  #settings .sx{container-type:inline-size;display:flex;flex-direction:column;width:min(1100px,100%);height:100%;min-height:0;font-family:monospace;color:#f1ece4;gap:8px}
+  .sxTop{display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--sxd);padding-bottom:6px;flex-wrap:nowrap;min-width:0}
+  .sxBack{background:none;border:0;color:var(--sx);font:bold 20px monospace;letter-spacing:.08em;cursor:pointer;padding:4px 6px;white-space:nowrap}
+  .sxBack:hover{color:#fff}
+  .sxKey{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 4px;background:#f1ece4;color:#111;font:bold 12px monospace;border-radius:2px}
+  body.touch .sxKey,body.touch .sxB .k,body.touch #sxResetSel{display:none}
+  .sxTabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;min-width:0}.sxTabs::-webkit-scrollbar{display:none}
+  .sxTabs button{background:none;border:0;border-bottom:2px solid transparent;color:#f1ece4;font:bold 19px monospace;letter-spacing:.08em;padding:4px 10px 3px;cursor:pointer;white-space:nowrap}
+  .sxTabs button:hover{color:var(--sx)}
+  .sxTabs button.on{color:var(--sx);border-bottom-color:var(--sx)}
+  .sxNote{margin-left:auto;font-size:12px;letter-spacing:.2em;color:#b9a69b;white-space:nowrap}
+  .sxBody{flex:1;min-height:0;display:flex;gap:18px}
+  .sxList{flex:1.25;min-width:0;overflow-y:auto;overflow-x:hidden;padding-right:4px;scrollbar-width:thin;scrollbar-color:var(--sxd) transparent;overscroll-behavior:contain;touch-action:pan-y}
+  .sxPage{display:none;flex-direction:column;gap:4px;padding-bottom:10px}.sxPage.on{display:flex}
+  .sh{display:flex;align-items:center;gap:10px;color:var(--sx);font:bold 15px monospace;letter-spacing:.12em;margin:10px 0 2px}
+  .sh::after{content:'';flex:1;height:1px;background:var(--sxd)}
+  .sxPage .sh:first-child{margin-top:2px}
+  .sr{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:32px;padding:3px 8px 3px 12px;background:rgba(190,72,52,.55);border-left:3px solid var(--sx);border:1px solid transparent;border-left:3px solid var(--sx);cursor:pointer;user-select:none;-webkit-user-select:none}
+  .sr:hover{background:rgba(214,92,70,.68)}
+  .sr.on{background:rgba(10,8,8,.85);border-color:#f1ece4;border-left-color:#f1ece4}
+  .sr .sl{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+  .sr .sv{display:flex;align-items:center;gap:6px;flex:0 0 auto;width:min(52%,260px);justify-content:center}
+  .sr.sel .sv{justify-content:space-between}
+  .sr .sa{font:bold 18px monospace;width:22px;text-align:center;color:#fff;opacity:.85;cursor:pointer}.sr .sa:hover{opacity:1;color:var(--sx)}
+  .sr .svc{display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;min-width:0}
+  .sr .svt{font:bold 14px monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+  .sr.rng .svt{width:56px;text-align:right;flex:0 0 auto}
+  .sr .seg{display:flex;gap:3px}.sr .seg i{width:12px;height:2px;background:rgba(241,236,228,.35)}.sr .seg i.on{background:#ff8a6e}
+  #settings .sr input[type=range]{-webkit-appearance:none;appearance:none;flex:1;min-width:0;height:22px;background:none;border:0;padding:0;margin:0;accent-color:var(--sx)}
+  #settings .sr input[type=range]::-webkit-slider-runnable-track{height:6px;background:repeating-linear-gradient(90deg,rgba(241,236,228,.55) 0 3px,transparent 3px 5px)}
+  #settings .sr input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:8px;height:16px;margin-top:-5px;background:#fff;border:0;border-radius:0}
+  #settings .sr input[type=range]::-moz-range-track{height:6px;background:repeating-linear-gradient(90deg,rgba(241,236,228,.55) 0 3px,transparent 3px 5px)}
+  #settings .sr input[type=range]::-moz-range-thumb{width:8px;height:16px;background:#fff;border:0;border-radius:0}
+  #settings .sr select{width:100%;font:13px monospace;color:#f1ece4;background:rgba(0,0,0,.45);border:1px solid rgba(241,236,228,.4);padding:4px 6px;border-radius:0;-webkit-appearance:none;appearance:none}
+  .sbtn{width:100%;font:bold 13px monospace;letter-spacing:.06em;color:#f1ece4;background:rgba(0,0,0,.35);border:1px solid rgba(241,236,228,.45);padding:5px 6px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sbtn:hover{border-color:#fff;background:rgba(0,0,0,.6)}
+  .sbtn:disabled{opacity:.55}
+  #settings .snote{font-size:12px;color:#b9a69b;line-height:1.3;padding:0 4px 0 12px}#settings .snote:empty{display:none}
+  #settings .smeter{height:4px;margin:0 0 2px 12px;background:rgba(241,236,228,.12)}
+  .sxDesc{flex:1;min-width:0;border-left:1px solid var(--sxd);padding:2px 0 0 16px;overflow-y:auto}
+  .sxDesc h3{margin:0 0 8px;color:var(--sx);font:bold 18px monospace;letter-spacing:.06em;text-transform:uppercase}
+  .sxDesc p{margin:0 0 10px;font-size:14px;line-height:1.45;color:#e9e2d8}
+  .sxDesc .sxDX{color:#b9a69b;font-size:13px}.sxDesc .sxDX b{color:var(--sx)}
+  .sxCtrl{display:grid;grid-template-columns:auto 1fr;gap:5px 14px;font-size:14px;padding:4px 4px 0 6px}
+  .sxCtrl b{color:#111;background:#f1ece4;padding:1px 6px;font-size:12px;border-radius:2px;justify-self:start;white-space:nowrap}
+  .sxBar{display:flex;align-items:center;gap:8px;border-top:1px solid var(--sxd);padding-top:7px;flex-wrap:wrap}
+  .sxB{display:flex;align-items:center;gap:6px;background:rgba(0,0,0,.4);border:1px solid rgba(241,236,228,.35);color:#f1ece4;font:bold 13px monospace;letter-spacing:.06em;padding:5px 10px;cursor:pointer}
+  .sxB:hover{border-color:#fff}
+  .sxB .k{background:#f1ece4;color:#111;font-size:10px;padding:1px 4px;border-radius:2px}
+  #bResume{background:var(--sx);border-color:var(--sx);color:#140806}#bResume .k{background:#140806;color:#f1ece4}
+  .sxQuit{margin-left:auto;color:#ff9c86;border-color:rgba(255,120,100,.45)}
+  #fpsc{position:fixed;left:max(8px,env(safe-area-inset-left));top:50%;z-index:30;font:bold 12px monospace;color:#9fe08a;text-shadow:0 0 3px #000;pointer-events:none;display:none}
+  @container (max-width:700px){
+    .sxBody{flex-direction:column;gap:6px}
+    .sxDesc{flex:0 0 auto;max-height:58px;border-left:0;border-top:1px solid var(--sxd);padding:5px 2px 0}
+    .sxDesc h3{display:none}.sxDesc p{font-size:12px;margin:0 0 2px;line-height:1.3}.sxDesc .sxDX{font-size:11px}
+    .sxBack{font-size:16px}.sxTabs button{font-size:15px;padding:3px 7px}
+    .sr .sl{font-size:13px}.sr{min-height:30px}
+  }
+  /* on the menu TV (a 600×450 page) */
+  #tvpages #settings{padding:12px 14px 10px;background:rgba(6,4,4,.97)}
+  #tvpages #settings .sx{color:#f1ece4}
+  #tvpages #settings .sr .sl{font-size:12.5px}#tvpages #settings .sr .svt{font-size:12px}
+  #tvpages #settings .sh{font-size:12px;margin-top:6px}
+  #tvpages #settings .sxTabs button{font-size:13px;padding:2px 5px}
+  #tvpages #settings .sxBack{font-size:14px;padding:2px}
+  #tvpages #settings .sxNote{display:none}
+  #tvpages #settings .sr{min-height:26px;padding:2px 6px 2px 9px}
+  #tvpages #settings .sxB{font-size:11px;padding:3px 7px}
+  #tvpages #settings .sxDesc p{font-size:11px}
 </style>
 <script type="importmap">{"imports":{"three":"./three.module.min.js"}}</script>
 </head>
 <body class="tvroom">
 <canvas id="game"></canvas>
 <canvas id="grain" width="160" height="100"></canvas>
+<div id="fpsc"></div>
 <div id="vig"></div>
 <div id="flash"></div>
 <div id="scare"></div>
@@ -409,7 +483,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.65.4</div>
+<div class="osd" id="ver">v0.66.0</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -534,29 +608,73 @@
   <button class="btn ghost" id="bLeave">LEAVE</button>
 </div></div>
 
-<div class="screen" id="settings"><div class="col">
-  <div class="title"><button class="vbtn back setback" id="bSetBack">◀ BACK</button><h1 style="font-size:clamp(40px,10vw,64px)">SETTINGS</h1><div class="tag" id="pausenote"></div></div>
-  <div class="card">
-    <div class="srow"><span class="lbl">VOLUME</span><span id="vVol"></span></div><input type="range" id="sVol" min="0" max="100">
-    <div class="row"><button class="btn" id="bTestSnd">TEST SOUND</button></div><div class="devnote" id="sndNote"></div>
-    <div class="srow"><span class="lbl">VOICE CHAT VOLUME</span><span id="vVv"></span></div><input type="range" id="sVv" min="0" max="200">
-    <div class="row"><button class="btn" id="bVoice3">VOICE CHAT: OFF</button><button class="btn" id="bMute">MIC: ON</button></div>
-    <div class="srow"><span class="lbl">MIC BOOST</span><span id="vMg"></span></div><input type="range" id="sMg" min="50" max="400" step="10">
-    <div class="smeter"><i id="setMicFill"></i></div>
-    <div class="srow"><span class="lbl">MICROPHONE</span></div><select id="sMic"></select>
-    <div class="srow"><span class="lbl">SPEAKER / HEADPHONES</span></div><select id="sSpk"></select>
-    <div class="devnote" id="devnote"></div>
+<div class="screen" id="settings"><div class="sx">
+  <div class="sxTop">
+    <button class="sxBack" id="bSetBack">‹ SETTINGS</button>
+    <span class="sxKey" id="sxPrev">Q</span>
+    <div class="sxTabs" id="sxTabs">
+      <button data-tab="video">VIDEO</button><button data-tab="gfx">GRAPHICS</button><button data-tab="audio">AUDIO</button><button data-tab="game">GAME</button><button data-tab="ctrl">CONTROLS</button>
+    </div>
+    <span class="sxKey" id="sxNext">E</span>
+    <span class="sxNote" id="pausenote"></span>
   </div>
-  <div class="card">
-    <div class="srow"><span class="lbl">LOOK SENSITIVITY</span><span id="vSens"></span></div><input type="range" id="sSens" min="30" max="250">
-    <div class="srow"><span class="lbl">FIELD OF VIEW</span><span id="vFov"></span></div><input type="range" id="sFov" min="60" max="100">
+  <div class="sxBody">
+    <div class="sxList" id="sxList">
+      <div class="sxPage" data-page="video">
+        <div class="sh">PICTURE</div>
+        <div class="sr sel" data-k="res"></div>
+        <div class="sr rng" data-k="bri"></div>
+        <div class="sr rng" data-id="sFov" data-t="Field of View" data-d="How wide you see. Wider shows more around you; narrower feels closer and more claustrophobic."><span class="sl">Field of View</span><span class="sv"><span class="svt" id="vFov"></span><input type="range" id="sFov" min="60" max="100"></span></div>
+        <div class="sr sel" data-k="wob"></div>
+        <div class="sr sel" data-k="grain"></div>
+        <div class="sh">PERFORMANCE</div>
+        <div class="sr sel" data-k="fps"></div>
+        <div class="sr sel" data-k="showFps"></div>
+      </div>
+      <div class="sxPage" data-page="gfx">
+        <div class="sh">PRESET</div>
+        <div class="sr sel" data-k="gq"></div>
+        <div class="sh">LIGHTING</div>
+        <div class="sr sel" data-k="lq"></div>
+        <div class="sr sel" data-k="shd"></div>
+        <div class="sr sel" data-k="shq"></div>
+        <div class="sh">WATER</div>
+        <div class="sr sel" data-k="refl"></div>
+      </div>
+      <div class="sxPage" data-page="audio">
+        <div class="sh">VOLUME</div>
+        <div class="sr rng" data-id="sVol" data-t="Master Volume" data-d="Everything you hear in the game."><span class="sl">Master Volume</span><span class="sv"><span class="svt" id="vVol"></span><input type="range" id="sVol" min="0" max="100"></span></div>
+        <div class="sr" data-t="Test Sound" data-d="Plays a beep and wakes the sound up if your browser put it to sleep."><span class="sl">Test Sound</span><span class="sv"><button class="sbtn" id="bTestSnd">PLAY</button></span></div>
+        <div class="snote devnote" id="sndNote"></div>
+        <div class="sh">VOICE CHAT</div>
+        <div class="sr" data-t="Voice Chat" data-d="Proximity voice: you hear teammates fade out with distance and through walls. The Occupant can hear you too."><span class="sl">Voice Chat</span><span class="sv"><button class="sbtn" id="bVoice3">VOICE CHAT: OFF</button></span></div>
+        <div class="sr" data-t="Microphone" data-d="Mute or unmute your mic. Keyboard: V."><span class="sl">Microphone</span><span class="sv"><button class="sbtn" id="bMute">MIC: ON</button></span></div>
+        <div class="sr rng" data-id="sVv" data-t="Voice Chat Volume" data-d="How loud other players are."><span class="sl">Voice Chat Volume</span><span class="sv"><span class="svt" id="vVv"></span><input type="range" id="sVv" min="0" max="200"></span></div>
+        <div class="sr rng" data-id="sMg" data-t="Mic Boost" data-d="Makes your mic louder for other players. Doesn't make you louder to the Occupant. The bar shows your mic level."><span class="sl">Mic Boost</span><span class="sv"><span class="svt" id="vMg"></span><input type="range" id="sMg" min="50" max="400" step="10"></span></div>
+        <div class="smeter"><i id="setMicFill"></i></div>
+        <div class="sh">DEVICES</div>
+        <div class="sr" data-t="Microphone" data-d="Which microphone to use."><span class="sl">Microphone</span><span class="sv"><select id="sMic"></select></span></div>
+        <div class="sr" data-t="Speaker / Headphones" data-d="Where the sound comes out. Only some browsers (Chrome / Edge on a computer) let a website pick this."><span class="sl">Speaker</span><span class="sv"><select id="sSpk"></select></span></div>
+        <div class="snote devnote" id="devnote"></div>
+      </div>
+      <div class="sxPage" data-page="game">
+        <div class="sh">LOOK</div>
+        <div class="sr rng" data-id="sSens" data-t="Look Sensitivity" data-d="How fast you turn with the mouse or your thumb."><span class="sl">Look Sensitivity</span><span class="sv"><span class="svt" id="vSens"></span><input type="range" id="sSens" min="30" max="250"></span></div>
+        <div class="sr sel" data-k="invY"></div>
+        <div class="sh">GAME</div>
+        <div class="sr" data-t="Update Game" data-d="Checks for the newest version and reloads the game fresh. Use it if the home-screen app is stuck on an old version."><span class="sl">Update Game</span><span class="sv"><button class="sbtn" id="bUpdate">UPDATE GAME</button></span></div>
+        <div class="snote devnote" id="updNote"></div>
+      </div>
+      <div class="sxPage" data-page="ctrl"><div id="sxCtrl"></div></div>
+    </div>
+    <div class="sxDesc"><h3 id="sxDT"></h3><p id="sxDP"></p><p class="sxDX" id="sxDX"></p></div>
   </div>
-  <div class="card">
-    <button class="btn" id="bUpdate">UPDATE GAME</button>
-    <div class="devnote" id="updNote"></div>
+  <div class="sxBar">
+    <button class="sxB" id="bResume"><span class="k">ESC</span><span id="bResumeT">BACK</span></button>
+    <button class="sxB" id="sxResetSel"><span class="k">R</span>RESET SELECTED</button>
+    <button class="sxB" id="sxResetAll">RESET ALL</button>
+    <button class="sxB sxQuit" id="bQuit">LEAVE GAME</button>
   </div>
-  <button class="btn primary" id="bResume">RESUME</button>
-  <button class="btn ghost" id="bQuit">LEAVE GAME</button>
 </div></div>
 
 <div class="screen" id="end"><div class="col">
@@ -633,7 +751,7 @@ scene.fog = new THREE.FogExp2(FOG, 0.075);
 const camera = new THREE.PerspectiveCamera(74, innerWidth/innerHeight, 0.05, 90);
 camera.rotation.order = 'YXZ';
 scene.add(camera);
-const RH = isTouch ? 270 : 320;
+let RH = isTouch ? 270 : 320;   // v0.66: RENDER RESOLUTION in settings changes it (resFor)
 let curRH = RH;
 function resize(){
   const w = innerWidth, h = innerHeight;
@@ -641,11 +759,15 @@ function resize(){
   camera.aspect = w/h; camera.updateProjectionMatrix();
 }
 addEventListener('resize', resize); resize();
+// v0.66: the PSX vertex snapping grid is a shared uniform, so VERTEX WOBBLE in settings can change it live
+const PSXU = { value:new THREE.Vector2(280, 210) };
+function psxU(s){ s.uniforms.uPSX = PSXU; s.vertexShader = 'uniform vec2 uPSX;\n' + s.vertexShader; }
 function psx(mat){
   mat.onBeforeCompile = s => {
+    psxU(s);
     s.vertexShader = s.vertexShader.replace('#include <project_vertex>',
       `#include <project_vertex>
-       { vec2 sr = vec2(280.0,210.0); gl_Position.xy = floor(gl_Position.xy/gl_Position.w*sr+0.5)/sr*gl_Position.w; }`);
+       { vec2 sr = uPSX; gl_Position.xy = floor(gl_Position.xy/gl_Position.w*sr+0.5)/sr*gl_Position.w; }`);
   };
   return mat;
 }
@@ -657,10 +779,11 @@ function tileLam({ base=0xe6e0cb, grout=0xc8c2ad, size=0.25, caust=1, side, vc, 
   const m = new THREE.MeshLambertMaterial({ color:0xffffff });
   if (side) m.side = side; if (vc) m.vertexColors = true;
   m.onBeforeCompile = s => {
+    psxU(s);
     Object.assign(s.uniforms, TU, { uBase:{ value:new THREE.Color(base) }, uGrout:{ value:new THREE.Color(grout) }, uSize:{ value:size }, uCaust:{ value:caust }, uAlt:{ value:new THREE.Color(alt ?? base) }, uAltP:{ value:altP }, uGW:{ value:gw } });
     s.vertexShader = s.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vWP; varying vec3 vWN;')
       .replace('#include <project_vertex>', `#include <project_vertex>
-        { vec2 sr = vec2(280.0,210.0); gl_Position.xy = floor(gl_Position.xy/gl_Position.w*sr+0.5)/sr*gl_Position.w; }
+        { vec2 sr = uPSX; gl_Position.xy = floor(gl_Position.xy/gl_Position.w*sr+0.5)/sr*gl_Position.w; }
         { vec4 _wp = vec4(transformed,1.0); vec3 _n = objectNormal;
           #ifdef USE_INSTANCING
             _wp = instanceMatrix*_wp; _n = mat3(instanceMatrix)*_n;
@@ -763,8 +886,10 @@ function updateTV(){ const d=tvImg.data; for (let i=0;i<d.length;i+=4){ const v=
 /* ================= lights ================= */
 const amb = new THREE.HemisphereLight(0x8a7a40, 0x1a1608, 0.16);
 scene.add(amb);
-const PL = [];
-for (let i=0;i<8;i++){ const l=new THREE.PointLight(0xfff0c0, 0, 9.5, 1.25); scene.add(l); PL.push(l); }
+const PL = [], PL_ALL = [];   // v0.66: LIGHTING QUALITY = how many of the nearest lamps get a real light (4 / 8 / 12 / 16)
+for (let i=0;i<16;i++) PL_ALL.push(new THREE.PointLight(0xfff0c0, 0, 9.5, 1.25));
+function setPL(n){ PL.length = 0; PL_ALL.forEach((l, i)=>{ if (i < n){ if (!l.parent) scene.add(l); PL.push(l); } else { l.intensity = 0; if (l.parent) l.parent.remove(l); } }); }
+setPL(8);
 const LI = 5.5;
 const spots = [];
 for (let i=0;i<4;i++){
@@ -860,6 +985,7 @@ const concCeilTex = concPhotoTex(512, 512, 0.92, '#55574f', (g,w,h)=>{ g.fillSty
 function concMat(map){
   const m = psx(new THREE.MeshLambertMaterial({ color:0xffffff, map, normalMap:concNor }));
   m.onBeforeCompile = s => {
+    psxU(s);
     s.vertexShader = s.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vCW; varying vec3 vCN;')
       .replace('#include <project_vertex>', `#include <project_vertex>
        { vec4 cwp = vec4(transformed, 1.0); vec3 cwn = objectNormal;
@@ -867,7 +993,7 @@ function concMat(map){
          cwp = instanceMatrix * cwp; cwn = mat3(instanceMatrix) * cwn;
          #endif
          vCW = (modelMatrix * cwp).xyz; vCN = mat3(modelMatrix) * cwn; }
-       { vec2 sr = vec2(280.0,210.0); gl_Position.xy = floor(gl_Position.xy/gl_Position.w*sr+0.5)/sr*gl_Position.w; }`);
+       { vec2 sr = uPSX; gl_Position.xy = floor(gl_Position.xy/gl_Position.w*sr+0.5)/sr*gl_Position.w; }`);
     s.fragmentShader = s.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec3 vCW; varying vec3 vCN; vec2 cUV; vec2 cNUV;')
       .replace('void main() {', `void main() {
        { vec3 cn = normalize(vCN); vec2 q;
@@ -2938,7 +3064,7 @@ const bsWallPh = bsTex('bs-wall'), bsWallNor = bsTex('bs-wall', 1), bsConcPh = b
 function bsMat(map, nor, color = 0xffffff, ws = [2, 2, 2]){
   const m = psx(new THREE.MeshLambertMaterial({ color, map, normalMap:nor })), U = { value:new THREE.Vector3(...ws) };
   m.onBeforeCompile = s => {
-    s.uniforms.uWS = U;
+    psxU(s); s.uniforms.uWS = U;
     s.vertexShader = s.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vCW; varying vec3 vCN;')
       .replace('#include <project_vertex>', `#include <project_vertex>
        { vec4 cwp = vec4(transformed, 1.0); vec3 cwn = objectNormal;
@@ -2946,7 +3072,7 @@ function bsMat(map, nor, color = 0xffffff, ws = [2, 2, 2]){
          cwp = instanceMatrix * cwp; cwn = mat3(instanceMatrix) * cwn;
          #endif
          vCW = (modelMatrix * cwp).xyz; vCN = mat3(modelMatrix) * cwn; }
-       { vec2 sr = vec2(280.0,210.0); gl_Position.xy = floor(gl_Position.xy/gl_Position.w*sr+0.5)/sr*gl_Position.w; }`);
+       { vec2 sr = uPSX; gl_Position.xy = floor(gl_Position.xy/gl_Position.w*sr+0.5)/sr*gl_Position.w; }`);
     s.fragmentShader = s.fragmentShader.replace('#include <common>', '#include <common>\nuniform vec3 uWS; varying vec3 vCW; varying vec3 vCN; vec2 cUV;')
       .replace('void main() {', `void main() {
        { vec3 cn = normalize(vCN);
@@ -3806,7 +3932,7 @@ function garageRoomShelves(L, g, q, rng){
     for (const xw of [x0 + 0.3 + D/2, x1 - 0.3 - D/2]) for (let k=0;k<Math.floor((z1-z0-2.6)/2.2);k++){ const z = q.side === 2 ? z0 + 1.9 + k*2.2 : z1 - 1.9 - k*2.2; spots.push([xw, z, false]); } }
   for (const [x, z, a] of spots) if (!near(x, z) && Math.hypot(x - q.ix, z - q.iz) > 2.4 && rng() < 0.85) unit(x, z, a);
 }
-function buildLevel(seed, kind=0){ if (!(level && level.seed === seed && level.lk === kind)) doorWait.length = 0; buildLevelRaw(seed, kind); lampify(level); }
+function buildLevel(seed, kind=0){ if (!(level && level.seed === seed && level.lk === kind)) doorWait.length = 0; buildLevelRaw(seed, kind); lampify(level); if (renderer.shadowMap.enabled) shadowFlags(false); }
 function buildLevelRaw(seed, kind=0){
   if (level && level.seed === seed && level.lk === kind) return;
   LK = kind; if (kind === 0) baseSeed = seed;
@@ -4147,7 +4273,7 @@ const waterFS = `uniform vec3 color; uniform sampler2D tDiffuse; uniform float t
   }`;
 function ensurePoolGlobals(){
   if (PG.water) return;
-  const sz = isTouch ? 256 : 384;
+  const sz = reflSz();
   const water = new Reflector(new THREE.PlaneGeometry(S37, S37), { textureWidth:sz, textureHeight:sz, clipBias:0.003, shader:{
     uniforms: THREE.UniformsUtils.merge([THREE.UniformsLib.fog, { color:{ value:null }, tDiffuse:{ value:null }, textureMatrix:{ value:null }, time:{ value:0 }, uAlpha:{ value:0.22 }, uDay:{ value:1 }, uTM:{ value:new THREE.Matrix4() } }]),
     vertexShader: waterVS.replace('uniform mat4 uTM;', 'uniform mat4 uTM; uniform mat4 textureMatrix;').replace('vUv = uTM*w;', 'vUv = textureMatrix*vec4(position,1.0);'),
@@ -7711,25 +7837,166 @@ $('frCopy').onclick = ()=>{ const t = FR.id; (navigator.clipboard ? navigator.cl
 document.addEventListener('visibilitychange', ()=>{ if (!document.hidden && !FR.peer) setTimeout(frStart, 500); });
 setTimeout(frStart, 1500);
 /* ================= settings ================= */
-const SET = { vol:100, vv:100, sens:100, fov:74, mg:isIOS ? 220 : 160, mic:'', spk:'' };
+/* v0.66 (Ryan: "an overhaul on the settings menu", tabs along the top like his PC-game screenshot):
+   VIDEO / GRAPHICS / AUDIO / GAME / CONTROLS. Selector rows (‹ value ›) come from SXK below; sliders, buttons and the
+   device pickers are plain HTML rows with the old ids. Everything applies the moment you change it.
+   Graphics: render resolution (RH), vertex wobble (PSXU), film grain, brightness (CSS filter on the canvas), frame-rate
+   cap + FPS counter, lighting quality (how many lamps get a real point light, PL), flashlight shadows (shadow maps on the
+   flashlight spots: yours / everyone's), shadow quality, water reflection size (Poolrooms Reflector). The preset sets
+   resolution + lighting + shadows + reflections; touching one of those makes it CUSTOM. MEDIUM = the old look. */
+const SET_DEF = { vol:100, vv:100, sens:100, fov:74, mg:isIOS ? 220 : 160, mic:'', spk:'',
+  gq:'med', res:'psx', lq:'med', shd:'off', shq:'low', refl:'med', wob:'psx', grain:'normal', bri:100, fps:'off', showFps:'off', invY:'off' };
+const SET = { ...SET_DEF };
 try { Object.assign(SET, JSON.parse(localStorage.getItem('lvl0_set') || '{}')); } catch(e){}
+const GQ = { low:{ res:'low', lq:'low', shd:'off', shq:'low', refl:'low' }, med:{ res:'psx', lq:'med', shd:'off', shq:'low', refl:'med' },
+  high:{ res:'sharp', lq:'high', shd:'mine', shq:'high', refl:'high' }, ultra:{ res:'hd', lq:'ultra', shd:'all', shq:'high', refl:'ultra' } };
+const OFFON = [['off','OFF'],['on','ON']];
+const SXK = {
+  res:{ t:'Render Resolution', d:'How many pixels the game draws before it gets stretched to your screen. Low and PSX are the crunchy camcorder look the game was made with. Higher is sharper and costs more.',
+    o:[['low','LOW','Extra crunchy, the fastest.'],['psx','PSX','The original look (default).'],['sharp','SHARP','480 lines: clearer, still pixelated.'],['hd','HD','720 lines: clean. Heavier on phones.'],['native','NATIVE','Your screen\'s full resolution. Heaviest.']] },
+  bri:{ t:'Brightness', d:'Makes the picture brighter or darker. The game is meant to be dark: turn it up only if you can\'t see anything at all.', min:50, max:150, step:5, u:'%' },
+  wob:{ t:'Vertex Wobble', d:'The PS1-style jitter where walls and objects snap to a coarse grid as you move.',
+    o:[['psx','PSX','Full wobble (default).'],['subtle','SUBTLE','Half as much.'],['off','OFF','Rock steady. Nicer with high resolution.']] },
+  grain:{ t:'Film Grain', d:'The moving noise over the picture.', o:[['off','OFF'],['low','LOW'],['normal','NORMAL','Default.'],['heavy','HEAVY']] },
+  fps:{ t:'Frame Rate Limit', d:'Caps how many frames per second the game draws. 30 saves a lot of battery and heat on phones.', o:[['30','30'],['60','60'],['off','UNLIMITED','Default: as fast as your screen.']] },
+  showFps:{ t:'Show FPS', d:'Shows the frame rate in the corner.', o:OFFON },
+  gq:{ t:'Graphics Preset', d:'Sets render resolution, lighting, shadows and reflections in one go. Change any of them on their own and this turns to CUSTOM.',
+    o:[['low','LOW','For older phones.'],['med','MEDIUM','The original look (default).'],['high','HIGH','Sharper, more lamps lit, your flashlight casts shadows.'],['ultra','ULTRA','HD, every lamp near you lit, everyone\'s flashlight casts soft shadows. Needs a good PC.'],['custom','CUSTOM','You picked your own settings below.']] },
+  lq:{ t:'Lighting Quality', d:'How many of the ceiling lights near you give off real light. More = rooms lit further out and softer pools of light.',
+    o:[['low','LOW','The 4 nearest lights.'],['med','MEDIUM','8 (default).'],['high','HIGH','12.'],['ultra','ULTRA','16.']] },
+  shd:{ t:'Flashlight Shadows', d:'Real-time shadows from flashlights: walls, pillars, other players and the things hunting you throw shadows where your beam hits.',
+    o:[['off','OFF','No shadows (default, fastest).'],['mine','YOURS','Only your own flashlight.'],['all','EVERYONE\'S','Your teammates\' flashlights too. Each one costs about one extra render.']] },
+  shq:{ t:'Shadow Quality', d:'Sharpness of flashlight shadows. Does nothing while shadows are off.', o:[['low','LOW','512 px, hard edges.'],['high','HIGH','1024 px, soft edges.']] },
+  refl:{ t:'Reflections Quality', d:'Detail of the reflections in the Poolrooms water.', o:[['low','LOW','Blurry.'],['med','MEDIUM','Default.'],['high','HIGH'],['ultra','ULTRA','Mirror-sharp.']] },
+  invY:{ t:'Invert Look', d:'Flips up and down when you look around.', o:OFFON },
+};
 let settingsOpen = false;
 function saveSet(){ try { localStorage.setItem('lvl0_set', JSON.stringify(SET)); } catch(e){} }
 function applySet(){
   if (sfx.outG) sfx.outG.gain.value = 0.9 * SET.vol/100;
+  for (const r of document.querySelectorAll('#settings .sr[data-k]')) sxPaint(r);
+  for (const [id, key] of [['sVol','vol'],['sVv','vv'],['sSens','sens'],['sFov','fov'],['sMg','mg']]) if (+$(id).value !== SET[key]) $(id).value = SET[key];
   $('vVol').textContent = SET.vol + '%'; $('vVv').textContent = SET.vv + '%'; $('vMg').textContent = SET.mg + '%'; if (voice.chain) voice.chain.g.gain.value = SET.mg/100; $('vSens').textContent = (SET.sens/100).toFixed(2) + 'x'; $('vFov').textContent = SET.fov + '°';
   if (!dashT){ camera.fov = SET.fov; camera.updateProjectionMatrix(); }
 }
-for (const [id, key] of [['sVol','vol'],['sVv','vv'],['sSens','sens'],['sFov','fov'],['sMg','mg']]){ const el = $(id); el.value = SET[key]; el.addEventListener('input', ()=>{ SET[key] = +el.value; applySet(); saveSet(); }); }
+for (const [id, key] of [['sVol','vol'],['sVv','vv'],['sSens','sens'],['sFov','fov'],['sMg','mg']]){ const el = $(id); el.value = SET[key]; el.addEventListener('input', ()=>{ SET[key] = +el.value; applySet(); saveSet(); }); el.closest('.sr').dataset.key = key; }
+/* ---- v0.66 graphics ---- */
+const LQN = { low:4, med:8, high:12, ultra:16 };
+function resFor(){ const h = innerHeight*Math.min(devicePixelRatio || 1, 2);
+  return Math.round(Math.min(h, { low:isTouch ? 200 : 240, psx:isTouch ? 270 : 320, sharp:480, hd:720, native:h }[SET.res] || 320)); }
+function reflSz(){ return { low:128, med:isTouch ? 256 : 384, high:512, ultra:1024 }[SET.refl] || 256; }
+const briF = () => SET.bri !== 100 ? `brightness(${SET.bri/100})` : '';
+let shdKey = '', shdT = 0;
+function applyShadows(){
+  const on = SET.shd !== 'off', hi = SET.shq === 'high', size = hi ? 1024 : 512, key = SET.shd + SET.shq;
+  if (key === shdKey) return; shdKey = key;
+  renderer.shadowMap.enabled = on; renderer.shadowMap.type = hi ? THREE.PCFSoftShadowMap : THREE.PCFShadowMap;
+  spots.forEach((s, i)=>{ const c = on && (i === 0 || SET.shd === 'all');
+    s.castShadow = c; s.shadow.mapSize.set(size, size); if (s.shadow.map){ s.shadow.map.dispose(); s.shadow.map = null; }
+    s.shadow.camera.near = i ? 0.45 : 0.08; s.shadow.camera.far = 34; s.shadow.bias = -0.0008; s.shadow.normalBias = 0.035; });
+  shadowFlags(true);
+}
+// which meshes cast / receive: everything solid in the world, not see-through or glowing things, not your own hand (the camera's children)
+function shadowFlags(force){
+  const on = renderer.shadowMap.enabled;
+  const walk = o => { if (o === camera) return;
+    if (o.isMesh){ const ms = Array.isArray(o.material) ? o.material : [o.material];
+      const cast = on && !o.userData.noShd && ms.every(m => m && !m.transparent && m.blending === THREE.NormalBlending && m.visible !== false && !m.isShaderMaterial);
+      const rec = on && ms.some(m => m && (m.isMeshLambertMaterial || m.isMeshStandardMaterial || m.isMeshPhongMaterial));
+      o.castShadow = cast; o.receiveShadow = rec;
+      if (force) for (const m of ms) if (m) m.needsUpdate = true; }
+    for (const c of o.children) walk(c); };
+  walk(scene);
+}
+function applyGfx(){
+  RH = resFor(); lowK = 0; if (curRH !== RH){ curRH = RH; resize(); }
+  PSXU.value.set(...({ psx:[280, 210], subtle:[560, 420], off:[8000, 6000] }[SET.wob] || [280, 210]));
+  $('grain').style.opacity = { off:0, low:0.022, normal:0.04, heavy:0.085 }[SET.grain] ?? 0.04;
+  canvas.style.filter = briF();
+  if (PL.length !== LQN[SET.lq]) setPL(LQN[SET.lq] || 8);
+  if (PG.water){ const z = reflSz(), rt = PG.water.getRenderTarget(); if (rt.width !== z) rt.setSize(z, z); }
+  $('fpsc').style.display = SET.showFps === 'on' ? 'block' : 'none';
+  applyShadows();
+}
+addEventListener('resize', ()=>{ if (SET.res === 'native' || SET.res === 'hd' || SET.res === 'sharp'){ const r = resFor(); if (r !== RH){ RH = r; curRH = r; resize(); } } });
+/* ---- v0.66 the settings screen ---- */
+const SX_TABS = ['video', 'gfx', 'audio', 'game', 'ctrl'];
+let sxTab = 'video', sxRow = null;
+function sxOpts(k){ return SXK[k].o; }
+function sxBuild(r){
+  const k = r.dataset.k, q = SXK[k]; r.dataset.t = q.t; r.dataset.d = q.d;
+  if (q.o) r.innerHTML = `<span class="sl">${q.t}</span><span class="sv"><b class="sa" data-dir="-1">‹</b><span class="svc"><span class="svt"></span><span class="seg">${q.o.filter(o=>o[0] !== 'custom').map(()=>'<i></i>').join('')}</span></span><b class="sa" data-dir="1">›</b></span>`;
+  else { r.innerHTML = `<span class="sl">${q.t}</span><span class="sv"><span class="svt"></span><input type="range" min="${q.min}" max="${q.max}" step="${q.step}"></span>`;
+    const inp = r.querySelector('input'); inp.addEventListener('input', ()=>sxSet(k, +inp.value)); }
+}
+function sxPaint(r){
+  const k = r.dataset.k, q = SXK[k], v = SET[k];
+  if (q.o){ const os = q.o.filter(o=>o[0] !== 'custom'), i = os.findIndex(o=>o[0] === v), o = q.o.find(o=>o[0] === v) || q.o[0];
+    r.querySelector('.svt').textContent = o[1]; r.querySelectorAll('.seg i').forEach((e, n)=>e.classList.toggle('on', n === i)); }
+  else { r.querySelector('.svt').textContent = v + (q.u || ''); const inp = r.querySelector('input'); if (+inp.value !== v) inp.value = v; }
+  if (r === sxRow) sxDesc(r);
+}
+function sxSet(k, v){
+  SET[k] = v;
+  if (k === 'gq' && GQ[v]) Object.assign(SET, GQ[v]);
+  else if (k in GQ.med){ const m = Object.keys(GQ).find(p => Object.entries(GQ[p]).every(([a, b]) => SET[a] === b)); SET.gq = m || 'custom'; }
+  saveSet(); applyGfx(); applySet();
+}
+function sxStep(r, dir){
+  if (!r) return; const k = r.dataset.k;
+  if (k && SXK[k].o){ const os = SXK[k].o.filter(o=>o[0] !== 'custom'); let i = os.findIndex(o=>o[0] === SET[k]); if (i < 0) i = dir > 0 ? -1 : os.length;
+    i = (i + dir + os.length) % os.length; sxSet(k, os[i][0]); try { menuTick(); } catch(e){} return; }
+  const inp = r.querySelector('input[type=range]'); if (inp){ const st = +(inp.step || 1)*(inp.max - inp.min > 60 ? 5 : 1); inp.value = clamp(+inp.value + dir*st, +inp.min, +inp.max); inp.dispatchEvent(new Event('input')); }
+}
+function sxDesc(r){
+  $('sxDT').textContent = r ? r.dataset.t || '' : ''; $('sxDP').textContent = r ? r.dataset.d || '' : '';
+  const k = r && r.dataset.k, o = k && SXK[k].o && SXK[k].o.find(o=>o[0] === SET[k]);
+  $('sxDX').innerHTML = o && o[2] ? `<b>${o[1]}:</b> ${o[2]}` : '';
+}
+function sxSelect(r){ if (sxRow) sxRow.classList.remove('on'); sxRow = r; if (r){ r.classList.add('on'); sxDesc(r); } }
+function sxRows(){ return [...document.querySelectorAll(`#settings .sxPage[data-page="${sxTab}"] .sr`)]; }
+function sxShowTab(t){
+  sxTab = t; for (const b of $('sxTabs').children) b.classList.toggle('on', b.dataset.tab === t);
+  for (const p of document.querySelectorAll('#settings .sxPage')) p.classList.toggle('on', p.dataset.page === t);
+  $('sxList').scrollTop = 0; const rs = sxRows(); sxSelect(rs[0] || null);
+  if (!rs.length){ $('sxDT').textContent = 'Controls'; $('sxDP').textContent = isTouch ? 'How to play on a phone or tablet.' : 'Keyboard and mouse. Q / E switch tabs in here, arrow keys move and change settings.'; $('sxDX').textContent = ''; }
+}
+function sxTabStep(d){ const i = SX_TABS.indexOf(sxTab); sxShowTab(SX_TABS[(i + d + SX_TABS.length) % SX_TABS.length]); try { menuTick(); } catch(e){} }
+function sxReset(r){ if (!r) return; const k = r.dataset.k || r.dataset.key; if (!k) return; if (SXK[k]) sxSet(k, SET_DEF[k]); else { SET[k] = SET_DEF[k]; saveSet(); applySet(); } }
+for (const r of document.querySelectorAll('#settings .sr[data-k]')) sxBuild(r);
+for (const r of document.querySelectorAll('#settings .sr')){
+  r.addEventListener('mouseenter', ()=>{ if (!isTouch) sxSelect(r); });
+  r.addEventListener('click', e=>{ sxSelect(r); const a = e.target.closest('.sa'); if (a) sxStep(r, +a.dataset.dir); else if (r.dataset.k && SXK[r.dataset.k].o) sxStep(r, 1); });
+}
+for (const b of $('sxTabs').children) b.onclick = ()=>{ sxShowTab(b.dataset.tab); try { menuTick(); } catch(e){} };
+$('sxPrev').onclick = ()=>sxTabStep(-1); $('sxNext').onclick = ()=>sxTabStep(1);
+$('sxResetSel').onclick = ()=>sxReset(sxRow);
+$('sxResetAll').onclick = ()=>{ if (!confirm('Put every setting back to default?')) return; const keep = { mic:SET.mic, spk:SET.spk }; Object.assign(SET, SET_DEF, keep); saveSet(); applyGfx(); applySet(); };
+$('sxCtrl').className = 'sxCtrl';
+$('sxCtrl').innerHTML = (isTouch ? [['Left thumb','Move (push past the ring to run)'],['Right thumb','Look around'],['USE','Pops up next to things: lockers, doors, generators…'],['LIGHT','Flashlight'],['RUN','Sprint'],['CROUCH','Crouch (silent)'],['⚙','Settings'],['Occupant','Ability buttons on the right']]
+  : [['W A S D','Move'],['Mouse','Look'],['Shift','Run'],['C / Ctrl','Crouch (silent)'],['Left click / F','Flashlight'],['E','Use / hide / open doors / start generators'],['Right click / Z','Zoom in (Poolrooms)'],['X / wheel','Zoom out'],['1 – 5','Elevator floor (in the hotel)'],['V','Mute your mic'],['Esc','Settings'],['Space','Next player (spectating)'],['Occupant','Shift run · E vent · 1 blackout · 2 disguise · 3 dash']]).map(([a, b])=>`<b>${a}</b><span>${b}</span>`).join('');
+sxShowTab('video');
+// keys while settings is open: Q/E tabs, ↑↓ rows, ←→ change, R reset the row
+function sxKey(e){
+  if (e.target && (e.target.tagName === 'SELECT' || (e.target.tagName === 'INPUT' && e.target.type !== 'range'))) return false;
+  const c = e.code, rs = sxRows(), i = rs.indexOf(sxRow);
+  if (c === 'KeyQ'){ sxTabStep(-1); return true; } if (c === 'KeyE'){ sxTabStep(1); return true; }
+  if (c === 'ArrowDown' || c === 'ArrowUp'){ const n = rs[clamp(i + (c === 'ArrowDown' ? 1 : -1), 0, rs.length - 1)]; if (n){ sxSelect(n); n.scrollIntoView({ block:'nearest' }); } e.preventDefault(); return true; }
+  if (c === 'ArrowLeft' || c === 'ArrowRight'){ sxStep(sxRow, c === 'ArrowRight' ? 1 : -1); e.preventDefault(); return true; }
+  if (c === 'Enter' && sxRow){ const b = sxRow.querySelector('button.sbtn'); if (b) b.click(); else sxStep(sxRow, 1); return true; }
+  if (c === 'KeyR'){ sxReset(sxRow); return true; }
+  return false;
+}
+queueMicrotask(applyGfx);
 const soloPaused = () => settingsOpen && net.solo && (mode === 'play' || mode === 'spect');
 function openSettings(){
   if (settingsOpen) return; settingsOpen = true;
   const inGame = mode === 'play' || mode === 'spect' || mode === 'deadAnim' || mode === 'fallAnim' || mode === 'escAnim';
   $('pausenote').textContent = inGame ? (net.solo ? 'PAUSED' : 'The game keeps going while you\'re in here.') : '';
-  $('bResume').textContent = inGame ? 'RESUME' : 'BACK';
+  $('bResumeT').textContent = inGame ? 'RESUME' : 'BACK';
   $('bQuit').style.display = inGame || mode === 'lobby' ? '' : 'none'; $('bQuit').textContent = inGame ? 'LEAVE GAME' : 'LEAVE ROOM';
   keys.clear(); runHeld = false; stickV = [0,0]; stickRun = false;
-  (inGame ? document.body : $('tvpages')).appendChild($('settings')); $('settings').classList.add('show'); showVoice(); applySet(); fillDevices(); checkUpdate(); sndStatus();
+  (inGame ? document.body : $('tvpages')).appendChild($('settings')); $('settings').classList.add('show'); sxShowTab(sxTab); showVoice(); applySet(); fillDevices(); checkUpdate(); sndStatus();
   try { document.exitPointerLock && document.exitPointerLock(); } catch(e){}
 }
 function closeSettings(){
@@ -8587,7 +8854,8 @@ function playEventSound(k, x, z, m){
 const keys = new Set();
 addEventListener('keydown', e=>{
   if (e.code === 'Escape'){ if (settingsOpen) closeSettings(); else if (mode === 'play' || mode === 'spect' || mode === 'lobby' || mode === 'menu') openSettings(); return; }
-  if (e.target.tagName === 'INPUT' || settingsOpen) return;
+  if (settingsOpen){ sxKey(e); return; }
+  if (e.target.tagName === 'INPUT') return;
   keys.add(e.code);
   if (mode==='play' && LK === 3 && /^Digit[1-5]$/.test(e.code) && myCar188() >= 0){ elevPress188(+e.code.slice(5)); return; }   // the elevator panel
   if (mode==='play' && role==='survivor'){
@@ -8620,7 +8888,7 @@ canvas.addEventListener('wheel', e=>{ if (mode === 'play' && canZoom()){ e.preve
 addEventListener('contextmenu', e=>{ if (document.pointerLockElement === canvas || e.target === canvas) e.preventDefault(); });
 addEventListener('mousemove', e=>{
   if (document.pointerLockElement !== canvas || mode!=='play') return;
-  const sv = 0.0022*SET.sens/100*(1 - 0.72*zK); me.yaw -= e.movementX*sv; me.pitch = clamp(me.pitch - e.movementY*sv, -1.35, 1.35);
+  const sv = 0.0022*SET.sens/100*(1 - 0.72*zK); me.yaw -= e.movementX*sv; me.pitch = clamp(me.pitch - e.movementY*sv*(SET.invY === 'on' ? -1 : 1), -1.35, 1.35);
 });
 /* touch controls (v0.28.1, Ryan: better iPhone controls):
    - the stick appears where your left thumb lands and stays locked there (v0.28.2), with a small dead zone
@@ -8655,7 +8923,7 @@ touch.addEventListener('touchmove', e=>{
       const now = performance.now(), dt = Math.max(8, now - lookT); lookT = now;
       const ddx = t.clientX-lookL[0], ddy = t.clientY-lookL[1], spd = Math.hypot(ddx,ddy)/dt;   // px per ms
       const acc = 1 + Math.min(1.2, Math.max(0, spd - 0.35)*0.9);
-      const sv = 0.0062*SET.sens/100*acc*(1 - 0.72*zK); me.yaw -= ddx*sv; me.pitch = clamp(me.pitch-ddy*sv*0.85, -1.35, 1.35);
+      const sv = 0.0062*SET.sens/100*acc*(1 - 0.72*zK); me.yaw -= ddx*sv; me.pitch = clamp(me.pitch-ddy*sv*0.85*(SET.invY === 'on' ? -1 : 1), -1.35, 1.35);
       lookL=[t.clientX,t.clientY];
     }
   }
@@ -9740,7 +10008,7 @@ function updateVHS(dt){
 function updateCamFx(dt){
   if (role!=='survivor' || !me.alive || me.esc) return;
   const v = vhsK, jit = v > 0.05 ? (Math.random()-0.5)*v*7 : 0;
-  canvas.style.filter = v > 0.05 ? `drop-shadow(${(1.5+v*3).toFixed(1)}px 0 0 rgba(255,40,40,.3)) drop-shadow(${(-1.5-v*3).toFixed(1)}px 0 0 rgba(40,200,255,.22))` : '';
+  canvas.style.filter = (briF() + (v > 0.05 ? ` drop-shadow(${(1.5+v*3).toFixed(1)}px 0 0 rgba(255,40,40,.3)) drop-shadow(${(-1.5-v*3).toFixed(1)}px 0 0 rgba(40,200,255,.22))` : '')).trim();
   canvas.style.transform = jit ? `translateX(${jit.toFixed(1)}px)` : '';
 }
 
@@ -9958,9 +10226,13 @@ function menuSpot(){
 buildLevel(hashStr('menu-level'));
 let menuT = 0, tvT = 0; const pageT0 = nowS();
 let last = performance.now();
+let lastDraw = 0, fpsN = 0, fpsT = 0;
 function frame(now){
   requestAnimationFrame(frame);
+  { const cap = +SET.fps; if (cap && now - lastDraw < 1000/cap - 2) return; lastDraw = now; }   // v0.66: FRAME RATE LIMIT
   const dt = Math.min(0.05, (now-last)/1000); last = now;
+  fpsN++; fpsT += dt; if (fpsT >= 0.5){ if (SET.showFps === 'on') $('fpsc').textContent = Math.round(fpsN/fpsT) + ' FPS'; fpsN = 0; fpsT = 0; }
+  if (renderer.shadowMap.enabled && now - shdT > 1200){ shdT = now; shadowFlags(false); }   // new models / avatars pick up shadows (real time, not game time)
   const t = nowS();
   if (mode==='play' && myRound===G.r && !soloPaused()) updateMe(dt);
   if (!(mode==='play' && myRound===G.r && !soloPaused() && G.ph==='play')){ sfx.wade(me, 0, null); sfx.puff(0); me.puffing = false; crankK = -1; }
