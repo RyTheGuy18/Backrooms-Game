@@ -146,3 +146,4 @@ v0.65.1: two of the lying exit signs on Levels 0/1 are the hanging running-man s
 v0.65.2: join errors now show on the JOIN page (before you couldn't see them, so a failed join looked like nothing happened), joining waits up to 20 s, clearer message when your network blocks the connection to the host, dropped players don't hold a lobby slot
 v0.65.3: online play can use a relay on port 443 so it works on school/work Wi-Fi that blocks games
 v0.65.4: online play now goes through a relay when a network blocks direct connections (school Wi-Fi, mobile data), so blocked friends can join
+v0.66.0: new settings menu with tabs (Video, Graphics, Audio, Game, Controls), graphics presets LOW/MEDIUM/HIGH/ULTRA, flashlight shadows, lighting quality, reflection quality, render resolution, brightness, vertex wobble, film grain, frame rate limit, FPS counter, invert look
