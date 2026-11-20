@@ -487,7 +487,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.70.9</div>
+<div class="osd" id="ver">v0.70.10</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -7905,11 +7905,12 @@ const SET_DEF = { vol:100, vv:100, sens:100, fov:74, mg:isIOS ? 220 : 160, mic:'
   mblur:'off', sharp:'off', tex:'pixel', aa:'off', ao:'high', shaft:'off' };   // v0.70.9: SSAO high by default (Ryan)
 const SET = { ...SET_DEF };
 try { Object.assign(SET, JSON.parse(localStorage.getItem('lvl0_set') || '{}')); } catch(e){}
-try { if (!localStorage.getItem('lvl0_ao1')){ localStorage.setItem('lvl0_ao1', '1'); if (SET.gq !== 'low') SET.ao = 'high'; localStorage.setItem('lvl0_set', JSON.stringify(SET)); } } catch(e){}   // v0.70.9: turn it on once for saved settings too (not on LOW)
+try { if (!localStorage.getItem('lvl0_ao1')){ localStorage.setItem('lvl0_ao1', '1'); if (SET.gq !== 'low') SET.ao = 'high'; localStorage.setItem('lvl0_set', JSON.stringify(SET)); } } catch(e){}
+try { if (!localStorage.getItem('lvl0_shaft0')){ localStorage.setItem('lvl0_shaft0', '1'); SET.shaft = 'off'; localStorage.setItem('lvl0_set', JSON.stringify(SET)); } } catch(e){}   // v0.70.10: volumetric flashlight off for everyone once (Ryan: too much)   // v0.70.9: turn it on once for saved settings too (not on LOW)
 const GQ = { low:{ res:'low', lq:'low', shd:'off', shq:'low', refl:'low', tex:'pixel', aa:'off', ao:'off', shaft:'off' },
   med:{ res:'psx', lq:'med', shd:'off', shq:'low', refl:'med', tex:'pixel', aa:'off', ao:'high', shaft:'off' },
-  high:{ res:'sharp', lq:'med', shd:'mine', shq:'high', refl:'high', tex:'clean', aa:'fxaa', ao:'high', shaft:'on' },
-  ultra:{ res:'hd', lq:'high', shd:'all', shq:'high', refl:'ultra', tex:'smooth', aa:'fxaa', ao:'high', shaft:'on' } };
+  high:{ res:'sharp', lq:'med', shd:'mine', shq:'high', refl:'high', tex:'clean', aa:'fxaa', ao:'high', shaft:'off' },
+  ultra:{ res:'hd', lq:'high', shd:'all', shq:'high', refl:'ultra', tex:'smooth', aa:'fxaa', ao:'high', shaft:'off' } };
 const OFFON = [['off','OFF'],['on','ON']];
 /* v0.67 (Ryan, after playing Bodycam: "ultra realistic"): CAMERA STYLE = a preset over lens / motion / exposure / bloom / noise
    (+ it turns the PSX wobble and film grain off for BODYCAM, back on for CAMCORDER). Post effects live in renderMain (POST). */
@@ -10795,7 +10796,7 @@ function renderMain(){
     _pv3.copy(sp0.position).applyMatrix4(mvi); U.Lp.value.copy(_pv3);
     _pv4.copy(sp0.target.position).applyMatrix4(mvi).sub(_pv3).normalize(); U.Ld.value.copy(_pv4);
     U.cosO.value = Math.cos(sp0.angle); U.cosI.value = Math.cos(sp0.angle*(1 - sp0.penumbra*0.8));
-    U.col.value.set(sp0.color.r, sp0.color.g, sp0.color.b); U.str.value = 0.004*sp0.intensity; U.tm.value = nowS() % 50;
+    U.col.value.set(sp0.color.r, sp0.color.g, sp0.color.b); U.str.value = 0.0016*sp0.intensity;   /* v0.70.10: 40% of before (Ryan: too strong) */ U.tm.value = nowS() % 50;
     postPass(POST.mVol, POST.vl); blurPass(POST.vl, POST.vl2, 1.2); }
   const bl = BLOOM_K[SET.bloom] || 0;
   if (bl){ const B = POST.mBright.uniforms; B.t.value = src.texture; B.px.value.set(1/w, 1/h); postPass(POST.mBright, POST.b1);
