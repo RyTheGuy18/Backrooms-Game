@@ -134,6 +134,7 @@
   #stam.winded i{background:#7d7560}
   #stun{position:absolute;left:50%;top:50%;width:58px;height:58px;margin:-29px;border-radius:50%;display:none;background:conic-gradient(var(--hot) calc(var(--p)*1%),rgba(255,255,255,.12) 0);-webkit-mask:radial-gradient(circle,transparent 23px,#000 24px);mask:radial-gradient(circle,transparent 23px,#000 24px)}
   #stunTxt{position:absolute;left:0;right:0;top:calc(50% + 36px);text-align:center;font-size:20px;letter-spacing:.2em;color:var(--hot);display:none}
+  #ntag{position:absolute;left:0;top:0;transform:translate(-50%,-100%);pointer-events:none;font:600 13px/1.2 monospace;letter-spacing:.08em;color:#f4eed6;text-shadow:0 0 3px #000,0 0 6px #000,1px 0 rgba(255,60,60,.5),-1px 0 rgba(60,200,255,.5);opacity:0;white-space:nowrap;transition:opacity .15s}
   #msg{position:absolute;left:50%;bottom:36%;transform:translateX(-50%);max-width:min(90vw,700px);text-align:center;font-size:clamp(20px,3.6vw,28px);padding:4px 14px;background:rgba(0,0,0,.45);opacity:0;transition:opacity .4s}
   #spec{position:absolute;left:0;right:0;top:12px;text-align:center;font-size:22px;color:#d8cfaa;display:none}
   #cross{position:absolute;left:50%;top:50%;width:4px;height:4px;margin:-2px;background:rgba(240,230,190,.4)}
@@ -487,7 +488,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.72.2</div>
+<div class="osd" id="ver">v0.72.3</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -501,6 +502,7 @@
   <div id="prompt"></div>
   <div id="guide"><div id="garr">▲</div><div id="glbl"></div></div>
   <div id="msg"></div>
+  <div id="ntag"></div>
   <div id="stam"><i id="stamf"></i><b id="stamLbl">RUN</b></div>
   <div id="abil"></div>
 </div>
@@ -3338,6 +3340,22 @@ function nzElevUpdate(dt){
   else if (E.st === 4){ E.ride += dt; if (Math.random() < dt*8) elevSound188('hum', E.x, E.z);
     if (mode === 'play'){ camera.position.y += (Math.random() - 0.5)*0.03; }
     if (E.ride > 3.2 && !me.esc){ me.esc = true; nzLocal = false; useReq({ k:'nzx' }); mode = 'escAnim'; escT = 0; elevSound188('ding', null); const b = $('black'); b.style.transition = 'opacity 0.6s'; b.style.opacity = 1; } }
+}
+// v0.72.3 (Ryan): a player's name floats over their head while you look straight at them (in sight, ≤ 24 m). A disguised
+// Occupant shows the name of the survivor it's copying, so the tag never gives it away.
+const _ntV = new THREE.Vector3(), _ntF = new THREE.Vector3();
+function updateNameTag(){
+  const el = $('ntag'); let best = null, bd = 1e9;
+  if ((mode === 'play' || mode === 'spect') && G.ph === 'play' && myRound === G.r){
+    camera.getWorldDirection(_ntF); const cx = camera.position.x, cy = camera.position.y, cz = camera.position.z;
+    const consider = (x, z, name) => { const fy = floorY(x, z), dx = x - cx, dy = fy + 1.2 - cy, dz = z - cz, d = Math.hypot(dx, dy, dz); if (d > 24 || d < 0.6) return;
+      const ang = Math.acos(clamp((dx*_ntF.x + dy*_ntF.y + dz*_ntF.z)/d, -1, 1)), lim = Math.max(0.05, Math.atan(0.42/d)); if (ang > lim || ang/lim >= bd) return;
+      if (!losClear(mode === 'spect' && specPid ? camera.position.x : me.x, mode === 'spect' && specPid ? camera.position.z : me.z, x, z)) return; bd = ang/lim; best = [x, fy + 2.0, z, name]; };
+    for (const r of remotes.values()){ if (!r.mesh || !r.mesh.visible || r.pid === specPid || r.pid === G.mo) continue; consider(r.x, r.z, r.n || 'PLAYER'); }
+    if (role === 'survivor' && disguisedFrom(me.x, me.z) && MON.g.visible){ const t = remotes.get(G.dgp); consider(mDisp.x, mDisp.z, t ? (t.n || 'PLAYER') : (G.dgp === myPid ? (myName || 'PLAYER') : 'PLAYER')); } }
+  if (!best){ el.style.opacity = 0; return; }
+  _ntV.set(best[0], best[1], best[2]).project(camera); if (_ntV.z > 1){ el.style.opacity = 0; return; }
+  el.textContent = String(best[3]).toUpperCase().slice(0, 18); el.style.left = ((_ntV.x + 1)/2*innerWidth) + 'px'; el.style.top = ((1 - _ntV.y)/2*innerHeight) + 'px'; el.style.opacity = 0.92;
 }
 function nzArrive(){
   tapeEndOff();
@@ -11393,7 +11411,7 @@ function frame(now){
     updateCamFx(dt);
     updateMonsterSenses(dt);
     updateAmbience(dt);
-    updateExtras(dt); updateTension(dt); updateSmiler(dt); nzClient(dt);
+    updateExtras(dt); updateTension(dt); updateSmiler(dt); nzClient(dt); updateNameTag();
     updateHUD(dt); updateGuide(); soundWatch(dt);
     updateItems();
   }
