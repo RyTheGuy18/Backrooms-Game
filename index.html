@@ -241,7 +241,7 @@
   body.tvroom #tvroom{display:block}
   #tvroom .crtscr{position:absolute;left:0;top:0;width:600px;height:450px;transform-origin:0 0;border-radius:5% / 6%;overflow:hidden;background:transparent;pointer-events:auto}
   #tvroom .crtscr > *{transition:opacity .12s}
-  #tvroom .crtscr.tvoff{pointer-events:none}#tvroom .crtscr.tvoff > *{opacity:0!important;transition:opacity .06s}
+  #tvroom #vhsVid{opacity:0!important;mix-blend-mode:normal}#tvroom .crtscr.tvoff{pointer-events:none}#tvroom .crtscr.tvoff > *{opacity:0!important;transition:opacity .06s}
   body.tvroom, body.tvroom #game{cursor:default}
   #tvroom #tvc{display:none}
   .crtlogo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;pointer-events:none;filter:blur(1px) contrast(1.1);z-index:2}
@@ -487,7 +487,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.68.3</div>
+<div class="osd" id="ver">v0.68.4</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -9160,12 +9160,23 @@ function buildTVRoom(){
   box(0.025,sh,0.02, dark, sx-sw/2-0.012,sy,fz, tv); box(0.025,sh,0.02, dark, sx+sw/2+0.012,sy,fz, tv);
   // v0.68.3: the game scene is rendered straight into a texture on the glass (it used to be copied through a 2D canvas, which stalled the GPU every 0.07 s)
   const rt = new THREE.WebGLRenderTarget(320, 240, { minFilter:THREE.LinearFilter, magFilter:THREE.LinearFilter, depthBuffer:true });
-  const scrM = new THREE.ShaderMaterial({ fog:false, uniforms:{ map:{ value:rt.texture }, pw:{ value:0 }, bar:{ value:-1 }, barH:{ value:0.03 }, glow:{ value:0 } },
+  // the VHS noise clip is mixed in here too (a CSS screen-blend can't reach the WebGL glass behind the DOM pages)
+  const vhsTex = new THREE.VideoTexture($('vhsVid')); vhsTex.colorSpace = THREE.SRGBColorSpace;
+  const scrM = new THREE.ShaderMaterial({ fog:false, uniforms:{ map:{ value:rt.texture }, vhs:{ value:vhsTex }, vk:{ value:0 }, pm:{ value:1 }, pt:{ value:1 }, bar:{ value:-1 }, barH:{ value:0.03 } },
     vertexShader:'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.0); }',
-    fragmentShader:`uniform sampler2D map; uniform float pw, bar, barH, glow; varying vec2 vUv;
+    fragmentShader:`uniform sampler2D map, vhs; uniform float vk, pm, pt, bar, barH; varying vec2 vUv;
       void main(){
-        // power off: squash to a bright line, the line shrinks to a dot, the dot fades (pw 0 = on .. 1 = off)
-        float sy = max(0.006, 1.0 - smoothstep(0.0, 0.45, pw)), sx = max(0.01, 1.0 - smoothstep(0.45, 0.8, pw));
+        // v0.68.4: an old CRT switching on/off. ON: a dot stretches into a bright line, the line wipes open, the picture fades
+        // in from white with one blink. OFF: a blink, the picture squashes to a white line, the line shrinks to a dot, the dot fades.
+        float sx = 1.0, sy = 1.0, wash = 0.0, br = 1.0, vis = 1.0, t = pt;
+        if (pm > 0.5){
+          sx = max(0.012, smoothstep(0.0, 0.14, t)); sy = max(0.008, smoothstep(0.12, 0.42, t));
+          wash = 1.0 - smoothstep(0.3, 0.78, t); br = (1.0 + 1.6*wash)*(1.0 - 0.65*step(0.55, t)*step(t, 0.61));
+        } else {
+          br = 1.0 + 1.8*smoothstep(0.0, 0.05, t)*(1.0 - step(0.09, t));
+          sy = max(0.008, 1.0 - smoothstep(0.08, 0.3, t)); sx = max(0.012, 1.0 - smoothstep(0.3, 0.5, t));
+          wash = smoothstep(0.06, 0.25, t); br *= 1.0 + 1.6*wash; vis = 1.0 - smoothstep(0.5, 1.0, t);
+        }
         vec2 q = (vUv - 0.5)/vec2(sx, sy) + 0.5;
         vec3 c = vec3(0.0);
         if (q.x > 0.0 && q.x < 1.0 && q.y > 0.0 && q.y < 1.0){
@@ -9173,17 +9184,15 @@ function buildTVRoom(){
           float l = dot(c, vec3(0.299, 0.587, 0.114)); c = mix(vec3(l), c, 0.7);          // saturate .7
           c = (c - 0.18)*1.15 + 0.18; c *= 0.8;                                             // contrast 1.15, brightness .8
           if (abs(vUv.y - bar) < barH) c += 0.06;                                           // tracking band
-          float w = smoothstep(0.15, 0.5, pw); c = mix(c, vec3(0.9, 0.95, 1.0)*(1.0 + 2.0*w), w);
-          c *= 1.0 - smoothstep(0.8, 1.0, pw);
+          vec3 n = pow(texture2D(vhs, q).rgb, vec3(2.2))*vk*0.6; c = 1.0 - (1.0 - max(c, 0.0))*(1.0 - n);       // VHS noise, screen-blended
+          c = mix(c, vec3(0.9, 0.95, 1.0), wash)*br*vis;
         }
-        // rounded corners of the glass
-        vec2 d = abs(vUv - 0.5)*2.0 - vec2(0.9, 0.88); float r = length(max(d, 0.0));
+        vec2 d = abs(vUv - 0.5)*2.0 - vec2(0.9, 0.88); float r = length(max(d, 0.0));       // rounded corners of the glass
         c *= 1.0 - smoothstep(0.08, 0.12, r);
-        c += glow*vec3(0.004, 0.006, 0.01);
         gl_FragColor = vec4(max(c, 0.0), 1.0);
         #include <colorspace_fragment>
       }` });
-  const scr = new THREE.Mesh(new THREE.PlaneGeometry(sw, sh), scrM); scr.position.set(sx, sy, fz-0.004); tv.add(scr); const tvScr = scr;
+  const scr = new THREE.Mesh(new THREE.PlaneGeometry(sw, sh), scrM); scr.position.set(sx, sy, fz+0.001); tv.add(scr); const tvScr = scr;   // just in front of the cabinet face (the old black plane sat behind it, hidden)
   for (const y of [0.37, 0.3]){ const k = new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.023,0.03,12), knob); k.rotation.x = Math.PI/2; k.position.set(0.235, y, fz+0.012); tv.add(k); }
   for (let i = 0; i < 6; i++) box(0.07,0.006,0.004, dark, 0.235, 0.08 + i*0.02, fz+0.002, tv);
   const led = box(0.012,0.012,0.006, new THREE.MeshBasicMaterial({ color:0xff3010 }), 0.235, 0.21, fz+0.003, tv);
@@ -9228,7 +9237,9 @@ function renderTVRoom(dt){
   if (stOn > 0) R.col.setRGB(0.75, 0.82, 1.0); else R.col.setRGB(0.62, 0.62, 0.55);   // v0.68.3: no more pixel read-back for the glow colour
   // power: pw 0 = on .. 1 = off (the shader squashes the picture to a line, then a dot)
   if (R.pwT > 0) R.pwT = Math.max(0, R.pwT - dt);
-  const pw = R.power ? R.pwT/0.35 : 1 - R.pwT/0.55; R.scrM.uniforms.pw.value = pw;
+  const U = R.scrM.uniforms; U.pm.value = R.power; U.pt.value = 1 - R.pwT/(R.power ? 0.7 : 0.9);
+  const pw = R.power ? R.pwT/0.7 : 1 - R.pwT/0.9;
+  U.vk.value = $('vhsVid').classList.contains('on') ? (R.sc.classList.contains('zoomed') ? 0.45 : 0.95) : 0;
   R.led.material.color.setHex(R.power ? 0xff3010 : 0x3a0a06);
   R.glow.color.lerp(R.col, Math.min(1, dt*4)); R.glow.intensity = (1 - pw) * 0.75 * (0.85 + 0.1*Math.sin(t*37) + 0.08*Math.random()) * ($('crtLogo').classList.contains('on') ? 1.4 : stOn > 0 ? 1.25 + 0.4*Math.random() : 1);
   tvMap(R.sc, R.corners.map(v=>{ R.v.copy(v); R.tv.localToWorld(R.v); R.v.project(cam); return [(R.v.x + 1)/2*W, (1 - R.v.y)/2*H]; }));
@@ -9290,8 +9301,8 @@ function tvRenderScene(){
 }
 function tvPower(on){
   if (!TVR) buildTVRoom(); const R = TVR; if (!!R.power === !!on) return;
-  R.power = on ? 1 : 0; R.pwT = on ? 0.35 : 0.55;
-  clearTimeout(R.pwTO); if (on) R.pwTO = setTimeout(()=>{ if (R.power) R.sc.classList.remove('tvoff'); }, 300); else R.sc.classList.add('tvoff');   // the menu comes back once the picture has opened up
+  R.power = on ? 1 : 0; R.pwT = on ? 0.7 : 0.9;
+  clearTimeout(R.pwTO); if (on) R.pwTO = setTimeout(()=>{ if (R.power) R.sc.classList.remove('tvoff'); }, 600); else R.sc.classList.add('tvoff');   // the menu comes back once the picture has opened up
   if (!on){ staticEnd(); logoEnd(); }
   const c = sfx.ctx; if (c && c.state === 'running'){
     sfx.noise(sfx.outG, { dur:0.03, type:'bandpass', freq:1800, q:2, gain:0.25 });                         // the button clicks

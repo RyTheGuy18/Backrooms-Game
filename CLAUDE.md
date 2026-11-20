@@ -6,7 +6,7 @@ First-person co-op Backrooms horror game for 1–4 players, played in the browse
 
 - Live: https://rytheguy18.github.io/Haunted-Pines/ (GitHub Pages, `main` branch, repo root)
 - Owner: Ryan (GitHub `rytheguy18` / `RyTheGuy18`). Plays it with friends and younger brothers, mostly on phones.
-- Current version: **v0.68.3** (shown bottom-right of the menu, `#ver`)
+- Current version: **v0.68.4** (shown bottom-right of the menu, `#ver`)
 
 ## Files
 
@@ -409,3 +409,5 @@ Controls (desktop): WASD, Shift sprint, C crouch, Left click / F flashlight, E h
 - **TV power** (`tvPower(on)`, `TVR.power`, `TVR.pwT`): clicking the red LED (`TVR.pwrHit`, an invisible 6×5 cm box around it, raycast on `pointerdown`; hand cursor on hover) or the dark glass while off. The shader's `pw` uniform squashes the picture to a bright line, then a dot (0.55 s), and opens it back up (0.35 s); `.crtscr.tvoff` hides the DOM pages (shown again 0.3 s after power on); LED dims, glow light off, no static bursts, the scene isn't rendered while off. Click/thump/whine sounds through `outG`.
 - **Poolrooms audio on the menu**: the radio's echo send went straight into the convolver, which was wired to `outG` (bypassing the muted world bus), and `updateRadio37` (which stops it) only ran in the play branch. Now `sfx.verbOut` sits between `verb` and `outG` and follows `master` in `roomMix`, and the menu branch calls `updateRadio37`.
 - **Mouse**: canvas `mousedown` only requests pointer lock in play/spectate (it did on the menu too → cursor vanished when clicking the room); entering the TV room exits any pointer lock; `body.tvroom` cursor default.
+
+**v0.68.4 (Ryan: the TV should always show Level 0 unless it's off; use the typical old-TV wipe/blink on/off):** v0.68.3 broke the feed: the glass mesh sat at `fz − 0.004`, *behind* the cabinet's front face (the old black plane there was always hidden by the DOM `#tvc`), so the TV showed nothing; it's at `fz + 0.001` now. Also the VHS clip's CSS `mix-blend-mode:screen` can't reach the WebGL glass behind the transparent `.crtscr` (it blended onto transparent = an opaque dark layer), so the clip is now a `VideoTexture` screen-blended in the glass shader (`vhs`, `vk` 0.95 / 0.45 zoomed, linearised ×0.6) and the DOM `#vhsVid` is kept playing at opacity 0 in the TV room. Power animation in the shader (`pm` 1 = turning on / 0 = turning off, `pt` 0..1): ON 0.7 s = dot stretches into a bright line → the line wipes open → the picture fades in from white with one blink; OFF 0.9 s = a bright blink → squash to a white line → the line shrinks to a dot → the dot fades (afterglow). DOM pages come back 0.6 s after power on. Level 0 is always what's on it (the menu branch rebuilds Level 0 after a round, v0.51.5).
