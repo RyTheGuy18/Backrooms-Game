@@ -191,3 +191,4 @@ v0.75.4: fixed soft grey bands across flat floors (ambient occlusion); motion bl
 v0.76.0: VISUAL STYLE setting (Video + Graphics tabs): LOW POLY (the original PS1 look, default) or REALISTIC (full res, realistic materials that shine on polished floors and metal, 2K soft shadows from every flashlight, 2K textures, lamp glow, auto exposure, body camera); new Surface Materials and 2K shadow options; auto exposure no longer brightens near-black scenes
 v0.76.1: Async lab floor uses real white ceramic tiles (shiny with the Realistic style)
 v0.76.2: concrete tie-hole walls + ceiling in the Async lab; lamp light no longer shines/reflects through walls; dynamic resolution keeps FPS up at HD/native; Realistic uses 12 lamp lights
+v0.76.3: Async lab gets real props: office chairs, folding tables, the menu TV as desk CRTs, an ASYNC coffee mug, mixed papers/dossiers/debris, a chain barrier
