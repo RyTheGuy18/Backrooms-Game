@@ -488,7 +488,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.75.2</div>
+<div class="osd" id="ver">v0.75.3</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -11583,7 +11583,7 @@ function shadowGate(){
 }
 /* v0.74 lens flare: a teammate's flashlight pointed at the camera is a strong light source on screen (its lens is too small
    to blow out the picture by itself), so up to 4 of them are added to the flare's bright pass by hand. FL_K / FL_TH = tuning. */
-const FL_K = { ghost:1.4, streak:0.6, smear:0.5, smearT:0.03, torch:0.7, lamp:0.14, scene:0 }, FL_TH = [0.6, 1.1];   // v0.74.1: about half as strong (Ryan: too harsh), the vertical smear only for really bright lights
+const FL_K = { ghost:1.4, streak:0, smear:0, smearT:0.03, torch:0.7, lamp:0.14, scene:0 }, FL_TH = [0.6, 1.1];   // v0.75.3 (Ryan): no grey vertical smear / horizontal streak, only the coloured ghosts   // v0.74.1: about half as strong (Ryan: too harsh), the vertical smear only for really bright lights
 /* v0.74.2 (Ryan: with the flashlight on, a lit wall blew the whole screen out): the flare no longer comes from bright pixels at all (FL_K.scene 0) —
    only from real light sources: up to 8 lit ceiling lamps in view (flareLights, by brightness and distance) + teammates' flashlights aimed at you. */
 const flSm = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a)/(b - a))); return t*t*(3 - 2*t); };
