@@ -185,3 +185,4 @@ v0.74.3: reverted the v0.74.1 bodycam tweaks (fisheye a touch under v0.74.1); le
 v0.74.4: Esc no longer kicks you out of fullscreen (Chrome/Edge): a quick press opens settings, hold Esc to leave fullscreen; F11 and the new Settings > Video > Fullscreen option use the game's own fullscreen
 v0.75.0: TEXTURE QUALITY setting (Graphics tab): HIGH loads 2K photo textures with surface detail for the basement, garage, office ceilings, hotel and Pipe Dreams (on with ULTRA; STANDARD stays the default)
 v0.75.1: bodycam: the screen-shaped edge darkening is gone, replaced by a round lens vignette (dark rounded corners, soft blurred rim)
+v0.75.2: bodycam: removed the colour fringing and edge blur that doubled every line (orange/blue/grey ghost edges); lens flare unchanged
