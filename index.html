@@ -488,7 +488,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.75.3</div>
+<div class="osd" id="ver">v0.75.4</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -645,7 +645,6 @@
         <div class="sr sel" data-k="aexp"></div>
         <div class="sr sel" data-k="bloom"></div>
         <div class="sr sel" data-k="flare"></div>
-        <div class="sr sel" data-k="mblur"></div>
         <div class="sr sel" data-k="sharp"></div>
         <div class="sr sel" data-k="noise"></div>
         <div class="sh">PERFORMANCE</div>
@@ -8555,6 +8554,7 @@ const SET_DEF = { vol:100, vv:100, sens:100, fov:74, mg:isIOS ? 220 : 160, mic:'
   mblur:'off', sharp:'off', tex:'pixel', aa:'off', ao:'high', shaft:'off', flare:'off', tq:'std' };   // v0.75: texture quality STANDARD; v0.74.2: lens flare off by default (HIGH/ULTRA turn it on); v0.70.9: SSAO high by default (Ryan)
 const SET = { ...SET_DEF };
 try { Object.assign(SET, JSON.parse(localStorage.getItem('lvl0_set') || '{}')); } catch(e){}
+SET.mblur = 'off';   // v0.75.4 (Ryan): motion blur removed for good, no option
 try { if (!localStorage.getItem('lvl0_ao1')){ localStorage.setItem('lvl0_ao1', '1'); if (SET.gq !== 'low') SET.ao = 'high'; localStorage.setItem('lvl0_set', JSON.stringify(SET)); } } catch(e){}
 try { if (!localStorage.getItem('lvl0_flare2')){ localStorage.setItem('lvl0_flare2', '1'); SET.flare = SET.gq === 'ultra' ? 'high' : SET.gq === 'high' ? 'low' : 'off'; localStorage.setItem('lvl0_set', JSON.stringify(SET)); } } catch(e){}   // v0.74.2 (Ryan): lens flare only with the HIGH / ULTRA presets
 try { if (!localStorage.getItem('lvl0_shaft0')){ localStorage.setItem('lvl0_shaft0', '1'); SET.shaft = 'off'; localStorage.setItem('lvl0_set', JSON.stringify(SET)); } } catch(e){}   // v0.70.10: volumetric flashlight off for everyone once (Ryan: too much)   // v0.70.9: turn it on once for saved settings too (not on LOW)
@@ -8565,8 +8565,8 @@ const GQ = { low:{ res:'low', lq:'low', shd:'off', shq:'low', refl:'low', tex:'p
 const OFFON = [['off','OFF'],['on','ON']];
 /* v0.67 (Ryan, after playing Bodycam: "ultra realistic"): CAMERA STYLE = a preset over lens / motion / exposure / bloom / noise
    (+ it turns the PSX wobble and film grain off for BODYCAM, back on for CAMCORDER). Post effects live in renderMain (POST). */
-const CAMS = { camcorder:{ lens:'normal', cmo:'steady', aexp:'off', bloom:'off', noise:'off', wob:'psx', grain:'normal', mblur:'off', sharp:'off' },
-  bodycam:{ lens:'fisheye', cmo:'body', aexp:'on', bloom:'high', noise:'on', wob:'off', grain:'off', mblur:'low', sharp:'on' } };
+const CAMS = { camcorder:{ lens:'normal', cmo:'steady', aexp:'off', bloom:'off', noise:'off', wob:'psx', grain:'normal', sharp:'off' },
+  bodycam:{ lens:'fisheye', cmo:'body', aexp:'on', bloom:'high', noise:'on', wob:'off', grain:'off', sharp:'on' } };
 const PRESETS = [['gq', () => GQ], ['cam', () => CAMS]];
 const SXK = {
   fs:{ t:'Fullscreen', d:'Plays the game fullscreen. F11 does the same. In Chrome and Edge a quick Esc only opens settings; HOLD Esc to leave fullscreen.',
@@ -8599,7 +8599,6 @@ const SXK = {
   bloom:{ t:'Bloom', d:'Bright lights glow and bleed into the picture like an overexposed camera sensor.', o:[['off','OFF','Default.'],['low','LOW'],['high','HIGH'],['max','MAX','Big, wide glow around every light.']] },
   flare:{ t:'Lens Flare', d:'Bright lights do what they do to a real camera lens: coloured ghost rings across the picture, a streak through the light, and a vertical smear when a teammate\'s flashlight points straight at you.',
     o:[['off','OFF','Default.'],['low','LOW','Faint. On with the HIGH graphics preset.'],['high','HIGH','On with the ULTRA graphics preset.']] },
-  mblur:{ t:'Motion Blur', d:'The picture smears when you turn quickly, like a real camera\'s shutter.', o:[['off','OFF','Default.'],['low','LOW','A light smear on fast turns.'],['high','HIGH','Strong smear.']] },
   sharp:{ t:'Sharpening', d:'Crisper edges and detail, like the over-sharpened picture of a cheap digital camera.', o:OFFON },
   tq:{ t:'Texture Quality', d:'How detailed the walls, floors and ceilings are. HIGH loads 2048 px photo textures with real surface detail (bumps, grooves, grain) for the hotel, the garage, the office ceilings, Pipe Dreams and the basement. Uses a lot more graphics memory and downloads ~30 MB the first time.',
     o:[['std','STANDARD','The original textures (default).'],['high','HIGH','2K textures + surface detail. Needs a good graphics card. On with the ULTRA preset.']] },
@@ -11471,7 +11470,7 @@ function postInit(){
       float a0 = fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233)))*43758.5453)*6.2831, occ = 0.0;
       for (int i = 0; i < 12; i++){ float fi = float(i), r = rad*(fi + 0.5)/12.0, an = a0 + fi*2.39996;
         vec3 S = vp(vUv + vec2(cos(an)*asp, sin(an))*r); vec3 v = S - P; float l = length(v) + 1e-4;
-        occ += max(0.0, dot(N, v/l) - 0.1)*(1.0 - smoothstep(R*0.6, R*1.6, l)); }
+        occ += max(0.0, dot(N, v/l) - 0.35)*(1.0 - smoothstep(R*0.6, R*1.6, l)); }
       float ao = clamp(1.0 - occ/12.0*2.2*str, 0.0, 1.0);
       ao = mix(1.0, ao, smoothstep(26.0, 10.0, -P.z)*smoothstep(0.7, 1.1, -P.z));
       gl_FragColor = vec4(ao, ao, ao, 1.0); }`, { tD:T(), near:F(), far:F(), p0:F(), p1:F(), px:V2(), str:F(1) });
@@ -11662,7 +11661,7 @@ function renderMain(){
     const A = POST.mAdapt.uniforms, s0 = POST.ex[POST.ei], d0 = POST.ex[1 - POST.ei];
     A.tl.value = POST.lum.texture; A.tp.value = s0.texture; A.dt.value = POST.dt; A.init.value = POST.init ? 1 : 0; postPass(POST.mAdapt, d0); POST.ei = 1 - POST.ei; POST.init = false; }
   // motion blur: how far the view turned this frame, in screen units
-  const mb = MBLUR_K[SET.mblur] || 0; C.vel.value.set(0, 0);
+  const mb = 0;   // v0.75.4: motion blur removed C.vel.value.set(0, 0);
   camera.getWorldQuaternion(_pq); _pv3.set(0, 0, -1).applyQuaternion(_pq);
   if (mb && POST.pf){ const f = POST.pf, yaw0 = Math.atan2(f.x, f.z), yaw1 = Math.atan2(_pv3.x, _pv3.z);
     let dy = yaw1 - yaw0; dy = ((dy + Math.PI*3) % (Math.PI*2)) - Math.PI; const dp = Math.asin(clamp(_pv3.y, -1, 1)) - Math.asin(clamp(f.y, -1, 1));
