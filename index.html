@@ -488,7 +488,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.76.7</div>
+<div class="osd" id="ver">v0.76.8</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -6823,10 +6823,10 @@ function buildLevel188(seed){
     [lam(0x16130f), new THREE.MeshBasicMaterial({ color:0x8a7650 })].forEach((mat,b)=>{ if (!backs[b].length) return; const bm = new THREE.InstancedMesh(new THREE.PlaneGeometry(1.7,1.4), mat, backs[b].length); if (b) L.hm.glow.push({ m:mat, c:0x8a7650 });
       backs[b].forEach((p,k)=>{ tmpQ.setFromAxisAngle(UP, p.th); tmpV.set(p.x, p.y, p.z); tmpS.set(1,1,1); tmpM.compose(tmpV,tmpQ,tmpS); bm.setMatrixAt(k,tmpM); }); bm.frustumCulled = false; g.add(bm); });
     const cw = (HCY1-HCY0+1)*CS, cmid = (HCY0*CS + (HCY1+1)*CS)/2;
-    // v0.76.6 (Ryan): real ground — the paving is worn concrete (2 m per image), the four lawn squares his Poly Haven grass_ground (2.5 m)
+    // v0.76.6/v0.76.8 (Ryan): real ground — the paving is his Poly Haven asphalt_04 (2.5 m per image), the four lawn squares rocky_terrain_02 (3 m)
     const nT = u => { const t = fileTex(u); t.colorSpace = THREE.NoColorSpace; return t; };
-    const walkM = worldMat(fileTex('textures/garage-conc.jpg'), nT('textures/garage-conc-nor.png'), [2, 2, 2], 0.55); walkM.color.setHex(0xf2e6d2); walkM.emissive.setHex(0xf2e6d2);   // a warmer paving to sit with the hotel
-    const grassM = worldMat(fileTex('textures/grass.jpg'), nT('textures/grass-nor.jpg'), [2.5, 2.5, 2.5], 0.7); grassM.userData.pbr = [0.95, 0];
+    const walkM = worldMat(fileTex('textures/asphalt.jpg'), nT('textures/asphalt-nor.jpg'), [2.5, 2.5, 2.5], 0.55); walkM.color.setHex(0xf4eee4); walkM.emissive.setHex(0xf4eee4); walkM.userData.pbr = [0.9, 0];   // a touch warm, to sit with the hotel
+    const grassM = worldMat(fileTex('textures/rocky-terrain.jpg'), nT('textures/rocky-terrain-nor.jpg'), [3, 3, 3], 0.85); grassM.userData.pbr = [0.95, 0];
     const bedM = lam(0xffffff,{ map:hBedTex, emissive:0xffffff, emissiveMap:hBedTex, emissiveIntensity:0.7 });
     L.hm.lawn = [walkM, grassM, bedM];
     const flat = (w, d, x, z, y, m) => { const q = new THREE.Mesh(new THREE.PlaneGeometry(w, d), m); q.rotation.x = -Math.PI/2; q.position.set(x, y, z); g.add(q); return q; };
@@ -8886,7 +8886,7 @@ addEventListener('resize', ()=>{ if (SET.res === 'native' || SET.res === 'hd' ||
    - Pipe Dreams' brick / gravel concrete / floors / rust get normal maps they never had (HI_NOR), added to and taken off
      the materials. Off in the menu TV room. Roughness / displacement maps are not used: the game's lighting (Lambert) has
      no shine to drive. */
-const HI_FILES = new Set(['grass','grass-nor','lab-conc','lab-conc-nor','lab-floor','lab-floor-nor','hotel-wall','garage-conc','bs-beam','bs-conc','bs-conc-nor','bs-plank','bs-plank-nor','bs-wall','bs-wall-nor','garage-conc-nor','hotel-carpet','hotel-carpet-nor',
+const HI_FILES = new Set(['rocky-terrain','rocky-terrain-nor','asphalt','asphalt-nor','lab-conc','lab-conc-nor','lab-floor','lab-floor-nor','hotel-wall','garage-conc','bs-beam','bs-conc','bs-conc-nor','bs-plank','bs-plank-nor','bs-wall','bs-wall-nor','garage-conc-nor','hotel-carpet','hotel-carpet-nor',
   'hotel-wall-nor','office-ceil','office-ceil-nor','p2-brick','p2-concrete','p2-floor-cracked','p2-rust','steel-brushed','steel-brushed-nor','p2-floor']);
 const HI_ALIAS = { 'p2-floor':'garage-conc' };
 const HI_NOR = { 'p2-brick':'p2-brick-nor', 'p2-concrete':'p2-concrete-nor', 'p2-floor':'garage-conc-nor', 'p2-floor-cracked':'p2-floor-cracked-nor', 'p2-rust':'p2-rust-nor' };
@@ -10931,7 +10931,7 @@ function updateZoneEnv(dt){
       const out = G.ph === 'play' && G.hb > 0.4; hm.bk = lerp(hm.bk || 0, out ? 1 : 0, 1 - Math.exp(-(out ? 9 : 2.5)*dt)); bk = hm.bk;
       if (out !== !!hm.out){ hm.out = out; outage188(out); }
       const o = (role === 'monster' ? Math.max(0.6, hm.open) : hm.open)*(1 - bk*(role === 'monster' ? 0.5 : 0.97)), f = 1 - bk*(role === 'monster' ? 0.6 : 0.94);
-      hm.wallM.emissiveIntensity = lerp(0.012, 0.12, o)*(1-bk); hm.carpetM.emissiveIntensity = lerp(0.008, 0.1, o)*(1-bk); hm.ceilM.emissiveIntensity = lerp(0.006, 0.08, o)*(1-bk); hm.facadeM.emissiveIntensity = 0.5*f; if (hm.lawn) for (const m of [].concat(hm.lawn)) m.emissiveIntensity = (m === hm.lawn[0] ? 0.55 : 0.7)*f;
+      hm.wallM.emissiveIntensity = lerp(0.012, 0.12, o)*(1-bk); hm.carpetM.emissiveIntensity = lerp(0.008, 0.1, o)*(1-bk); hm.ceilM.emissiveIntensity = lerp(0.006, 0.08, o)*(1-bk); hm.facadeM.emissiveIntensity = 0.5*f; if (hm.lawn) for (const m of [].concat(hm.lawn)) m.emissiveIntensity = (m === hm.lawn[0] ? 0.55 : m === hm.lawn[1] ? 0.85 : 0.7)*f;
       if (hm.glow && Math.abs(bk - (hm.gbk ?? -1)) > 0.003){ hm.gbk = bk; for (const q of hm.glow){ const s2 = 1 - bk*(1 - (q.keep ?? 0.1)); if (q.c != null) q.m.color.setHex(q.c).multiplyScalar(s2); else q.m.emissive.setHex(q.e).multiplyScalar(s2); } } }
     const o = (hm ? hm.open : 1)*(1 - bk*0.9);
     _fogT.setHex(role==='monster' ? 0x2a1e14 : 0x1a140d); if (role !== 'monster') _fogT.multiplyScalar((0.45 + 0.55*o)*(1 - bk*0.85)); scene.fog.color.lerp(_fogT, k); scene.background.copy(scene.fog.color);
