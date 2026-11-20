@@ -487,7 +487,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.71.1</div>
+<div class="osd" id="ver">v0.71.2</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -567,6 +567,7 @@
   <div class="foot" style="font-size:15px;opacity:.7">Doors: <a href="https://sketchfab.com/3d-models/old-door-f2f77bd326c9486eaee65b87e84e9be9" target="_blank" rel="noopener" style="color:inherit">"Old Door" by Game Ready Art</a>, <a href="https://sketchfab.com/3d-models/door--prison-door-metal-old-12mb-45306a46c95b44ca8369f89c6648648c" target="_blank" rel="noopener" style="color:inherit">"door _Prison Door_metal_old" by adventurer</a>, <a href="https://sketchfab.com/3d-models/wooden-door-8726b6c219a54ed585e096f267c2a35e" target="_blank" rel="noopener" style="color:inherit">"Wooden door" by HASSAN</a> (<a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:inherit">CC BY 4.0</a>)</div>
   <div class="foot" style="font-size:15px;opacity:.7">The basement: <a href="https://sketchfab.com/3d-models/gravity-furnace-a68f0d11551d4e8781cb1bce30d18fe4" target="_blank" rel="noopener" style="color:inherit">"Gravity Furnace" by coconutkaos</a>, <a href="https://sketchfab.com/3d-models/coal-deposit-8277f3d59f334b75a5bdf43d664f24e6" target="_blank" rel="noopener" style="color:inherit">"Coal deposit" by patspet</a> (<a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:inherit">CC BY 4.0</a>); support beams built after <a href="https://sketchfab.com/3d-models/wooden-support-beam-93e44ade0d8548d3afcd5c2ce01203c8" target="_blank" rel="noopener" style="color:inherit">"Wooden Support Beam" by Cianon</a>; exit signs: <a href="https://sketchfab.com/3d-models/exit-sign-0001-8b24f42be9e4408ea6a9bb79327968f6" target="_blank" rel="noopener" style="color:inherit">"EXIT SIGN 0001" by Smith</a>, <a href="https://sketchfab.com/3d-models/exit-sign-46b52e08b8b64b81ad9ff5fb752bcc06" target="_blank" rel="noopener" style="color:inherit">"Exit Sign" by tboiston</a> (<a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:inherit">CC BY 4.0</a>)</div>
   <div class="foot" style="font-size:15px;opacity:.7">Mall mannequins: <a href="https://sketchfab.com/3d-models/art-mannequin-59ae62bba7d44f429d3b952410b6a826" target="_blank" rel="noopener" style="color:inherit">"Art Mannequin" by Arkify 3D</a> (<a href="http://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener" style="color:inherit">CC BY-NC 4.0</a>)</div>
+  <div class="foot" style="font-size:15px;opacity:.7">Level -0 stairs: <a href="https://sketchfab.com/3d-models/wooden-stairs-5-mb-56271a83e8ff487b84289e39a159d3c5" target="_blank" rel="noopener" style="color:inherit">"Wooden Stairs_5_MB" by Mehdi Shahsavan</a> (<a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:inherit">CC BY 4.0</a>)</div>
   <div class="foot" style="font-size:15px;opacity:.7">Batteries: <a href="https://sketchfab.com/3d-models/battery-low-poly-c726f8e634f14a7b9bcde2b96b3f7ba4" target="_blank" rel="noopener" style="color:inherit">"Battery Low Poly" by unrealengine432</a> (<a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:inherit">CC BY 4.0</a>)</div>
 </div>
 </div>
@@ -3097,11 +3098,29 @@ function hostPipe2(dt, ps){
    THE STILL-LIFE (stage 3, client-side: each player down here has their own) — see its own block below. */
 const NZ_N = 38, NZ_WH = 2.8, NZ_LOW = 1.5, NZ_GLITCH = 20;
 let nzLocal = false, nzWas = false;
+// v0.71.2 (Ryan: the tall walls and the crawlspace headers 'lost the texture'): the wallpaper without its baseboard/top band
+// (rows 3–118 of wallpaper.png), so it can run up any height; nzUpBox keeps it at the walls' scale (one 96 px tile per 2.1 m, 2.54 m tall)
+const nzPaperUp = (()=>{ const c = document.createElement('canvas'); c.width = 96; c.height = 116; const t = new THREE.CanvasTexture(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping; t.magFilter = THREE.NearestFilter; t.minFilter = THREE.NearestMipmapNearestFilter; t.colorSpace = THREE.SRGBColorSpace;
+  const im = new Image(); im.onload = () => { c.getContext('2d').drawImage(im, 0, 3, 96, 116, 0, 0, 96, 116); t.needsUpdate = true; }; im.src = 'textures/wallpaper.png'; return t; })();
+const nzUpM = lam(0xffffff, { map:nzPaperUp });
+function nzUpBox(w, h, d){ const g = new THREE.BoxGeometry(w, h, d), uv = g.attributes.uv; const fu = [d, d, w, w, w, w], fv = [h, h, d, d, h, h];
+  for (let f=0;f<6;f++) for (let k=0;k<4;k++){ const q = f*4+k; uv.setXY(q, uv.getX(q)*fu[f]/2.1, uv.getY(q)*fv[f]/2.54); } uv.needsUpdate = true; return g; }
 const nzIn = () => !!(nzLocal || (G.nz && G.nz.includes(myPid)));
 function nzWorld(){ return (G.ph === 'play' && (G.lv|0) === 0 && nzIn()) ? 9 : (G.lv|0); }
 const nzPlasterTex = canvasTex(64, 64, (g, w, h)=>{ g.fillStyle = '#b8a878'; g.fillRect(0, 0, w, h);
   for (let i = 0; i < 900; i++){ const v = texR(); g.fillStyle = v < 0.5 ? 'rgba(120,104,70,.3)' : 'rgba(214,200,160,.25)'; g.fillRect(texR()*w|0, texR()*h|0, 1, 1); }
   for (let i = 0; i < 5; i++){ const x = texR()*w, y = texR()*h, r = 6 + texR()*12, gr = g.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, 'rgba(90,72,40,.25)'); gr.addColorStop(1, 'rgba(90,72,40,0)'); g.fillStyle = gr; g.fillRect(x-r, y-r, r*2, r*2); } });
+// v0.71.2: models/stairs.glb = "Wooden Stairs_5_MB" by Mehdi Shahsavan (Sketchfab, CC BY 4.0 — credit in HOW TO PLAY · CREDITS, keep it).
+// Rebuilt as a bare glb (transforms baked: Y up, metres; base colour 256 px JPEG, MR map dropped; 2 MB → 67 KB). Rises along +x from
+// x −1.74 (floor) to +1.74 (top at y 3.42), 1.62 wide in z. Loaded at startup; a level built before it arrives gets box steps.
+const NZ_ST_L = 3.477, NZ_ST_H = 3.424, NZ_ST_W = 1.624;
+let nzStSrc = null;
+new GLTFLoader().load('models/stairs.glb', gl=>{ gl.scene.traverse(o=>{ if (o.isMesh){ const map = o.material.map; if (map){ map.magFilter = THREE.NearestFilter; map.colorSpace = THREE.SRGBColorSpace; } o.material = lam(0xffffff, { map }); } }); nzStSrc = gl.scene; }, undefined, e=>console.warn('stairs model failed', e));
+function nzStairs(u, ch, len){
+  if (nzStSrc){ const m = nzStSrc.clone(true); m.scale.set(len/NZ_ST_L, ch/NZ_ST_H, 1.3/NZ_ST_W); m.rotation.y = -Math.PI/2; m.position.set(0, 0, len/2); u.add(m); return; }
+  const n = Math.ceil(ch/0.3), run = len/n, wm = lam(0x6a4a2c), dm = lam(0x8a7a5a); for (let k=0;k<n;k++){ const h = Math.min(ch, (k+1)*0.3); bx(u, 1.3, h, run + 0.01, 0, h/2, k*run + run/2, k % 2 ? dm : wm); }
+}
 function buildLevelNZ(seed){
   const rng = rngFrom(seed), g = new THREE.Group(); scene.add(g);
   const L = level = { seed, lk:9, group:g, gens:[], slotLeds:[], fuses:[], fuseMeshes:[], breaker:[-99,-99], rooms:[], halls:[], kind:new Uint8Array(N*N), fixed:new Uint8Array(E).fill(1), slabs:[], base:null, shown:new Uint8Array(E), circles:[], pillarSet:new Set(), sounds:[], used:new Set(), wet:[], drips:[], tvs:[], phones:[],
@@ -3146,8 +3165,7 @@ function buildLevelNZ(seed){
   const TINTS = [0xffffff, 0xe0a8a8, 0xa8d4cc, 0xb4b4b4, 0xc8b0e0], wallMs = TINTS.map(c=>c === 0xffffff ? wallMat : lam(c, { map:paperTex }));
   const glowM = new THREE.MeshBasicMaterial({ color:0xfffaf0, fog:false }), glowEdgeM = new THREE.MeshBasicMaterial({ color:0xf4eedc, fog:false });
   // wrong-colour wallpaper: a few patches of the map
-  const patches = []; for (let k=0;k<7;k++) patches.push([rng()*N*CS, rng()*N*CS, 7 + rng()*7, 1 + Math.floor(rng()*(TINTS.length-1))]);
-  const tintAt = (x, z) => { for (const p of patches) if (Math.hypot(x - p[0], z - p[1]) < p[2]) return p[3]; return 0; };
+  const tintAt = () => 0;   // v0.71.2: no wrong-colour wallpaper (Ryan didn't like it)
   // ---- floors + ceilings (the light room is drawn on its own)
   { const fl = [], cl = [], cw = [];
     for (let i=0;i<N;i++) for (let j=0;j<N;j++){ if (Z.area[K(i,j)] === 2) continue; fl.push([cc(i), 0, cc(j)]); (tintAt(cc(i), cc(j)) === 2 ? cw : cl).push([cc(i), Z.CH[K(i,j)], cc(j)]); }
@@ -3167,8 +3185,7 @@ function buildLevelNZ(seed){
     const lowGeo = boxUV(CS+0.2, NZ_WH, 0.2);
     lower.forEach((list, t)=>{ if (!list.length) return; const m = new THREE.InstancedMesh(lowGeo, wallMs[t], list.length);
       list.forEach(([x, lh, z, along], k)=>{ tmpQ.setFromAxisAngle(UP, along === 'z' ? Math.PI/2 : 0); tmpV.set(x, lh/2, z); tmpS.set(1, lh/NZ_WH, 1); tmpM.compose(tmpV, tmpQ, tmpS); m.setMatrixAt(k, tmpM); }); m.frustumCulled = false; g.add(m); });
-    if (upper.length){ const m = new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1), plasterM, upper.length);
-      upper.forEach(([x, y0, y1, z, along], k)=>{ tmpQ.setFromAxisAngle(UP, along === 'z' ? Math.PI/2 : 0); tmpV.set(x, (y0+y1)/2, z); tmpS.set(CS + 0.2, y1 - y0, 0.2); tmpM.compose(tmpV, tmpQ, tmpS); m.setMatrixAt(k, tmpM); }); m.frustumCulled = false; g.add(m); } }
+    for (const [x, y0, y1, z, along] of upper){ const m = new THREE.Mesh(nzUpBox(CS + 0.2, y1 - y0, 0.2), nzUpM); m.position.set(x, (y0+y1)/2, z); if (along === 'z') m.rotation.y = Math.PI/2; g.add(m); } }
   // ---- the light: a tall white room that glows through the fog, seen from far down the long hall
   { const x0 = LR.i0*CS, z0 = LR.j0*CS, s = 3*CS, H = 6.5;
     const fl = new THREE.Mesh(new THREE.PlaneGeometry(s, s), glowM); fl.rotation.x = -Math.PI/2; fl.position.set(x0 + s/2, 0.01, z0 + s/2); g.add(fl);
@@ -3181,9 +3198,9 @@ function buildLevelNZ(seed){
   // ---- pillars: on the inner corners of the tall halls, all the way up
   { const pl = [];
     for (const T of Z.tall) for (let a=T.i0+1; a<T.i0+T.w; a++) for (let b=T.j0+1; b<T.j0+T.h; b++){ if ((a - T.i0) % 2 || (b - T.j0) % 2) continue; L.pillarSet.add(a+','+b); pl.push([a*CS, b*CS, T.H]); }
-    if (pl.length){ const lo = new THREE.InstancedMesh(boxUV(0.9, NZ_WH, 0.9), wallMat, pl.length), up = new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1), plasterM, pl.length);
-      pl.forEach(([x, z, H], k)=>{ tmpQ.identity(); tmpV.set(x, NZ_WH/2, z); tmpS.set(1,1,1); tmpM.compose(tmpV, tmpQ, tmpS); lo.setMatrixAt(k, tmpM); tmpV.set(x, (NZ_WH + H)/2, z); tmpS.set(0.9, H - NZ_WH, 0.9); tmpM.compose(tmpV, tmpQ, tmpS); up.setMatrixAt(k, tmpM); });
-      lo.frustumCulled = up.frustumCulled = false; g.add(lo, up); } }
+    if (pl.length){ const lo = new THREE.InstancedMesh(boxUV(0.9, NZ_WH, 0.9), wallMat, pl.length);
+      pl.forEach(([x, z, H], k)=>{ tmpQ.identity(); tmpV.set(x, NZ_WH/2, z); tmpS.set(1,1,1); tmpM.compose(tmpV, tmpQ, tmpS); lo.setMatrixAt(k, tmpM); const up = new THREE.Mesh(nzUpBox(0.9, H - NZ_WH, 0.9), nzUpM); up.position.set(x, (NZ_WH + H)/2, z); g.add(up); });
+      lo.frustumCulled = false; g.add(lo); } }
   const freeAt = (x, z, m) => !(L.slabs.some(q=>x > q[0]-m && x < q[1]+m && z > q[2]-m && z < q[3]+m) || L.circles.some(c=>Math.hypot(c.x-x, c.z-z) < c.r + m) || Math.hypot(x - L.spawn[0], z - L.spawn[1]) < 5);
   const spotsIn = (f) => shuffle188(spots.filter(s=>!s.used && f(s)), rng);
   // ---- fat pillars: too big for the rooms they're in
@@ -3212,13 +3229,13 @@ function buildLevelNZ(seed){
       const u = grp(x, z, rng()*6.28); if (rng() < 0.55){ chair(u); if (rng() < 0.35){ u.rotation.z = Math.PI/2; u.position.y = 0.25; } C(x, z, 0.35); } else { desk(u); C(x, z, 0.7); } n++; } }
   // giant doors in the tall halls, tiny doors in normal rooms (closed; they go nowhere)
   { const big = spotsIn(s=>s.a === 3 && s.ch > 7 && !s.edge).slice(0, 3), tiny = spotsIn(s=>!s.a && s.ch === NZ_WH).slice(0, 6);
-    for (const s of big){ s.used = true; const u = grp(s.x + s.nx*0.02, s.z + s.nz*0.02, s.ry); onDoor('old', src=>{ const m = doorClone(src, 3.2, 6.6); u.add(m.g); }); }
-    for (const s of tiny){ s.used = true; const u = grp(s.x + s.nx*0.02, s.z + s.nz*0.02, s.ry); onDoor('old', src=>{ const m = doorClone(src, 0.42, 0.86); u.add(m.g); }); } }
+    for (const s of big){ s.used = true; (L.nz.big = L.nz.big || []).push([s.x, s.z, s.nx, s.nz]); const u = grp(s.x + s.nx*0.17, s.z + s.nz*0.17, s.ry); onDoor('old', src=>{ const m = doorClone(src, 2.0, 4.3); u.add(m.g); }); }   // v0.71.2: not quite so big, out of the wall
+    for (const s of tiny){ s.used = true; const u = grp(s.x + s.nx*0.05, s.z + s.nz*0.05, s.ry); onDoor('old', src=>{ const m = doorClone(src, 0.42, 0.86); u.add(m.g); }); } }
   // stairs that run straight up into the ceiling
   { const st = spotsIn(s=>(s.a === 3 || !s.a) && !s.edge).slice(0, 5);
-    for (const s of st){ const ch = s.ch, n = Math.ceil(ch/0.3), run = 0.36, len = n*run; if (len > CS*1.9) continue; const tx = -s.nz, tz = s.nx;
+    for (const s of st){ const ch = s.ch, len = ch*NZ_ST_L/NZ_ST_H; if (len > CS*1.9) continue; const tx = -s.nz, tz = s.nx;
       const x0 = s.x + s.nx*0.75, z0 = s.z + s.nz*0.75; if (!freeAt(x0 + tx*len/2, z0 + tz*len/2, 0.8)) continue; s.used = true;
-      const u = grp(x0, z0, Math.atan2(tx, tz)); for (let k=0;k<n;k++){ const h = Math.min(ch, (k+1)*0.3); bx(u, 1.3, h, run + 0.01, 0, h/2, k*run + run/2, k % 2 ? deskM : woodM); }
+      const u = grp(x0, z0, Math.atan2(tx, tz)); nzStairs(u, ch, len); (L.nz.stairs = L.nz.stairs || []).push([x0, z0, tx, tz, s.nx, s.nz]);   // v0.71.2: Ryan's wooden stairs model (box steps until it loads)
       const ex = x0 + tx*len, ez = z0 + tz*len; slab(Math.min(x0, ex) - (tx ? 0 : 0.65), Math.max(x0, ex) + (tx ? 0 : 0.65), Math.min(z0, ez) - (tz ? 0 : 0.65), Math.max(z0, ez) + (tz ? 0 : 0.65)); } }
   // upside-down EXIT signs
   for (const s of spotsIn(s=>!s.a && s.ch >= NZ_WH).slice(0, 8)){ s.used = true; const sg = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 0.26), new THREE.MeshBasicMaterial({ map:textTex('EXIT', 128, 40, (c,w2,h2,t)=>{ c.fillStyle = '#3a0a06'; c.fillRect(0,0,w2,h2); c.fillStyle = '#ff4a2a'; c.font = 'bold 30px monospace'; c.textAlign = 'center'; c.fillText(t, w2/2, 31); }) }));
