@@ -187,3 +187,4 @@ v0.75.0: TEXTURE QUALITY setting (Graphics tab): HIGH loads 2K photo textures wi
 v0.75.1: bodycam: the screen-shaped edge darkening is gone, replaced by a round lens vignette (dark rounded corners, soft blurred rim)
 v0.75.2: bodycam: removed the colour fringing and edge blur that doubled every line (orange/blue/grey ghost edges); lens flare unchanged
 v0.75.3: lens flare no longer smears grey stripes down/across the screen; only the coloured ghosts are left
+v0.75.4: fixed soft grey bands across flat floors (ambient occlusion); motion blur removed completely
