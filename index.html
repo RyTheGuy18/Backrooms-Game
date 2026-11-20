@@ -488,7 +488,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.76.5</div>
+<div class="osd" id="ver">v0.76.7</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -1049,6 +1049,33 @@ function concMat(map){
   return m;
 }
 const concWallM = concMat(concWallTex), concFloorM = concMat(concFloorTex), concCeilM = concMat(concCeilTex);
+/* v0.76.6 (Ryan): the hotel courtyard. worldMat(map, nor, [across, up, flat] metres per image, emissive) = Lambert + psx with
+   world-space uvs like concMat (instancing too), and the emissive map on the same uvs (the courtyard stays bright from the halls). */
+function worldMat(map, nor, sz, em){
+  const m = psx(new THREE.MeshLambertMaterial({ color:0xffffff, map, normalMap:nor, emissive: em ? 0xffffff : 0x000000, emissiveMap: em ? map : null, emissiveIntensity: em || 0 }));
+  m.customProgramCacheKey = () => 'worldMat' + sz.join(',') + (em ? 'e' : '');
+  m.onBeforeCompile = s => {
+    psxU(s);
+    s.vertexShader = s.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vCW; varying vec3 vCN;')
+      .replace('#include <project_vertex>', `#include <project_vertex>
+       { vec4 cwp = vec4(transformed, 1.0); vec3 cwn = objectNormal;
+         #ifdef USE_INSTANCING
+         cwp = instanceMatrix * cwp; cwn = mat3(instanceMatrix) * cwn;
+         #endif
+         vCW = (modelMatrix * cwp).xyz; vCN = mat3(modelMatrix) * cwn; }
+       { vec2 sr = uPSX; gl_Position.xy = floor(gl_Position.xy/gl_Position.w*sr+0.5)/sr*gl_Position.w; }`);
+    s.fragmentShader = s.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec3 vCW; varying vec3 vCN; vec2 cUV;')
+      .replace('void main() {', `void main() {
+       { vec3 cn = normalize(vCN);
+         if (abs(cn.y) > 0.7) cUV = vec2(vCW.x, -vCW.z) / ${sz[2].toFixed(3)};
+         else { vec2 r = normalize(vec2(cn.z, -cn.x)); cUV = vec2(dot(vCW.xz, r) / ${sz[0].toFixed(3)}, vCW.y / ${sz[1].toFixed(3)}); } }`)
+      .replace('#include <map_fragment>', THREE.ShaderChunk.map_fragment.replaceAll('vMapUv', 'cUV'))
+      .replace('#include <emissivemap_fragment>', THREE.ShaderChunk.emissivemap_fragment.replaceAll('vEmissiveMapUv', 'cUV'))
+      .replace('#include <normal_fragment_begin>', THREE.ShaderChunk.normal_fragment_begin.replaceAll('vNormalMapUv', 'cUV'))
+      .replace('#include <normal_fragment_maps>', THREE.ShaderChunk.normal_fragment_maps.replaceAll('vNormalMapUv', 'cUV'));
+  };
+  return m;
+}
 
 /* v0.62.4 (Ryan): EVERY ceiling light (all levels with panels; the Poolrooms' pool lamps aren't ceiling panels) is his
    "low-poly fluorescent lamp with diffuser" (Downloads/ceiling-lowpoly-fluorescent-lamps-with-diffuser): a 0.8 m square
@@ -6547,6 +6574,8 @@ const hLawnTex = canvasTex(256,256,(g,w,h)=>{
   for (const [x,y] of sq){ g.fillStyle='#4f6a37'; g.fillRect(x,y,88,88); for (let i=0;i<900;i++){ g.fillStyle=texR()<.5?'rgba(40,70,30,.6)':'rgba(110,140,70,.45)'; g.fillRect(x+texR()*88|0,y+texR()*88|0,1,2); } }
   g.fillStyle='#8a6a48'; g.beginPath(); g.arc(128,128,30,0,7); g.fill(); g.strokeStyle='#6a4e34'; for (let r=8;r<30;r+=7){ g.beginPath(); g.arc(128,128,r,0,7); g.stroke(); }
 });
+const hBedTex = canvasTex(64,64,(g,w,h)=>{ g.fillStyle='#8a6a48'; g.fillRect(0,0,w,h); g.strokeStyle='#6a4e34'; g.lineWidth = 1.5; for (let r=6;r<32;r+=7){ g.beginPath(); g.arc(32,32,r,0,7); g.stroke(); }
+  for (let i=0;i<300;i++){ g.fillStyle = texR() < .5 ? 'rgba(60,40,24,.5)' : 'rgba(160,130,90,.35)'; g.fillRect(texR()*w|0, texR()*h|0, 1, 1); } });
 const H188_SKY = new THREE.Color(0xb8a37a), H188_GND = new THREE.Color(0x2a2016);
 const hNumTex = [1,2,3,4,5].map(n=>textTex(String(n),32,24,(c,w,h,t)=>{ c.fillStyle='#120804'; c.fillRect(0,0,w,h); c.fillStyle='#ff7a2a'; c.font='bold 18px monospace'; c.textAlign='center'; c.fillText(t,w/2,18); }));
 function shuffle188(a, rng){ for (let k=a.length-1;k>0;k--){ const r=Math.floor(rng()*(k+1)); [a[k],a[r]]=[a[r],a[k]]; } return a; }
@@ -6740,7 +6769,7 @@ function buildLevel188(seed){
   const isCourt = (f, i, j) => { const li = i-HO[f][0], lj = j-HO[f][1]; return li>=HCY0 && li<=HCY1 && lj>=HCY0 && lj<=HCY1; };
   const hv = (x, z) => { const f = floorAt188(x,z); return [x - HO[f][0]*CS, z - HO[f][1]*CS, hBaseY(f)]; };   // logical -> drawn (x, z, floor y)
   // ---- materials
-  const wallM = lam(0xffffff,{ map:hWallTex, normalMap:hWallNor, emissive:0xffffff, emissiveMap:hWallTex, emissiveIntensity:0.12 }), facadeM = lam(0xffffff,{ map:hFacadeTex, emissive:0xffffff, emissiveMap:hFacadeTex, emissiveIntensity:0.16 }), revealM = lam(0xd8d4c8, { emissive:0x30302c }), steelM = lam(0xffffff,{ map:hSteelPh, normalMap:hSteelNor });   /* v0.72: Ryan's Poliigon brushed steel */
+  const wallM = lam(0xffffff,{ map:hWallTex, normalMap:hWallNor, emissive:0xffffff, emissiveMap:hWallTex, emissiveIntensity:0.12 }), facadeM = worldMat(fileTex('textures/lab-conc.jpg'), (()=>{ const t = fileTex('textures/lab-conc-nor.jpg'); t.colorSpace = THREE.NoColorSpace; return t; })(), [3, 3, 3], 0.16) /* v0.76.6 (Ryan): the outside of the building in cast concrete */, revealM = lam(0xd8d4c8, { emissive:0x30302c }), steelM = lam(0xffffff,{ map:hSteelPh, normalMap:hSteelNor });   /* v0.72: Ryan's Poliigon brushed steel */
   const carpetM = lam(0xffffff,{ map:hotelCarpetPh, normalMap:hotelCarpetNor, emissive:0xffffff, emissiveMap:hotelCarpetPh, emissiveIntensity:0.1 })   /* v0.70.5: Ryan's dirty carpet */, ceilM = lam(0xd8d0aa,{ map:offCeilPh, normalMap:offCeilNor, emissive:0xd8d0aa, emissiveMap:offCeilPh, emissiveIntensity:0.08 })   /* v0.70.3: Level 0's ceiling tiles (Ryan) */, doorM = lam(0xffffff,{ map:hDoorTex }), frameM = lam(0x4a3a2c);
   L.hm = { wallM, carpetM, ceilM, facadeM, lawn:null, open:0, glow:[{ m:revealM, e:0x30302c }] };   // glow: dimmed in a power outage (v0.36)   // v0.28: hall materials dim deep inside, the courtyard stays bright (updateZoneEnv)
   // ---- slabs (walls) and wall spots, per walkable cell
@@ -6794,8 +6823,17 @@ function buildLevel188(seed){
     [lam(0x16130f), new THREE.MeshBasicMaterial({ color:0x8a7650 })].forEach((mat,b)=>{ if (!backs[b].length) return; const bm = new THREE.InstancedMesh(new THREE.PlaneGeometry(1.7,1.4), mat, backs[b].length); if (b) L.hm.glow.push({ m:mat, c:0x8a7650 });
       backs[b].forEach((p,k)=>{ tmpQ.setFromAxisAngle(UP, p.th); tmpV.set(p.x, p.y, p.z); tmpS.set(1,1,1); tmpM.compose(tmpV,tmpQ,tmpS); bm.setMatrixAt(k,tmpM); }); bm.frustumCulled = false; g.add(bm); });
     const cw = (HCY1-HCY0+1)*CS, cmid = (HCY0*CS + (HCY1+1)*CS)/2;
-    const lawnM = lam(0xffffff,{ map:hLawnTex, emissive:0xffffff, emissiveMap:hLawnTex, emissiveIntensity:0.7 }); L.hm.lawn = lawnM;
-    const lawn = new THREE.Mesh(new THREE.PlaneGeometry(cw, cw), lawnM); lawn.rotation.x = -Math.PI/2; lawn.position.set(cmid, 0.01, cmid); g.add(lawn);
+    // v0.76.6 (Ryan): real ground — the paving is worn concrete (2 m per image), the four lawn squares his Poly Haven grass_ground (2.5 m)
+    const nT = u => { const t = fileTex(u); t.colorSpace = THREE.NoColorSpace; return t; };
+    const walkM = worldMat(fileTex('textures/garage-conc.jpg'), nT('textures/garage-conc-nor.png'), [2, 2, 2], 0.55); walkM.color.setHex(0xf2e6d2); walkM.emissive.setHex(0xf2e6d2);   // a warmer paving to sit with the hotel
+    const grassM = worldMat(fileTex('textures/grass.jpg'), nT('textures/grass-nor.jpg'), [2.5, 2.5, 2.5], 0.7); grassM.userData.pbr = [0.95, 0];
+    const bedM = lam(0xffffff,{ map:hBedTex, emissive:0xffffff, emissiveMap:hBedTex, emissiveIntensity:0.7 });
+    L.hm.lawn = [walkM, grassM, bedM];
+    const flat = (w, d, x, z, y, m) => { const q = new THREE.Mesh(new THREE.PlaneGeometry(w, d), m); q.rotation.x = -Math.PI/2; q.position.set(x, y, z); g.add(q); return q; };
+    const c0 = HCY0*CS, u = cw/256;   // the old painted layout: grass squares at 22..110 / 146..234 px, a bed of radius 30 px in the middle
+    flat(cw, cw, cmid, cmid, 0.01, walkM);
+    for (const a of [22, 146]) for (const b of [22, 146]) flat(88*u, 88*u, c0 + (a+44)*u, c0 + (b+44)*u, 0.02, grassM);
+    { const bed = new THREE.Mesh(new THREE.CircleGeometry(30*u, 24), bedM); bed.rotation.x = -Math.PI/2; bed.position.set(cmid, 0.03, cmid); g.add(bed); }
     const roofM = lam(0x8a867c, { emissive:0x4a4844 }); L.hm.glow.push({ m:roofM, e:0x4a4844 }); const roof = new THREE.Mesh(new THREE.PlaneGeometry(cw, cw), roofM); roof.rotation.x = Math.PI/2; roof.position.set(cmid, 5*HFH, cmid); g.add(roof);
     for (const [a,b] of [[-1,-1],[1,-1],[-1,1],[1,1]]){ const skM = new THREE.MeshBasicMaterial({ color:0xd8d2b8 }); L.hm.glow.push({ m:skM, c:0xd8d2b8, keep:0.25 }); const p = new THREE.Mesh(new THREE.PlaneGeometry(3.2,3.2), skM); p.rotation.x = Math.PI/2; p.position.set(cmid + a*6, 5*HFH - 0.02, cmid + b*6); g.add(p); }
     // a planter and a fence in the courtyard, like the photo
@@ -8848,7 +8886,7 @@ addEventListener('resize', ()=>{ if (SET.res === 'native' || SET.res === 'hd' ||
    - Pipe Dreams' brick / gravel concrete / floors / rust get normal maps they never had (HI_NOR), added to and taken off
      the materials. Off in the menu TV room. Roughness / displacement maps are not used: the game's lighting (Lambert) has
      no shine to drive. */
-const HI_FILES = new Set(['lab-conc','lab-conc-nor','lab-floor','lab-floor-nor','hotel-wall','garage-conc','bs-beam','bs-conc','bs-conc-nor','bs-plank','bs-plank-nor','bs-wall','bs-wall-nor','garage-conc-nor','hotel-carpet','hotel-carpet-nor',
+const HI_FILES = new Set(['grass','grass-nor','lab-conc','lab-conc-nor','lab-floor','lab-floor-nor','hotel-wall','garage-conc','bs-beam','bs-conc','bs-conc-nor','bs-plank','bs-plank-nor','bs-wall','bs-wall-nor','garage-conc-nor','hotel-carpet','hotel-carpet-nor',
   'hotel-wall-nor','office-ceil','office-ceil-nor','p2-brick','p2-concrete','p2-floor-cracked','p2-rust','steel-brushed','steel-brushed-nor','p2-floor']);
 const HI_ALIAS = { 'p2-floor':'garage-conc' };
 const HI_NOR = { 'p2-brick':'p2-brick-nor', 'p2-concrete':'p2-concrete-nor', 'p2-floor':'garage-conc-nor', 'p2-floor-cracked':'p2-floor-cracked-nor', 'p2-rust':'p2-rust-nor' };
@@ -10828,6 +10866,27 @@ function updatePanels(t){
 }
 
 const _flAx = new THREE.Vector3();
+/* v0.76.6 (Ryan: you couldn't tell when someone shines their light at you): a glare on every teammate's flashlight, a child of
+   their spot light (so it rides along on the stacked hotel/mall/school floors), additive, hidden by walls (depth test), only
+   strong when the beam points at you: brightness and size by how close the beam's axis is to your eyes, a bit bigger far away
+   so it still reads. Not blinding — the picture behind it stays visible. Independent of the LENS FLARE setting. */
+const glareTex = canvasTex(64, 64, (g, w, h) => { const r = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+  r.addColorStop(0, 'rgba(255,255,255,1)'); r.addColorStop(0.2, 'rgba(255,250,232,0.95)'); r.addColorStop(0.45, 'rgba(255,230,175,0.5)'); r.addColorStop(0.7, 'rgba(255,220,160,0.14)'); r.addColorStop(1, 'rgba(255,210,140,0)');
+  g.fillStyle = r; g.fillRect(0, 0, w, h);
+  g.globalCompositeOperation = 'lighter'; g.fillStyle = 'rgba(255,240,210,0.22)'; g.fillRect(2, 31, 60, 2); g.fillRect(31, 2, 2, 60); });
+glareTex.magFilter = THREE.LinearFilter; glareTex.minFilter = THREE.LinearFilter;
+const _gv = new THREE.Vector3(), _gd = new THREE.Vector3();
+function torchGlare(s, hide){
+  let gl = s.userData.glare;
+  if (!gl){ gl = new THREE.Sprite(new THREE.SpriteMaterial({ map:glareTex, color:0xfff2d6, blending:THREE.AdditiveBlending, transparent:true, depthWrite:false, fog:false }));
+    gl.renderOrder = 3; s.add(gl); s.userData.glare = gl; }
+  _gv.copy(camera.position).sub(s.position); const d = _gv.length() || 1; _gv.divideScalar(d);
+  _gd.copy(s.target.position).sub(s.position).normalize();
+  const a = _gv.dot(_gd), look = clamp((a - 0.82)/(0.985 - 0.82), 0, 1), k = look*look*(3 - 2*look);
+  gl.visible = !hide && k > 0.01 && s.intensity > 0.01;
+  if (!gl.visible) return;
+  gl.material.opacity = Math.min(1, 0.25 + 0.85*k) * clamp(1.4 - d/28, 0.35, 1);
+  gl.scale.setScalar((0.3 + 1.35*k) * (1 + d*0.07)); }
 function updateLights(dt){
   const s0 = spots[0];
   if (mode==='play' && lightOn()){
@@ -10851,8 +10910,10 @@ function updateLights(dt){
     const s = spots[si++]; const [lx,ly,lz] = lookDir(r.yaw, r.pitch); const sn=Math.sin(r.yaw), cs=Math.cos(r.yaw);
     const rfy = floorY(r.x, r.z); s.position.set(r.x + cs*0.28 + lx*0.3, (mode==='spect'&&r.pid===specPid ? EYE-0.25 : 1.25) + rfy, r.z - sn*0.28 + lz*0.3);
     s.target.position.set(r.x+lx*10, rfy+EYE+ly*10, r.z+lz*10); s.intensity = SPOT_I; s.angle = LK === 4 && G.bf === r.pid ? 0.56 : 0.42;
+    torchGlare(s, mode === 'spect' && r.pid === specPid);
   }
-  for (; si<spots.length; si++) spots[si].intensity = 0;
+  if (FLD.gTest && si < spots.length){ const s = spots[si++], q = FLD.gTest; s.position.set(q[0], q[1], q[2]); s.target.position.set(q[3], q[4], q[5]); s.intensity = SPOT_I; s.angle = 0.42; torchGlare(s, false); }   // tests: a teammate's light
+  for (; si<spots.length; si++){ spots[si].intensity = 0; if (spots[si].userData.glare) spots[si].userData.glare.visible = false; }
   if (G.open) exitLight.intensity = 7 + Math.sin(nowS()*3)*1.5;
   else exitLight.intensity = 0;
   if (level && level.slotLeds.length){ level.slotLeds.forEach((l,k)=>l.material.color.setHex(k < G.pl ? 0x30ff60 : (Math.sin(nowS()*4)>0 ? 0xff2010 : 0x400800))); }
@@ -10870,7 +10931,7 @@ function updateZoneEnv(dt){
       const out = G.ph === 'play' && G.hb > 0.4; hm.bk = lerp(hm.bk || 0, out ? 1 : 0, 1 - Math.exp(-(out ? 9 : 2.5)*dt)); bk = hm.bk;
       if (out !== !!hm.out){ hm.out = out; outage188(out); }
       const o = (role === 'monster' ? Math.max(0.6, hm.open) : hm.open)*(1 - bk*(role === 'monster' ? 0.5 : 0.97)), f = 1 - bk*(role === 'monster' ? 0.6 : 0.94);
-      hm.wallM.emissiveIntensity = lerp(0.012, 0.12, o)*(1-bk); hm.carpetM.emissiveIntensity = lerp(0.008, 0.1, o)*(1-bk); hm.ceilM.emissiveIntensity = lerp(0.006, 0.08, o)*(1-bk); hm.facadeM.emissiveIntensity = 0.5*f; if (hm.lawn) hm.lawn.emissiveIntensity = 0.7*f;
+      hm.wallM.emissiveIntensity = lerp(0.012, 0.12, o)*(1-bk); hm.carpetM.emissiveIntensity = lerp(0.008, 0.1, o)*(1-bk); hm.ceilM.emissiveIntensity = lerp(0.006, 0.08, o)*(1-bk); hm.facadeM.emissiveIntensity = 0.5*f; if (hm.lawn) for (const m of [].concat(hm.lawn)) m.emissiveIntensity = (m === hm.lawn[0] ? 0.55 : 0.7)*f;
       if (hm.glow && Math.abs(bk - (hm.gbk ?? -1)) > 0.003){ hm.gbk = bk; for (const q of hm.glow){ const s2 = 1 - bk*(1 - (q.keep ?? 0.1)); if (q.c != null) q.m.color.setHex(q.c).multiplyScalar(s2); else q.m.emissive.setHex(q.e).multiplyScalar(s2); } } }
     const o = (hm ? hm.open : 1)*(1 - bk*0.9);
     _fogT.setHex(role==='monster' ? 0x2a1e14 : 0x1a140d); if (role !== 'monster') _fogT.multiplyScalar((0.45 + 0.55*o)*(1 - bk*0.85)); scene.fog.color.lerp(_fogT, k); scene.background.copy(scene.fog.color);
