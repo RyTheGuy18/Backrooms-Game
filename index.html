@@ -488,7 +488,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.72.4</div>
+<div class="osd" id="ver">v0.72.5</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -3304,7 +3304,7 @@ function nzClient(dt){
     if (w === 9 && nzIn()) nzArrive(); else if (w === 9){ $('black').style.opacity = 0; } else if (G.w) { walls = hexToWalls(G.w); applyWalls(false); wallsLoadedV = G.wv; } }   // back on Level 0: its current walls (lab door etc.), host too
   if (LK !== 9) return;
   const Z = level.nz; if (!Z) return;
-  nzElevUpdate(dt);
+  nzElevUpdate(dt); slUpdate(dt);   // v0.72.5: the shared Still-Life (spectators down here see it too)
   // phones ring now and then; nobody is ever there
   Z.ringT -= dt;
   if (Z.ringT <= 0 && mode === 'play'){ Z.ringT = 26 + Math.random()*40; const near = Z.phones.filter(p=>Math.hypot(p.x - me.x, p.z - me.z) < 26); if (near.length){ Z.ring = near[Math.floor(Math.random()*near.length)]; Z.ringEnd = nowS() + 12; } }
@@ -3341,22 +3341,9 @@ function nzElevUpdate(dt){
     if (mode === 'play'){ camera.position.y += (Math.random() - 0.5)*0.03; }
     if (E.ride > 3.2 && !me.esc){ me.esc = true; nzLocal = false; useReq({ k:'nzx' }); mode = 'escAnim'; escT = 0; elevSound188('ding', null); const b = $('black'); b.style.transition = 'opacity 0.6s'; b.style.opacity = 1; } }
 }
-// v0.72.3 (Ryan): a player's name floats over their head while you look straight at them (in sight, ≤ 24 m). A disguised
-// Occupant shows the name of the survivor it's copying, so the tag never gives it away.
-const _ntV = new THREE.Vector3(), _ntF = new THREE.Vector3();
+// v0.72.5 (Ryan): nametags removed again. This just keeps the objective box hidden while spectating (v0.72.4).
 function updateNameTag(){
-  { const ob = $('objBox'), want = mode === 'spect' ? 'none' : ''; if (ob.style.display !== want) ob.style.display = want; }   // v0.72.4: no stale objective while spectating
-  const el = $('ntag'); let best = null, bd = 1e9;
-  if ((mode === 'play' || mode === 'spect') && G.ph === 'play' && myRound === G.r){
-    camera.getWorldDirection(_ntF); const cx = camera.position.x, cy = camera.position.y, cz = camera.position.z;
-    const consider = (x, z, name) => { const fy = floorY(x, z), dx = x - cx, dy = fy + 1.2 - cy, dz = z - cz, d = Math.hypot(dx, dy, dz); if (d > 24 || d < 0.6) return;
-      const ang = Math.acos(clamp((dx*_ntF.x + dy*_ntF.y + dz*_ntF.z)/d, -1, 1)), lim = Math.max(0.05, Math.atan(0.42/d)); if (ang > lim || ang/lim >= bd) return;
-      if (!losClear(mode === 'spect' && specPid ? camera.position.x : me.x, mode === 'spect' && specPid ? camera.position.z : me.z, x, z)) return; bd = ang/lim; best = [x, fy + 2.0, z, name]; };
-    for (const r of remotes.values()){ if (!r.mesh || !r.mesh.visible || r.pid === specPid || r.pid === G.mo) continue; consider(r.x, r.z, r.n || 'PLAYER'); }
-    if (role === 'survivor' && disguisedFrom(me.x, me.z) && MON.g.visible){ const t = remotes.get(G.dgp); consider(mDisp.x, mDisp.z, t ? (t.n || 'PLAYER') : (G.dgp === myPid ? (myName || 'PLAYER') : 'PLAYER')); } }
-  if (!best){ el.style.opacity = 0; return; }
-  _ntV.set(best[0], best[1], best[2]).project(camera); if (_ntV.z > 1){ el.style.opacity = 0; return; }
-  el.textContent = String(best[3]).toUpperCase().slice(0, 18); el.style.left = ((_ntV.x + 1)/2*innerWidth) + 'px'; el.style.top = ((1 - _ntV.y)/2*innerHeight) + 'px'; el.style.opacity = 0.92;
+  const ob = $('objBox'), want = mode === 'spect' ? 'none' : ''; if (ob.style.display !== want) ob.style.display = want;
 }
 function nzArrive(){
   tapeEndOff();
@@ -3385,7 +3372,6 @@ function nzSurvivor(dt){
   Z.btS.forEach((t,i)=>{ if (!t && Math.hypot(level.bt[i][0]-me.x, level.bt[i][1]-me.z) < 1.1){ Z.btS[i] = 1; level.btM[i].visible = false; me.bat = Math.min(100, me.bat+50); sfx.pickup(); msg('Batteries.', 2); } });
   // the low rooms: you have to crouch (and can't stand up until you're out)
   const ch = Z.CH[cellOf(me.x)*N + cellOf(me.z)]; me.lowCeil = ch < 1.75; if (me.lowCeil && !me.crouch){ me.crouch = true; if (!Z.lowHint){ Z.lowHint = 1; msg('The ceiling is too low. You have to crouch.', 3); } }
-  if (typeof slUpdate === 'function') slUpdate(dt);
 }
 function nzObj(){ const E = level.nz && level.nz.elev; if (!E) return 'Find a way out.';
   if (E.st === 0) return Math.hypot(E.x - me.x, E.z - me.z) < 14 ? 'The elevator. Press the call button.' : 'Find the elevator · listen for the ding';
@@ -3397,6 +3383,7 @@ function nzHost(dt, ps){
   if (!G.nz) G.nz = [];
   const key = G.r + ':' + (G.lv|0);
   if (H.nzKey !== key){ H.nzKey = key; H.nzT = 0; H.nzAt = (G.lv|0) === 0 && Math.random() < 1/NZ_GLITCH ? 60 + Math.random()*420 : null; H.nzPull = null; H.nzForce = false; }
+  { const o = slOwner(); G.stl = !o ? 0 : o === myPid ? (SL.owner && LK === 9 ? slPack() : G.stl) : ((remotes.get(o) || {}).sl || G.stl); }   // v0.72.5: the shared Still-Life
   if ((G.lv|0) !== 0) return;
   H.nzT += dt;
   if ((H.nzAt != null && H.nzT >= H.nzAt) || H.nzForce){ H.nzAt = null; H.nzForce = false;
@@ -3413,141 +3400,163 @@ function nzHost(dt, ps){
   G.nz = G.nz.filter(p=>ps.some(q=>q.pid === p) && !isDead(p) && !isEsc(p));
 }
 
-/* ===== v0.71 THE STILL-LIFE (Ryan's design; Level -0 only; client-side: every player down there has their own) =====
-   It looks like one of you: a hazmat survivor with a flashlight (in multiplayer it wears a teammate's armband colour; alone, yours).
-   FRIENDLY at first, and acting like a player: walks alongside you, wanders off to do its own thing, flashes its light at you to say
+/* ===== v0.71 THE STILL-LIFE (Ryan's design; Level -0 only) =====
+   It looks like one of you: a hazmat survivor with a flashlight (it wears the armband colour of someone down there).
+   FRIENDLY at first, and acting like a player: walks alongside one of you, wanders off to do its own thing, flashes its light to say
    hi, spam-crouches, looks around. It leaves for quite a while and comes back — every time a bit more WRONG (SL.stage): blood on its
    face, then its suit; its neck more and more crooked; and the details slip as SL.wrong grows (silent steps, staring too long, its
    light flickering, walking into walls, crouching at the wrong moments). Somewhere past a hidden threshold (SL.T) it turns — maybe
-   while it's right there with you — and hunts you (HOSTILE).
-   GREETING IT BACK (crouch-spam or flash your light back within a few seconds of its greeting) DELAYS the turn (+SL.T, capped) but
-   never prevents it; ignoring a greeting pushes it closer. LOCKERS hide you — unless it SAW you get in: then it camps right outside,
-   spam-crouching and looking in at you, and after a few seconds it pulls you out. Best bet: reach the light before it turns.
-   It never steps into the light room. Death: its head pinned to your face ('IT WAS NEVER ONE OF YOU'), then 'nzdie'. */
-const SL_RUN = [4.0, 4.5, 4.8, 5.1], SL_WALK = 2.3, SL_REACH = 0.9, SL_CAMP_T = 7;
+   while it's right there with you — and hunts (HOSTILE).
+   GREETING IT BACK (crouch-spam or flash your light within a few seconds of its greeting) DELAYS the turn (+SL.T, capped) but never
+   prevents it; ignoring a greeting pushes it closer. LOCKERS hide you — unless it SAW you get in: then it camps right outside,
+   spam-crouching and looking in at you, and after a few seconds it pulls you out. Best bet: reach the elevator before it turns.
+   v0.72.5 SHARED (Ryan: it was in a different place for every player): ONE Still-Life per round. The first player in G.nz is its
+   'owner' and simulates it (slSim) against everyone down there (their presence: position, facing, crouch, light, locker); the owner
+   sends it in presence (sl) → the host puts it in G.stl → everyone draws it (slDraw). The owner reports catches ('slk' → G.slk);
+   the victim's own client plays the jumpscare + 'nzdie'. When the owner leaves, the next one picks up from G.stl. */
+const SL_RUN = [4.0, 4.5, 4.8, 5.1], SL_WALK = 2.3, SL_REACH = 0.9, SL_CAMP_T = 7, SL_STS = ['off','away','near','hostile'];
 const SL = { A:null, key:'', st:'off', x:0, z:0, yaw:0, mv:0, crouch:false, due:40, t:0, wrong:0, T:3, bonus:0, stage:0, act:null, actT:0, path:null, rp:0, light:false,
-  greetT:0, myC:0, myL:0, seenT:-99, lastX:0, lastZ:0, camp:-1, campT:0, blood:[], neck:null, head:null, bloodied:false, stepT:0, flick:0, freezeT:0 };
+  greetT:0, gseen:{}, seenT:-99, lastX:0, lastZ:0, camp:-1, campPid:'', campT:0, blood:[], neck:null, head:null, bloodied:false, stepT:0, flick:0, freezeT:0, tgt:'', cpid:'', owner:false, dx:0, dz:0, dyaw:0 };
 let scareSl = false;
 const slSpot = new THREE.SpotLight(0xfff4dc, 0, 16, 0.42, 0.5, 1.4); slSpot.target = new THREE.Object3D(); scene.add(slSpot, slSpot.target);
-function slReset(){ SL.st = 'off'; SL.due = 35 + Math.random()*30; SL.wrong = 0; SL.T = 2.6 + Math.random()*1.2; SL.bonus = 0; SL.stage = 0; SL.act = null; SL.camp = -1; SL.light = false; SL.bloodied = false;
+function slReset(){ SL.st = 'off'; SL.due = 35 + Math.random()*30; SL.wrong = 0; SL.T = 2.6 + Math.random()*1.2; SL.bonus = 0; SL.stage = 0; SL.act = null; SL.camp = -1; SL.light = false; SL.bloodied = false; SL.owner = false; SL.gseen = {};
   if (SL.A) SL.A.g.visible = false; for (const b of SL.blood) b.visible = false; slSpot.intensity = 0; }
-function slMake(){
-  const others = [...remotes.values()].filter(r=>(r.nz|0) === 1 && !isDead(r.pid));
-  const pid = others.length ? others[Math.floor(Math.random()*others.length)].pid : myPid;
+// everyone down in Level -0 who's alive: the targets
+function slPeople(){
+  const out = []; if (LK === 9 && me.alive && !me.esc && mode === 'play' && nzIn()) out.push({ pid:myPid, x:me.x, z:me.z, yaw:me.yaw, c:me.crouch, l:!!me.light, hd:me.hidden, me:true });
+  for (const r of remotes.values()) if ((r.nz|0) === 1 && r.a && !isDead(r.pid) && !isEsc(r.pid)) out.push({ pid:r.pid, x:r.tx ?? r.x, z:r.tz ?? r.z, yaw:r.tyaw ?? r.yaw, c:!!r.c, l:!!r.l, hd:(r.hd|0) - 1 });
+  return out;
+}
+function slOwner(){ const nz = (G.nz || []).filter(p=>!isDead(p) && !isEsc(p)); return nz.length ? nz[0] : null; }
+function slMake(pid){
   if (SL.A && SL.A.pid !== pid){ scene.remove(SL.A.g); SL.A = null; }
   if (!SL.A){ SL.A = makeAvatar(pid, false); SL.neck = null; SL.head = null; SL.bloodied = false; }
   if (!SL.blood.length){ for (let k=0;k<3;k++){ const m = bloodDecal(k ? 0.32 : 0.22, k ? 0.42 : 0.24, bloodTex(k === 2 ? 'smear' : 'pool', 31 + k*7)); m.material.side = THREE.DoubleSide; m.visible = false; scene.add(m); SL.blood.push(m); } }
 }
-// where it can appear / leave to: a cell some way off that you can't see
-function slFarCell(minD, maxD){
-  const D = bfsFrom(cellOf(me.x), cellOf(me.z)), out = [];
-  for (let k=0;k<N*N;k++){ const d = D[k]; if (d < minD || d > maxD) continue; const i = Math.floor(k/N), j = k%N; if (level.nz.area[k] === 2) continue; const x = cc(i), z = cc(j); if (losClear(me.x, me.z, x, z)) continue; out.push([x, z]); }
+// a cell some way from the target that none of you can see
+function slFarCell(T, minD, maxD, ppl){
+  const D = bfsFrom(cellOf(T.x), cellOf(T.z)), out = [];
+  for (let k=0;k<N*N;k++){ const d = D[k]; if (d < minD || d > maxD) continue; const i = Math.floor(k/N), j = k%N; if (level.nz.area[k] === 2) continue; const x = cc(i), z = cc(j);
+    if (ppl.some(p=>losClear(p.x, p.z, x, z))) continue; out.push([x, z]); }
   return out.length ? out[Math.floor(Math.random()*out.length)] : null;
 }
-function slSees(){ const d = Math.hypot(me.x - SL.x, me.z - SL.z); return me.hidden < 0 && d < 34 && losClear(SL.x, SL.z, me.x, me.z); }
-function slVisibleToMe(){ camera.getWorldDirection(_smF); const dx = SL.x - camera.position.x, dz = SL.z - camera.position.z, d = Math.hypot(dx, dz) || 1;
-  return d < 34 && (dx*_smF.x + dz*_smF.z)/d > 0.55 && losClear(me.x, me.z, SL.x, SL.z); }
+function slSeesP(P){ return P.hd < 0 && Math.hypot(P.x - SL.x, P.z - SL.z) < 34 && losClear(SL.x, SL.z, P.x, P.z); }
+function slSeenBy(P){ const [fx,,fz] = lookDir(P.yaw, 0), dx = SL.x - P.x, dz = SL.z - P.z, d = Math.hypot(dx, dz) || 1; return d < 34 && (dx*fx + dz*fz)/d > 0.5 && losClear(P.x, P.z, SL.x, SL.z); }
 function slGo(tx, tz, sp, dt){
-  const Z = level.nz, ci = cellOf(SL.x), cj = cellOf(SL.z), ti = cellOf(tx), tj = cellOf(tz); let gx = tx, gz = tz;
-  if (ci !== ti || cj !== tj){ if ((SL.rp -= dt) <= 0 || !SL.path){ SL.rp = 0.4; SL.path = nextStep(ci, cj, ti, tj); }
-    if (SL.path){ gx = cc(SL.path[0]); gz = cc(SL.path[1]); } }
+  const ci = cellOf(SL.x), cj = cellOf(SL.z), ti = cellOf(tx), tj = cellOf(tz); let gx = tx, gz = tz;
+  if (ci !== ti || cj !== tj){ if ((SL.rp -= dt) <= 0 || !SL.path){ SL.rp = 0.4; SL.path = nextStep(ci, cj, ti, tj); } if (SL.path){ gx = cc(SL.path[0]); gz = cc(SL.path[1]); } }
   const dx = gx - SL.x, dz = gz - SL.z, d = Math.hypot(dx, dz); if (d < 0.05) return 0;
   const st = Math.min(d, sp*dt); const c = collide(SL.x + dx/d*st, SL.z + dz/d*st, 0.3); SL.x = c[0]; SL.z = c[1];
   SL.yaw = angLerp(SL.yaw, Math.atan2(-dx, -dz), 1 - Math.exp(-8*dt)); return d;
 }
-function slFaceMe(dt, k=6){ SL.yaw = angLerp(SL.yaw, Math.atan2(-(me.x - SL.x), -(me.z - SL.z)), 1 - Math.exp(-k*dt)); }
-function slGreet(kind){ SL.act = kind; SL.actT = kind === 'flash' ? 1.6 : 1.8; SL.greetT = 4.5; SL.myC = 0; SL.myL = 0; }
-function slTurnHostile(){ SL.st = 'hostile'; SL.freezeT = 1.1; SL.act = null; SL.light = false; SL.path = null; if (sfx.ctx){ sfx.screech(); } }
-function slUpdate(dt){
-  const Z = level.nz, key = G.r + ':' + level.seed;
-  if (SL.key !== key){ SL.key = key; slReset(); }
-  if (!SL.A || !SL.A.ready){ slMake(); }
-  const A = SL.A, playing = mode === 'play' && me.alive && !me.esc && !G.ex;
-  if (!playing && SL.st !== 'off' && mode !== 'deadAnim'){ A.g.visible = false; slSpot.intensity = 0; for (const b of SL.blood) b.visible = false; return; }
-  if (A.ready && !SL.neck){ SL.neck = A.g.getObjectByName('mixamorigNeck'); SL.head = A.g.getObjectByName('mixamorigHead'); }
-  // your greetings back: crouch toggles + light toggles
-  if (SL.greetT > 0){ SL.greetT -= dt; if (me.crouch !== SL.pc) SL.myC++; if (me.light !== SL.pl) SL.myL++;
-    if (SL.st === 'near' && Math.hypot(me.x - SL.x, me.z - SL.z) < 15 && (SL.myC >= 2 || SL.myL >= 2)){ SL.greetT = 0; SL.bonus = Math.min(1.2, SL.bonus + 0.18); }
-    else if (SL.greetT <= 0){ SL.wrong += 0.12; } }
-  SL.pc = me.crouch; SL.pl = me.light;
-  const d = Math.hypot(me.x - SL.x, me.z - SL.z);
-  if (SL.st === 'off' || SL.st === 'away'){ A.g.visible = false; slSpot.intensity = 0; for (const b of SL.blood) b.visible = false;
-    if (!playing) return;
-    if ((SL.due -= dt) > 0) return;
-    const c = slFarCell(5, 10); if (!c){ SL.due = 3; return; }
+function slFace(P, dt, k=6){ SL.yaw = angLerp(SL.yaw, Math.atan2(-(P.x - SL.x), -(P.z - SL.z)), 1 - Math.exp(-k*dt)); }
+function slGreet(kind){ SL.act = kind; SL.actT = kind === 'flash' ? 1.6 : 1.8; SL.greetT = 4.5; SL.gseen = {}; }
+function slTurnHostile(){ SL.st = 'hostile'; SL.freezeT = 1.1; SL.act = null; SL.light = false; SL.path = null; SL.scr = (SL.scr|0) + 1; }
+function slCatch(P){ SL.st = 'off'; SL.due = 30 + Math.random()*30; SL.camp = -1; if (P.me) slKill(); else useReq({ k:'slk', v:P.pid }); }
+// ---- the owner's simulation
+function slSim(dt){
+  const ppl = slPeople(); if (!ppl.length) return;
+  const t = nowS(); if (SL.flick > 0) SL.flick -= dt;
+  // greetings back from anyone near it: crouch or light toggles
+  if (SL.greetT > 0){ SL.greetT -= dt;
+    for (const P of ppl){ const g = SL.gseen[P.pid] || (SL.gseen[P.pid] = { c:P.c, l:P.l, n:0 }); if (g.c !== P.c){ g.n++; g.c = P.c; } if (g.l !== P.l){ g.n++; g.l = P.l; }
+      if (SL.st === 'near' && g.n >= 2 && Math.hypot(P.x - SL.x, P.z - SL.z) < 15){ SL.greetT = 0; SL.bonus = Math.min(1.2, SL.bonus + 0.18); break; } }
+    if (SL.greetT <= 0 && SL.greetT > -1){ if (!Object.values(SL.gseen).some(g=>g.n >= 2)) SL.wrong += 0.12; SL.greetT = -9; } }
+  // who it's with: the nearest of you (it switches now and then)
+  let T = ppl.find(p=>p.pid === SL.tgt); if (!T || Math.random() < dt*0.03){ T = ppl.reduce((a, p)=>Math.hypot(p.x - SL.x, p.z - SL.z) < Math.hypot(a.x - SL.x, a.z - SL.z) ? p : a, ppl[0]); SL.tgt = T.pid; }
+  const d = Math.hypot(T.x - SL.x, T.z - SL.z);
+  let mv = 0, crouch = false;
+  if (SL.st === 'off' || SL.st === 'away'){
+    if ((SL.due -= dt) > 0){ SL.mv = 0; return; }
+    const c = slFarCell(T, 5, 10, ppl); if (!c){ SL.due = 3; return; }
     SL.x = c[0]; SL.z = c[1]; SL.path = null; if (SL.st === 'away'){ SL.stage = Math.min(4, SL.stage + 1); SL.wrong += 0.5; }
-    SL.st = SL.wrong >= SL.T + SL.bonus ? 'hostile' : 'near'; SL.t = 30 + Math.random()*55; SL.act = null; SL.actT = 0; SL.freezeT = 0; SL.camp = -1; slMake(); return; }
-  A.g.visible = true;
-  let mv = 0, sp = 0, crouch = false; const t = nowS();
+    SL.st = SL.wrong >= SL.T + SL.bonus ? 'hostile' : 'near'; SL.t = 30 + Math.random()*55; SL.act = null; SL.actT = 0; SL.freezeT = 0; SL.camp = -1;
+    if (!SL.cpid || !ppl.some(p=>p.pid === SL.cpid)) SL.cpid = ppl[Math.floor(Math.random()*ppl.length)].pid; return; }
   if (SL.st === 'near'){
     SL.wrong += (d < 14 ? dt/45 : dt/120);
     if (SL.wrong >= SL.T + SL.bonus && d < 30){ slTurnHostile(); }
     else {
       SL.t -= dt; SL.actT -= dt;
-      if (SL.t <= 0 && SL.act !== 'leave'){ SL.act = 'leave'; const c = slFarCell(8, 14); SL.lx = c ? c[0] : SL.x; SL.lz = c ? c[1] : SL.z; }
-      if (SL.act === 'leave'){ const r = slGo(SL.lx, SL.lz, SL_WALK, dt); mv = 1; if (r < 0.5 || (!slVisibleToMe() && d > 12)){ SL.st = 'away'; SL.due = 45 + Math.random()*65; SL.act = null; } }
+      if (SL.t <= 0 && SL.act !== 'leave'){ SL.act = 'leave'; const c = slFarCell(T, 8, 14, ppl); SL.lx = c ? c[0] : SL.x; SL.lz = c ? c[1] : SL.z; }
+      if (SL.act === 'leave'){ const r = slGo(SL.lx, SL.lz, SL_WALK, dt); mv = 1; if (r < 0.5 || (!ppl.some(slSeenBy) && d > 12)){ SL.st = 'away'; SL.due = 45 + Math.random()*65; SL.act = null; } }
       else {
-        if (SL.actT <= 0 || !SL.act){   // pick what to do next, like a player would
-          const r = Math.random(), w = SL.wrong;
-          if (d > 9 && r < 0.6) { SL.act = 'follow'; SL.actT = 4 + Math.random()*4; }
-          else if (r < 0.2){ slGreet('flash'); }
-          else if (r < 0.34){ slGreet('crouch'); }
-          else if (r < 0.55){ SL.act = 'wander'; SL.actT = 5 + Math.random()*6; const c = slFarCell(2, 5) || [SL.x, SL.z]; SL.wx = c[0]; SL.wz = c[1]; }
+        if (SL.actT <= 0 || !SL.act){ const r = Math.random(), w = SL.wrong;
+          if (d > 9 && r < 0.6){ SL.act = 'follow'; SL.actT = 4 + Math.random()*4; }
+          else if (r < 0.2) slGreet('flash');
+          else if (r < 0.34) slGreet('crouch');
+          else if (r < 0.55){ SL.act = 'wander'; SL.actT = 5 + Math.random()*6; const c = slFarCell(SL, 2, 5, []) || [SL.x, SL.z]; SL.wx = c[0]; SL.wz = c[1]; }
           else if (r < 0.7 && w > 2.0){ SL.act = 'wall'; SL.actT = 3 + Math.random()*3; SL.wyaw = SL.yaw; }
-          else if (r < 0.85){ SL.act = 'look'; SL.actT = (w > 1.2 ? 5 + Math.random()*4 : 1.5 + Math.random()*2); }
+          else if (r < 0.85){ SL.act = 'look'; SL.actT = w > 1.2 ? 5 + Math.random()*4 : 1.5 + Math.random()*2; }
           else { SL.act = 'follow'; SL.actT = 4 + Math.random()*5; } }
-        if (SL.act === 'follow'){ const side = (Math.sin(t*0.3 + 1.7) > 0 ? 1 : -1), [fx,,fz] = lookDir(me.yaw, 0), px = me.x + fz*side*2.2 - fx*0.6, pz = me.z - fx*side*2.2 - fz*0.6;
-          if (Math.hypot(px - SL.x, pz - SL.z) > 1.2){ slGo(px, pz, d > 8 ? SL_WALK*1.9 : SL_WALK, dt); mv = d > 8 ? 2 : 1; } else slFaceMe(dt, 3); }
+        if (SL.act === 'follow'){ const side = Math.sin(t*0.3 + 1.7) > 0 ? 1 : -1, [fx,,fz] = lookDir(T.yaw, 0), px = T.x + fz*side*2.2 - fx*0.6, pz = T.z - fx*side*2.2 - fz*0.6;
+          if (Math.hypot(px - SL.x, pz - SL.z) > 1.2){ slGo(px, pz, d > 8 ? SL_WALK*1.9 : SL_WALK, dt); mv = d > 8 ? 2 : 1; } else slFace(T, dt, 3); }
         else if (SL.act === 'wander'){ const r = slGo(SL.wx, SL.wz, SL_WALK*0.9, dt); mv = r > 0.4 ? 1 : 0; }
-        else if (SL.act === 'wall'){ SL.yaw = SL.wyaw; const [fx,,fz] = lookDir(SL.yaw, 0); const c = collide(SL.x + fx*0.8*dt, SL.z + fz*0.8*dt, 0.3); SL.x = c[0]; SL.z = c[1]; mv = 1; }   // walks straight into the wall and keeps walking
-        else if (SL.act === 'look'){ slFaceMe(dt, SL.wrong > 1.2 ? 9 : 3); }
-        else if (SL.act === 'flash'){ slFaceMe(dt, 8); SL.light = Math.floor(SL.actT*5) % 2 === 0; }
-        else if (SL.act === 'crouch'){ slFaceMe(dt, 8); crouch = Math.floor(SL.actT*6) % 2 === 0; }
-        if (SL.act !== 'flash') SL.light = me.light ? Math.hypot(me.x - SL.x, me.z - SL.z) < 30 : false;   // it copies you: light on when yours is
+        else if (SL.act === 'wall'){ SL.yaw = SL.wyaw; const [fx,,fz] = lookDir(SL.yaw, 0); const c = collide(SL.x + fx*0.8*dt, SL.z + fz*0.8*dt, 0.3); SL.x = c[0]; SL.z = c[1]; mv = 1; }   // walks into the wall and keeps walking
+        else if (SL.act === 'look') slFace(T, dt, SL.wrong > 1.2 ? 9 : 3);
+        else if (SL.act === 'flash'){ slFace(T, dt, 8); SL.light = Math.floor(SL.actT*5) % 2 === 0; }
+        else if (SL.act === 'crouch'){ slFace(T, dt, 8); crouch = Math.floor(SL.actT*6) % 2 === 0; }
+        if (SL.act !== 'flash') SL.light = T.l && d < 30;   // it copies you: light on when yours is
         if (SL.wrong > 1.6 && Math.random() < dt*0.6) SL.flick = 0.4;
-        if (SL.wrong > 1.0 && mv && Math.random() < dt*0.25) SL.crouchT = 0.8;   // crouching at the wrong moments
-        if ((SL.crouchT = (SL.crouchT || 0) - dt) > 0) crouch = true;
-      }
-    }
-  }
+        if (SL.wrong > 1.0 && mv && Math.random() < dt*0.25) SL.crouchT = 0.8;
+        if ((SL.crouchT = (SL.crouchT || 0) - dt) > 0) crouch = true; } } }
   if (SL.st === 'hostile'){
     SL.light = false;
-    if (SL.freezeT > 0){ SL.freezeT -= dt; slFaceMe(dt, 12); }
-    else if (me.hidden >= 0 && SL.camp < 0 && t - SL.seenT < 1.6){ SL.camp = me.hidden; SL.campT = 0; }   // it saw you get in
-    if (SL.freezeT <= 0){
-      if (SL.camp >= 0 && me.hidden === SL.camp){ const lk = level.lockers[SL.camp];   // camping your locker, spam-crouching, looking in at you
+    if (SL.freezeT > 0){ SL.freezeT -= dt; slFace(T, dt, 12); }
+    else {
+      const campP = SL.camp >= 0 ? ppl.find(p=>p.pid === SL.campPid) : null;
+      if (!campP){ for (const P of ppl) if (P.hd >= 0 && t - (SL.seenAt && SL.seenAt[P.pid] || -99) < 1.6){ SL.camp = P.hd; SL.campPid = P.pid; SL.campT = 0; break; } }   // it saw that one get in
+      const C = SL.camp >= 0 ? ppl.find(p=>p.pid === SL.campPid && p.hd === SL.camp) : null;
+      if (C){ const lk = level.lockers[SL.camp];   // camping the locker, spam-crouching, looking in
         const r = slGo(lk.fx, lk.fz, SL_RUN[G.df|0], dt); mv = r > 0.3 ? 2 : 0;
         if (r <= 0.3){ SL.yaw = angLerp(SL.yaw, Math.atan2(-(lk.x - SL.x), -(lk.z - SL.z)), 1 - Math.exp(-10*dt)); crouch = Math.floor(t*6) % 2 === 0; SL.campT += dt;
-          if (SL.campT > SL_CAMP_T){ unhide && unhide(); slKill(); return; } } }
-      else { if (SL.camp >= 0 && me.hidden < 0) SL.camp = -1;
-        const sees = slSees(); if (sees){ SL.seenT = t; SL.lastX = me.x; SL.lastZ = me.z; }
-        if (me.hidden >= 0 && SL.camp < 0){ SL.hx = SL.hx ?? me.x + (Math.random()-0.5)*16; const r = slGo(SL.hx, SL.hz ?? (SL.hz = me.z + (Math.random()-0.5)*16), SL_WALK, dt); mv = 1; if (r < 0.6){ SL.hx = undefined; SL.hz = undefined; } }   // lost you: it searches
-        else if (sees || t - SL.seenT < 4){ SL.hx = SL.hz = undefined; slGo(sees ? me.x : SL.lastX, sees ? me.z : SL.lastZ, SL_RUN[G.df|0], dt); mv = 2; }
-        else { const r = slGo(SL.hx ?? (SL.hx = me.x + (Math.random()-0.5)*14), SL.hz ?? (SL.hz = me.z + (Math.random()-0.5)*14), SL_WALK*1.4, dt); mv = 1; if (r < 0.6){ SL.hx = undefined; SL.hz = undefined; } }   // it always has a rough idea where you are
-        if (me.hidden < 0 && Math.hypot(me.x - SL.x, me.z - SL.z) < SL_REACH){ slKill(); return; } } }
-  }
+          if (SL.campT > SL_CAMP_T){ slCatch(C); return; } } }
+      else { SL.camp = -1; SL.seenAt = SL.seenAt || {};
+        const vis = ppl.filter(slSeesP); for (const P of vis) SL.seenAt[P.pid] = t;
+        const Q = vis.length ? vis.reduce((a, p)=>Math.hypot(p.x - SL.x, p.z - SL.z) < Math.hypot(a.x - SL.x, a.z - SL.z) ? p : a, vis[0]) : null;
+        if (Q){ SL.lastX = Q.x; SL.lastZ = Q.z; SL.seenT = t; SL.hx = SL.hz = undefined; slGo(Q.x, Q.z, SL_RUN[G.df|0], dt); mv = 2; }
+        else if (t - SL.seenT < 4){ slGo(SL.lastX, SL.lastZ, SL_RUN[G.df|0], dt); mv = 2; }
+        else { const R = ppl.filter(p=>p.hd < 0)[0] || T; const r = slGo(SL.hx ?? (SL.hx = R.x + (Math.random()-0.5)*14), SL.hz ?? (SL.hz = R.z + (Math.random()-0.5)*14), SL_WALK*1.4, dt); mv = 1; if (r < 0.6){ SL.hx = undefined; SL.hz = undefined; } }   // it always has a rough idea
+        for (const P of ppl) if (P.hd < 0 && Math.hypot(P.x - SL.x, P.z - SL.z) < SL_REACH){ slCatch(P); return; } } } }
   SL.mv = mv; SL.crouch = crouch;
-  // draw: position, animation, the crooked neck, the blood
-  A.g.position.set(SL.x, 0, SL.z); A.g.rotation.y = SL.yaw + Math.PI; animAvatar(A, dt, mv, crouch);
-  const crook = SL.stage*0.22 + (SL.st === 'hostile' ? 0.55 : 0);
+}
+function slPack(){ return SL.st === 'off' || SL.st === 'away' ? [0] : [+SL.x.toFixed(2), +SL.z.toFixed(2), +SL.yaw.toFixed(2), SL_STS.indexOf(SL.st), SL.mv, SL.crouch ? 1 : 0, SL.light && !(SL.flick > 0 && Math.random() < 0.6) ? 1 : 0, SL.stage, +SL.wrong.toFixed(2), SL.cpid, SL.act === 'flash' || SL.act === 'look' ? SL.tgt : '', SL.scr|0, +SL.T.toFixed(2), +SL.bonus.toFixed(2)]; }
+// ---- every client down there: who simulates, catches, drawing
+function slUpdate(dt){
+  const key = G.r + ':' + level.seed;
+  if (SL.key !== key){ SL.key = key; slReset(); }
+  const own = slOwner() === myPid && LK === 9;
+  if (own && !SL.owner){ SL.owner = true; const s = G.stl;   // pick up where the last owner left it
+    if (Array.isArray(s) && s.length > 3){ SL.x = s[0]; SL.z = s[1]; SL.yaw = s[2]; SL.st = SL_STS[s[3]] || 'near'; SL.stage = s[7]|0; SL.wrong = s[8] || 0; SL.cpid = s[9] || ''; SL.T = s[12] || SL.T; SL.bonus = s[13] || 0; SL.t = 30; } }
+  if (!own) SL.owner = false;
+  if (own && !G.ex) slSim(dt);
+  if ((G.slk || []).includes(myPid) && me.alive && LK === 9 && mode === 'play'){ slKill(); }
+  slDraw(dt, own ? slPack() : G.stl);
+}
+function slDraw(dt, s){
+  const hide = () => { if (SL.A) SL.A.g.visible = false; for (const b of SL.blood) b.visible = false; slSpot.intensity = 0; };
+  if (LK !== 9 || !Array.isArray(s) || s.length < 4 || mode === 'deadAnim'){ if (mode !== 'deadAnim') hide(); return; }
+  slMake(s[9] || myPid); const A = SL.A; if (!A) return; if (A.ready && !SL.neck){ SL.neck = A.g.getObjectByName('mixamorigNeck'); SL.head = A.g.getObjectByName('mixamorigHead'); }
+  // smooth what we're told
+  const jump = Math.hypot(s[0] - SL.dx, s[1] - SL.dz) > 3, k = jump ? 1 : 1 - Math.exp(-12*dt);
+  SL.dx += (s[0] - SL.dx)*k; SL.dz += (s[1] - SL.dz)*k; SL.dyaw = jump ? s[2] : angLerp(SL.dyaw, s[2], k);
+  const st = SL_STS[s[3]] || 'near', mv = s[4]|0, crouch = !!s[5], lit = !!s[6], stage = s[7]|0, wrong = s[8] || 0, t = nowS();
+  if ((s[11]|0) !== (SL.scrSeen|0)){ SL.scrSeen = s[11]|0; if (Math.hypot(SL.dx - me.x, SL.dz - me.z) < 25 && sfx.ctx) sfx.screech(); }
+  A.g.visible = true; A.g.position.set(SL.dx, 0, SL.dz); A.g.rotation.y = SL.dyaw + Math.PI; animAvatar(A, dt, mv, crouch);
+  const crook = stage*0.22 + (st === 'hostile' ? 0.55 : 0);
   if (SL.neck && crook > 0){ SL.neck.rotation.z += crook*0.6; SL.neck.rotation.x += crook*0.25; }
-  if (SL.head && crook > 0){ SL.head.rotation.z += crook*0.5 + (SL.st === 'hostile' ? Math.sin(t*23)*0.08 : 0); }
-  if (SL.stage >= 2 && !SL.bloodied && CP.mat){ SL.bloodied = true; A.g.traverse(o=>{ if (o.isSkinnedMesh) o.material = CP.mat; }); }
-  if (SL.head){ A.g.updateMatrixWorld(true); const hp = SL.head.getWorldPosition(_jv), [fx,,fz] = lookDir(SL.yaw, 0), lv = SL.stage + (SL.st === 'hostile' ? 1 : 0);
-    const face = SL.blood[0]; face.visible = lv >= 1; face.position.set(hp.x + fx*0.13, hp.y + 0.02, hp.z + fz*0.13); face.rotation.set(0, SL.yaw + Math.PI, 0); face.material.opacity = Math.min(1, 0.45 + lv*0.18); face.scale.setScalar(0.8 + lv*0.15);
-    const chest = SL.blood[1]; chest.visible = lv >= 3; chest.position.set(hp.x + fx*0.17, hp.y - 0.45, hp.z + fz*0.17); chest.rotation.set(0, SL.yaw + Math.PI, 0);
-    const drip = SL.blood[2]; drip.visible = lv >= 4; drip.position.set(hp.x + fx*0.15, hp.y - 0.15, hp.z + fz*0.15); drip.rotation.set(0, SL.yaw + Math.PI, 0); }
-  // its flashlight (copies yours; flashes at you to say hi; flickers once it's wrong enough)
-  if (SL.flick > 0) SL.flick -= dt;
-  const lit = SL.light && !(SL.flick > 0 && Math.random() < 0.6);
-  if (lit && SL.head){ const [fx,,fz] = lookDir(SL.yaw, 0); slSpot.position.set(SL.x + fx*0.35, 1.25, SL.z + fz*0.35);
-    const aimMe = SL.act === 'flash' || SL.act === 'look'; slSpot.target.position.set(aimMe ? me.x : SL.x + fx*6, aimMe ? EYE - 0.2 : 0.6, aimMe ? me.z : SL.z + fz*6); slSpot.intensity = SPOT_I*0.6; }
+  if (SL.head && crook > 0) SL.head.rotation.z += crook*0.5 + (st === 'hostile' ? Math.sin(t*23)*0.08 : 0);
+  if (stage >= 2 && !SL.bloodied && CP.mat){ SL.bloodied = true; A.g.traverse(o=>{ if (o.isSkinnedMesh) o.material = CP.mat; }); }
+  if (SL.head){ A.g.updateMatrixWorld(true); const hp = SL.head.getWorldPosition(_jv), [fx,,fz] = lookDir(SL.dyaw, 0), lv = stage + (st === 'hostile' ? 1 : 0);
+    const face = SL.blood[0]; face.visible = lv >= 1; face.position.set(hp.x + fx*0.13, hp.y + 0.02, hp.z + fz*0.13); face.rotation.set(0, SL.dyaw + Math.PI, 0); face.material.opacity = Math.min(1, 0.45 + lv*0.18); face.scale.setScalar(0.8 + lv*0.15);
+    const chest = SL.blood[1]; chest.visible = lv >= 3; chest.position.set(hp.x + fx*0.17, hp.y - 0.45, hp.z + fz*0.17); chest.rotation.set(0, SL.dyaw + Math.PI, 0);
+    const drip = SL.blood[2]; drip.visible = lv >= 4; drip.position.set(hp.x + fx*0.15, hp.y - 0.15, hp.z + fz*0.15); drip.rotation.set(0, SL.dyaw + Math.PI, 0); }
+  if (lit){ const [fx,,fz] = lookDir(SL.dyaw, 0), at = s[10] === myPid ? me : s[10] ? remotes.get(s[10]) : null; slSpot.position.set(SL.dx + fx*0.35, 1.25, SL.dz + fz*0.35);
+    if (at) slSpot.target.position.set(at.x, EYE - 0.2, at.z); else slSpot.target.position.set(SL.dx + fx*6, 0.6, SL.dz + fz*6); slSpot.intensity = SPOT_I*0.6; }
   else slSpot.intensity = 0;
-  // footsteps: silent once it's wrong enough (not when it runs at you)
-  if (mv && (SL.wrong < 0.8 || SL.st === 'hostile')){ SL.stepT += dt*(mv === 2 ? 2.6 : 1.7); if (SL.stepT >= 1){ SL.stepT -= 1; sfx.step(mv === 2 ? 0.24 : 0.14, false, { x:SL.x, y:0.1, z:SL.z }, 1.5); } }
+  if (mv && (wrong < 0.8 || st === 'hostile')){ SL.stepT += dt*(mv === 2 ? 2.6 : 1.7); if (SL.stepT >= 1){ SL.stepT -= 1; sfx.step(mv === 2 ? 0.24 : 0.14, false, { x:SL.dx, y:0.1, z:SL.dz }, 1.5); } }
 }
 function slKill(){
-  if (!me.alive) return; SL.st = 'off'; slSpot.intensity = 0;
+  if (!me.alive) return; slSpot.intensity = 0; if (me.hidden >= 0 && typeof unhide === 'function') unhide();
   scareSl = true; triggerDeath(); useReq({ k:'nzdie' }); nzLocal = false;
 }
 
@@ -7668,7 +7677,7 @@ function monsterPos(){
 
 /* ---- host ---- */
 function hostStartRound(){
-  G.nz = [];
+  G.nz = []; G.slk = []; G.stl = 0;
   if (LK !== 0){ buildLevel(baseSeed, 0); sfx.bindLevel(); }
   H.advT = null;
   const ids = [myPid, ...remotes.keys()];
@@ -7708,6 +7717,7 @@ function applyUse(pid, m){
       { const ps = allPlayers(), up = ps.filter(p=>p.pid !== G.mo && !isDead(p.pid) && !isEsc(p.pid) && !G.nz.includes(p.pid));   // v0.72.2: that was the last one alive up there → the dead come back, down here
         if (!up.length) for (const p of ps) if (isDead(p.pid) && p.pid !== G.mo){ G.dead = G.dead.filter(d=>d !== p.pid); G.nz.push(p.pid); } } G.fz.forEach((f,i)=>{ if (f[0]===1 && f[3]===pid){ f[0]=0; f[1]=+level.fuses[i][0].toFixed(2); f[2]=+level.fuses[i][1].toFixed(2); f[3]=''; } }); } }
   else if (m.k === 'nzx'){ if (G.nz) G.nz = G.nz.filter(p=>p !== pid); if (!isEsc(pid) && !isDead(pid)) G.esc.push(pid); }
+  else if (m.k === 'slk'){ if (!G.slk) G.slk = []; const v = String(m.v||''); if (v && !G.slk.includes(v)) G.slk.push(v); }
   else if (m.k === 'nzdie'){ if (G.nz) G.nz = G.nz.filter(p=>p !== pid); if (!isDead(pid) && !isEsc(pid)) G.dead.push(pid); }
   else if (m.k === 'fell'){
     if (!isDead(pid) && !isEsc(pid)){ G.dead.push(pid); G.fz.forEach((f,i)=>{ if (f[0]===1 && f[3]===pid){ f[0]=0; f[1]=+level.fuses[i][0].toFixed(2); f[2]=+level.fuses[i][1].toFixed(2); f[3]=''; } }); }
@@ -7966,7 +7976,7 @@ function setupLevel(k){
   else if (k !== 6 && k !== 1 && k !== 8 && H.moKeep){ if (allPlayers().some(p=>p.pid === H.moKeep)) G.mo = H.moKeep; H.moKeep = null; }
   buildLevel(lvSeed(k), k); sfx.bindLevel();
   walls = level.base.slice(); G.w = wallsHex(); G.wv++;
-  G.lv = k; G.esc = []; G.dead = []; G.nz = [];   // everyone caught on the last level wakes up here too
+  G.lv = k; G.esc = []; G.dead = []; G.nz = []; G.slk = []; G.stl = 0;   // everyone caught on the last level wakes up here too
   G.open = 0; G.fz = (k === 0) ? level.fuses.map(f=>[0, +f[0].toFixed(2), +f[1].toFixed(2), '']) : []; G.pl = 0; G.gen = level.gens.map(()=>0);
   G.aw = level.aw.map(()=>0); G.bt = level.bt.map(()=>0); G.cn = level.cn.map(()=>0);
   G.bo = []; G.stun = 0; G.dg = 0; G.ring = -1; G.ads = 0; G.lkd = []; G.lr = []; H.lrs = null; G.fl = []; G.lsk = []; G.ls = [0,0,0,0,0]; H.ls = null; G.mqk = []; G.mq = []; H.mq = null; G.hmk = []; G.hm = []; H.hm = null;
@@ -8060,7 +8070,7 @@ function safe(fn){ try { const r = fn(); if (r && r.catch) r.catch(e=>console.wa
 function broadcastState(){ if (net.solo || !net.room || !net.hostFlag) return; safe(()=>net.room.emit('state', G)); }
 function sendPresence(){
   if (net.solo || !net.room) return;
-  safe(()=>net.room.presence({ pid:myPid, n:myName, h:net.hostFlag?1:0, x:+me.x.toFixed(2), z:+me.z.toFixed(2), y:+me.yaw.toFixed(3), p:+me.pitch.toFixed(3), l:lightOn()?1:0, a:me.alive?1:0, m:noiseLevel(), vn:voiceNoise(), mv:me.moving?(me.running?2:1):0, sk:mySkin, hd:me.hidden+1, c:me.crouch?1:0, nz:LK===9?1:0, vt:ventT>0?1:0, ds:dashT>0?1:0, vid:(net.room && net.room.peer && net.room.peer.id) || '', vo:voice.stream ? 1 : 0 }));
+  safe(()=>net.room.presence({ pid:myPid, n:myName, h:net.hostFlag?1:0, x:+me.x.toFixed(2), z:+me.z.toFixed(2), y:+me.yaw.toFixed(3), p:+me.pitch.toFixed(3), l:lightOn()?1:0, a:me.alive?1:0, m:noiseLevel(), vn:voiceNoise(), mv:me.moving?(me.running?2:1):0, sk:mySkin, hd:me.hidden+1, c:me.crouch?1:0, nz:LK===9?1:0, sl:SL.owner && LK===9 ? slPack() : 0, vt:ventT>0?1:0, ds:dashT>0?1:0, vid:(net.room && net.room.peer && net.room.peer.id) || '', vo:voice.stream ? 1 : 0 }));
 }
 function useReq(m){ if (amHost()) applyUse(myPid, m); else safe(()=>net.room.emit('use', { ...m, pid:myPid })); }
 function onPeers(list){
@@ -8073,7 +8083,7 @@ function onPeers(list){
     let r = remotes.get(d.pid);
     if (!r){ const av = makeAvatar(d.pid); r = { pid:d.pid, x:+d.x||0, z:+d.z||0, yaw:+d.y||0, pitch:+d.p||0, step:0, mesh:av.g, av, ping:0 }; remotes.set(d.pid, r); }
     r.n = String(d.n||'Someone').slice(0,12); r.h = !!d.h;
-    r.tx = +d.x||0; r.tz = +d.z||0; r.tyaw = +d.y||0; r.tp = +d.p||0; r.l = d.l?1:0; r.a = d.a?1:0; r.m = d.m|0; r.vn = d.vn|0; r.mv = d.mv|0; r.sk = (d.sk|0)%SKN; r.hd = d.hd|0; r.nz = d.nz|0; r.c = d.c|0; r.vt = d.vt|0; r.ds = d.ds|0; r.vid = String(d.vid||''); r.vo = d.vo|0;
+    r.tx = +d.x||0; r.tz = +d.z||0; r.tyaw = +d.y||0; r.tp = +d.p||0; r.l = d.l?1:0; r.a = d.a?1:0; r.m = d.m|0; r.vn = d.vn|0; r.mv = d.mv|0; r.sk = (d.sk|0)%SKN; r.hd = d.hd|0; r.nz = d.nz|0; r.sl = Array.isArray(d.sl) ? d.sl : null; r.c = d.c|0; r.vt = d.vt|0; r.ds = d.ds|0; r.vid = String(d.vid||''); r.vo = d.vo|0;
   }
   for (const [pid,r] of remotes) if (!seen.has(pid)){ scene.remove(r.mesh); sfx.stopWade(r); remotes.delete(pid); }
   voiceSync();
@@ -11431,7 +11441,7 @@ function frame(now){
 }
 requestAnimationFrame(frame);
 
-window.__hp = { get walls(){ return walls; }, get N(){ return N; }, vIdx, hIdx, collide, SL, slTurn:()=>{ SL.wrong = 99; }, slNow:()=>{ SL.due = 0; }, nzEnter:()=>{ nzLocal = true; useReq({ k:'nzin' }); }, nzGlitch:()=>{ H.nzForce = true; }, nzWorld, CP, corpseGeo, makeCorpse, corpseWall, updateCorpses, SML, get smSrc(){ return smSrc; }, PERF, tvPower, get TVR(){ return TVR; }, setGfx:(o)=>{ Object.assign(SET, o); applyGfx(); applySet(); }, get SET(){ return SET; }, spots, killSurvivor, hostCreaker, hostBS, bsUse, bsObj, bsCold, get CRV(){ return CRV; }, inRoom1, lrCampSpot, FR, frOpen, frClose, frJoin, frRender, frToast, FPH, placeFPHand, get flSrc(){ return flSrc; }, updateLab, hostFun, hostPartygoers, funAction, funObj, funNight, funDoorsToWalls, get PGV(){ return PGV; }, get scarePg(){ return scarePg; }, get FL_DRAIN(){ return FL_DRAIN; }, LS_HUNT, startOpt:(v)=>{ startOpt = v; }, hostTick, nextStep, isDead, killSurvivor, get remotes(){ return remotes; }, setRole:(r)=>{ role = r; }, get MON_WALK(){ return MON_WALK; }, get MONS(){ return MONS; }, get LSJ(){ return LSJ; }, get deathT(){ return deathT; }, get scareLs(){ return scareLs; }, hostListener, lsAlert, get LSV(){ return LSV; }, TD, updateTension, tdFakeSteps, DFL, boT, panelBright, collide, gen52, hostSchool52, hostMonitors52, assign52, tardy52, roomAt52, schoolObj52, schoolTarget52, myRoom52, MV52, get HMJ(){ return HMJ; }, S52_LANES, get radio37(){ return radio37; }, get fig37(){ return fig37; }, get zLevel(){ return zLevel; }, get zK(){ return zK; }, deepDay37, deep37, forceFig37:()=>{ figT = 0; }, duskIn37, wakeLay37, nowS, buildLevel, hotelOpen188, hostOutage188, pipeObj2, pipeTarget2, p2Diag, MQV, hostMannequins852, mqSeen852, floorAt852, laneAt852, MLANES, mallObj852, mallTarget852, mallWayTo852, aiTick852, mallMove852, get mallHold(){ return mallHold; }, get guide(){ return guide; }, hostLurker, opusTweak, fillDevices, get LRK(){ return LRK; }, lrSpot, animLurker, get running(){ return me.running; }, get W(){ return W; }, get N(){ return N; }, get stunCharge(){ return stunCharge; }, losClear, me, H, net, hide, unhide, throwCan, contextAction, useSkin, get mySkin(){ return mySkin; }, set mySkin(v){ mySkin=v; }, inPit, zoneOf, get G(){ return G; }, set G(v){ G=v; }, get mode(){ return mode; }, get role(){ return role; }, get level(){ return level; }, get walls(){ return walls; }, mDisp, doShift, monsterPos, ability, get abCD(){ return abCD; }, disguisedFrom, get fakes(){ return fakes; }, enterVent, nearVent, get ventT(){ return ventT; }, get ventCD(){ return ventCD; }, set ventCD(v){ ventCD=v; }, get abCD2(){ return abCD; }, inPit, get LK(){ return LK; }, get crankK(){ return crankK; }, ability, get curRH(){ return curRH; }, get MON(){ return MON; }, sfx, voice, noiseLevel, get settingsOpen(){ return settingsOpen; }, myPid, monsterVoice, pitchDown, dropDust, get silT(){ return silT; }, set silNext(v){ silNext=v; }, advanceLevel, aiObjectives, poolBlock, aiTick, aiReset, bfsFrom, cellOf, cc, floorY, TU, PG, camera, scene, renderer, applyUse, AI_DIFF, set diffOpt(v){ diffOpt=v; }, get M37(){ return M37; }, buildL37test:(sd)=>build37(sd), ripP, ripWho, makeAvatar, animAvatar, buildLevelTest:(sd,k)=>buildLevel(sd,k), fpArm:(roll,axis,curl)=>{ FP_ROLL = roll; FP_AXIS = axis; if (curl) Object.assign(FP_CURL, curl); buildFPArm(survSrc); }, VM, collide, k37, h37, d37, nav37, isNight, dayK, aiTick37, collide37, K37, sdShape, floorAt188, vis188, hostElev188, aiTick188, myCar188, elevPress188, ELV, HO, elDisp, update188, inLab, hostLab, labUse, labSensor, labStatus, startHatch, get hatchT(){ return hatchT; }, connected };
+window.__hp = { get walls(){ return walls; }, get N(){ return N; }, vIdx, hIdx, collide, SL, slPeople, slOwner, slPack, slTurn:()=>{ SL.wrong = 99; }, slNow:()=>{ SL.due = 0; }, nzEnter:()=>{ nzLocal = true; useReq({ k:'nzin' }); }, nzGlitch:()=>{ H.nzForce = true; }, nzWorld, CP, corpseGeo, makeCorpse, corpseWall, updateCorpses, SML, get smSrc(){ return smSrc; }, PERF, tvPower, get TVR(){ return TVR; }, setGfx:(o)=>{ Object.assign(SET, o); applyGfx(); applySet(); }, get SET(){ return SET; }, spots, killSurvivor, hostCreaker, hostBS, bsUse, bsObj, bsCold, get CRV(){ return CRV; }, inRoom1, lrCampSpot, FR, frOpen, frClose, frJoin, frRender, frToast, FPH, placeFPHand, get flSrc(){ return flSrc; }, updateLab, hostFun, hostPartygoers, funAction, funObj, funNight, funDoorsToWalls, get PGV(){ return PGV; }, get scarePg(){ return scarePg; }, get FL_DRAIN(){ return FL_DRAIN; }, LS_HUNT, startOpt:(v)=>{ startOpt = v; }, hostTick, nextStep, isDead, killSurvivor, get remotes(){ return remotes; }, setRole:(r)=>{ role = r; }, get MON_WALK(){ return MON_WALK; }, get MONS(){ return MONS; }, get LSJ(){ return LSJ; }, get deathT(){ return deathT; }, get scareLs(){ return scareLs; }, hostListener, lsAlert, get LSV(){ return LSV; }, TD, updateTension, tdFakeSteps, DFL, boT, panelBright, collide, gen52, hostSchool52, hostMonitors52, assign52, tardy52, roomAt52, schoolObj52, schoolTarget52, myRoom52, MV52, get HMJ(){ return HMJ; }, S52_LANES, get radio37(){ return radio37; }, get fig37(){ return fig37; }, get zLevel(){ return zLevel; }, get zK(){ return zK; }, deepDay37, deep37, forceFig37:()=>{ figT = 0; }, duskIn37, wakeLay37, nowS, buildLevel, hotelOpen188, hostOutage188, pipeObj2, pipeTarget2, p2Diag, MQV, hostMannequins852, mqSeen852, floorAt852, laneAt852, MLANES, mallObj852, mallTarget852, mallWayTo852, aiTick852, mallMove852, get mallHold(){ return mallHold; }, get guide(){ return guide; }, hostLurker, opusTweak, fillDevices, get LRK(){ return LRK; }, lrSpot, animLurker, get running(){ return me.running; }, get W(){ return W; }, get N(){ return N; }, get stunCharge(){ return stunCharge; }, losClear, me, H, net, hide, unhide, throwCan, contextAction, useSkin, get mySkin(){ return mySkin; }, set mySkin(v){ mySkin=v; }, inPit, zoneOf, get G(){ return G; }, set G(v){ G=v; }, get mode(){ return mode; }, get role(){ return role; }, get level(){ return level; }, get walls(){ return walls; }, mDisp, doShift, monsterPos, ability, get abCD(){ return abCD; }, disguisedFrom, get fakes(){ return fakes; }, enterVent, nearVent, get ventT(){ return ventT; }, get ventCD(){ return ventCD; }, set ventCD(v){ ventCD=v; }, get abCD2(){ return abCD; }, inPit, get LK(){ return LK; }, get crankK(){ return crankK; }, ability, get curRH(){ return curRH; }, get MON(){ return MON; }, sfx, voice, noiseLevel, get settingsOpen(){ return settingsOpen; }, myPid, monsterVoice, pitchDown, dropDust, get silT(){ return silT; }, set silNext(v){ silNext=v; }, advanceLevel, aiObjectives, poolBlock, aiTick, aiReset, bfsFrom, cellOf, cc, floorY, TU, PG, camera, scene, renderer, applyUse, AI_DIFF, set diffOpt(v){ diffOpt=v; }, get M37(){ return M37; }, buildL37test:(sd)=>build37(sd), ripP, ripWho, makeAvatar, animAvatar, buildLevelTest:(sd,k)=>buildLevel(sd,k), fpArm:(roll,axis,curl)=>{ FP_ROLL = roll; FP_AXIS = axis; if (curl) Object.assign(FP_CURL, curl); buildFPArm(survSrc); }, VM, collide, k37, h37, d37, nav37, isNight, dayK, aiTick37, collide37, K37, sdShape, floorAt188, vis188, hostElev188, aiTick188, myCar188, elevPress188, ELV, HO, elDisp, update188, inLab, hostLab, labUse, labSensor, labStatus, startHatch, get hatchT(){ return hatchT; }, connected };
 </script>
 </body>
 </html>
