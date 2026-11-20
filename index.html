@@ -488,7 +488,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.75.1</div>
+<div class="osd" id="ver">v0.75.2</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -11423,7 +11423,7 @@ let last = performance.now();
        exposure, sensor noise, vignette → screen.
    The lens: a barrel bend with the centre magnified by (1 + k), so the scene is rendered with a wider FOV to cancel it. */
 const POST = { on:false, init:true, dt:0.016, ei:0, pf:null };
-const LENS_K = { normal:0, wide:0.16, fisheye:0.42 }, LENS_CA = { normal:0, wide:0.004, fisheye:0.01 };   // v0.74.3: fisheye 0.42 (v0.74.1 had 0.46, before that 0.38)
+const LENS_K = { normal:0, wide:0.16, fisheye:0.42 }, LENS_CA = { normal:0, wide:0, fisheye:0 };   /* v0.75.2 (Ryan): colour fringing off, it doubled every edge orange/blue (was wide 0.004, fisheye 0.01) */   // v0.74.3: fisheye 0.42 (v0.74.1 had 0.46, before that 0.38)
 const FLARE_K = { off:0, low:0.5, high:1 };
 const LENS_CV = { normal:0, wide:0.6, fisheye:1 };   // v0.75.1 round vignette strength
 const BLOOM_K = { off:0, low:0.45, high:0.8, max:1.3 }, MBLUR_K = { off:0, low:0.45, high:0.9 };
@@ -11547,11 +11547,8 @@ function postInit(){
         c = max(c + (c - nb)*sh, 0.0); }
       if (aoOn > 0.5) c *= texture2D(tA, bu).r;
       if (vOn > 0.5) c += texture2D(tV, bu).rgb;
-      // v0.75.1 round body-cam vignette (Ryan's reference): a true circle (not the screen's rectangle), soft and a little blurred at the rim
-      float rn = length(p)/(0.5*sqrt(asp*asp + 1.0)), vg = cv*smoothstep(0.58, 1.02, rn);
-      if (vg > 0.01){ vec2 dc = (vec2(0.5) - bu)*vg*0.035; vec3 rb = c;
-        for (int i = 1; i <= 4; i++) rb += texture2D(tS, bu + dc*float(i)/4.0).rgb;
-        c = mix(c, rb/5.0, clamp(vg*1.4, 0.0, 1.0)); }
+      // v0.75.1 round body-cam vignette (Ryan's reference): a true circle (not the screen's rectangle). v0.75.2: no rim blur (it left soft grey ghost lines)
+      float rn = length(p)/(0.5*sqrt(asp*asp + 1.0));
       c += texture2D(tB, bu).rgb*bl;
       if (fl > 0.0) c += texture2D(tF, bu).rgb*fl;
       float e = eo > 0.5 ? texture2D(tE, vec2(0.5)).r : 1.0; c *= e;
