@@ -487,7 +487,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.71.2</div>
+<div class="osd" id="ver">v0.72.0</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -567,6 +567,7 @@
   <div class="foot" style="font-size:15px;opacity:.7">Doors: <a href="https://sketchfab.com/3d-models/old-door-f2f77bd326c9486eaee65b87e84e9be9" target="_blank" rel="noopener" style="color:inherit">"Old Door" by Game Ready Art</a>, <a href="https://sketchfab.com/3d-models/door--prison-door-metal-old-12mb-45306a46c95b44ca8369f89c6648648c" target="_blank" rel="noopener" style="color:inherit">"door _Prison Door_metal_old" by adventurer</a>, <a href="https://sketchfab.com/3d-models/wooden-door-8726b6c219a54ed585e096f267c2a35e" target="_blank" rel="noopener" style="color:inherit">"Wooden door" by HASSAN</a> (<a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:inherit">CC BY 4.0</a>)</div>
   <div class="foot" style="font-size:15px;opacity:.7">The basement: <a href="https://sketchfab.com/3d-models/gravity-furnace-a68f0d11551d4e8781cb1bce30d18fe4" target="_blank" rel="noopener" style="color:inherit">"Gravity Furnace" by coconutkaos</a>, <a href="https://sketchfab.com/3d-models/coal-deposit-8277f3d59f334b75a5bdf43d664f24e6" target="_blank" rel="noopener" style="color:inherit">"Coal deposit" by patspet</a> (<a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:inherit">CC BY 4.0</a>); support beams built after <a href="https://sketchfab.com/3d-models/wooden-support-beam-93e44ade0d8548d3afcd5c2ce01203c8" target="_blank" rel="noopener" style="color:inherit">"Wooden Support Beam" by Cianon</a>; exit signs: <a href="https://sketchfab.com/3d-models/exit-sign-0001-8b24f42be9e4408ea6a9bb79327968f6" target="_blank" rel="noopener" style="color:inherit">"EXIT SIGN 0001" by Smith</a>, <a href="https://sketchfab.com/3d-models/exit-sign-46b52e08b8b64b81ad9ff5fb752bcc06" target="_blank" rel="noopener" style="color:inherit">"Exit Sign" by tboiston</a> (<a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:inherit">CC BY 4.0</a>)</div>
   <div class="foot" style="font-size:15px;opacity:.7">Mall mannequins: <a href="https://sketchfab.com/3d-models/art-mannequin-59ae62bba7d44f429d3b952410b6a826" target="_blank" rel="noopener" style="color:inherit">"Art Mannequin" by Arkify 3D</a> (<a href="http://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener" style="color:inherit">CC BY-NC 4.0</a>)</div>
+  <div class="foot" style="font-size:15px;opacity:.7">Level -0 elevator: <a href="https://sketchfab.com/3d-models/elevator-584d237eeda04c79b1c50bc09ad00306" target="_blank" rel="noopener" style="color:inherit">"Elevator" by sam_designs</a> (<a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:inherit">CC BY 4.0</a>) · hotel elevator metal: Poliigon "Metal Steel Brushed"</div>
   <div class="foot" style="font-size:15px;opacity:.7">Level -0 stairs: <a href="https://sketchfab.com/3d-models/wooden-stairs-5-mb-56271a83e8ff487b84289e39a159d3c5" target="_blank" rel="noopener" style="color:inherit">"Wooden Stairs_5_MB" by Mehdi Shahsavan</a> (<a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:inherit">CC BY 4.0</a>)</div>
   <div class="foot" style="font-size:15px;opacity:.7">Batteries: <a href="https://sketchfab.com/3d-models/battery-low-poly-c726f8e634f14a7b9bcde2b96b3f7ba4" target="_blank" rel="noopener" style="color:inherit">"Battery Low Poly" by unrealengine432</a> (<a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:inherit">CC BY 4.0</a>)</div>
 </div>
@@ -3117,6 +3118,21 @@ const nzPlasterTex = canvasTex(64, 64, (g, w, h)=>{ g.fillStyle = '#b8a878'; g.f
 const NZ_ST_L = 3.477, NZ_ST_H = 3.424, NZ_ST_W = 1.624;
 let nzStSrc = null;
 new GLTFLoader().load('models/stairs.glb', gl=>{ gl.scene.traverse(o=>{ if (o.isMesh){ const map = o.material.map; if (map){ map.magFilter = THREE.NearestFilter; map.colorSpace = THREE.SRGBColorSpace; } o.material = lam(0xffffff, { map }); } }); nzStSrc = gl.scene; }, undefined, e=>console.warn('stairs model failed', e));
+// v0.72: models/elevator.glb = "Elevator" by sam_designs (Sketchfab, CC BY 4.0 — credit in HOW TO PLAY · CREDITS, keep it). Rebuilt as a bare
+// glb: transforms baked (metres, centred, floor at y 0, doors facing −z), the body + two door leaves 'doorL'/'doorR' split out (they're
+// stored OPEN: closed = shifted ±NZ_EL_SH toward the middle, with a little overlap so they seal), textures 256 px JPEG; 1.3 MB → 0.1 MB.
+// Raw 1.44 wide × 1.72 tall × 1.70 deep, doorway ±0.505 wide, 1.5 tall → drawn ×NZ_EL_S.
+const NZ_EL_S = 1.46, NZ_EL_D = 1.703, NZ_EL_W = 1.436, NZ_EL_O = 0.505, NZ_EL_SH = 0.515;
+let nzElSrc = null, nzElWait = [];
+new GLTFLoader().load('models/elevator.glb', gl=>{ gl.scene.traverse(o=>{ if (o.isMesh){ const m0 = o.material, map = m0.map || null; if (map){ map.magFilter = THREE.NearestFilter; map.colorSpace = THREE.SRGBColorSpace; } o.material = lam(map ? 0xffffff : m0.color.getHex(), { map }); } });
+  nzElSrc = gl.scene; for (const E of nzElWait) nzElevModel(E); nzElWait = []; }, undefined, e=>console.warn('elevator model failed', e));
+function nzElevModel(E){
+  if (!nzElSrc){ nzElWait.push(E); const S = NZ_EL_S, b = (w,h,d,x,y,z,c) => bx(E.u, w*S, h*S, d*S, x*S, y*S, z*S, lam(c));   // a stand-in box car until the model arrives
+    b(NZ_EL_W, 1.72, 0.04, 0, 0.86, NZ_EL_D/2, 0x3a3a38); b(0.04, 1.72, NZ_EL_D, -NZ_EL_W/2, 0.86, 0, 0x3a3a38); b(0.04, 1.72, NZ_EL_D, NZ_EL_W/2, 0.86, 0, 0x3a3a38); b(NZ_EL_W, 0.04, NZ_EL_D, 0, 1.72, 0, 0x2a2a28); return; }
+  for (const c of E.u.children.slice()) E.u.remove(c);
+  const m = nzElSrc.clone(true); m.scale.setScalar(NZ_EL_S); E.u.add(m); E.doorL = m.getObjectByName('doorL'); E.doorR = m.getObjectByName('doorR');
+  E.lamp = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.9), new THREE.MeshBasicMaterial({ color:0xfff0c8 })); E.lamp.rotation.x = Math.PI/2; E.lamp.position.set(0, 1.69, 0.1); m.add(E.lamp);
+}
 function nzStairs(u, ch, len){
   if (nzStSrc){ const m = nzStSrc.clone(true); m.scale.set(len/NZ_ST_L, ch/NZ_ST_H, 1.3/NZ_ST_W); m.rotation.y = -Math.PI/2; m.position.set(0, 0, len/2); u.add(m); return; }
   const n = Math.ceil(ch/0.3), run = len/n, wm = lam(0x6a4a2c), dm = lam(0x8a7a5a); for (let k=0;k<n;k++){ const h = Math.min(ch, (k+1)*0.3); bx(u, 1.3, h, run + 0.01, 0, h/2, k*run + run/2, k % 2 ? dm : wm); }
@@ -3144,14 +3160,14 @@ function buildLevelNZ(seed){
   // spawn corner (area 1) and the light room in the far corner (area 2) + a long straight hall leading out of it
   openRect(0, 0, 3, 3); mark(0, 0, 3, 3, 1);
   const LR = { i0:N-5, j0:N-5, w:3, h:3 }; mark(LR.i0, LR.j0, 3, 3, 2); openRect(LR.i0, LR.j0, 3, 3);
+  const EC = [LR.i0 + 3, LR.j0 + 1]; Z.area[K(EC[0], EC[1])] = 2;   // v0.72: the elevator shaft cell, just east of the lobby
   for (let i=LR.i0;i<LR.i0+3;i++) for (let j=LR.j0;j<LR.j0+3;j++) for (const [a,b] of nbr4){ const ni = i+a, nj = j+b; if (inG(ni,nj) && Z.area[K(ni,nj)] !== 2) walls[eOf(i,j,ni,nj)] = 1; }
+  for (const [a,b] of nbr4){ const ni = EC[0]+a, nj = EC[1]+b; if (inG(ni,nj)) walls[eOf(EC[0], EC[1], ni, nj)] = (ni === EC[0]-1) ? 0 : 1; }
   { const jm = LR.j0 + 1; walls[eOf(LR.i0, jm, LR.i0-1, jm)] = 0; for (let i = LR.i0-1; i > LR.i0-13; i--){ walls[eOf(i, jm, i-1, jm)] = 0; } Z.lightHall = [LR.i0-13, jm]; }
   // tall halls (area 3): 9–11 m ceilings, pillars, lamps on long cords
   for (let t=0, n=0; t<300 && n<6; t++){ const w = 4 + Math.floor(rng()*3), h = 4 + Math.floor(rng()*3), i0 = 1 + Math.floor(rng()*(N-w-2)), j0 = 1 + Math.floor(rng()*(N-h-2));
     if (!free(i0, j0, w, h, 2)) continue; mark(i0, j0, w, h, 3); openRect(i0, j0, w, h); const H = 8.5 + rng()*3; for (let i=i0;i<i0+w;i++) for (let j=j0;j<j0+h;j++) Z.CH[K(i,j)] = H;
     Z.tall.push({ i0, j0, w, h, H }); n++; }
-  // the light room is tall too (you see its glow from far away)
-  for (let i=LR.i0;i<LR.i0+3;i++) for (let j=LR.j0;j<LR.j0+3;j++) Z.CH[K(i,j)] = 6.5;
   // crouch-only low rooms (area 4)
   for (let t=0, n=0; t<300 && n<7; t++){ const w = 2 + Math.floor(rng()*2), h = 2, i0 = 1 + Math.floor(rng()*(N-w-2)), j0 = 1 + Math.floor(rng()*(N-h-2));
     if (!free(i0, j0, w, h, 1)) continue; mark(i0, j0, w, h, 4); openRect(i0, j0, w, h); for (let i=i0;i<i0+w;i++) for (let j=j0;j<j0+h;j++) Z.CH[K(i,j)] = NZ_LOW; Z.low.push({ i0, j0, w, h }); n++; }
@@ -3168,7 +3184,7 @@ function buildLevelNZ(seed){
   const tintAt = () => 0;   // v0.71.2: no wrong-colour wallpaper (Ryan didn't like it)
   // ---- floors + ceilings (the light room is drawn on its own)
   { const fl = [], cl = [], cw = [];
-    for (let i=0;i<N;i++) for (let j=0;j<N;j++){ if (Z.area[K(i,j)] === 2) continue; fl.push([cc(i), 0, cc(j)]); (tintAt(cc(i), cc(j)) === 2 ? cw : cl).push([cc(i), Z.CH[K(i,j)], cc(j)]); }
+    for (let i=0;i<N;i++) for (let j=0;j<N;j++){ fl.push([cc(i), 0, cc(j)]); (tintAt(cc(i), cc(j)) === 2 ? cw : cl).push([cc(i), Z.CH[K(i,j)], cc(j)]); }
     const inst = (geo, mat, list) => { if (!list.length) return; const m = new THREE.InstancedMesh(geo, mat, list.length); list.forEach((p,k)=>{ tmpM.makeTranslation(p[0], p[1], p[2]); m.setMatrixAt(k, tmpM); }); m.frustumCulled = false; g.add(m); };
     inst(cellPlane(2,false), rugM, fl); inst(cellPlane(1,true), ceilM, cl); inst(cellPlane(1,true), ceilWrongM, cw); }
   // ---- walls: wallpaper up to normal height, stained plaster above it; headers close the steps between ceilings of different heights
@@ -3178,7 +3194,6 @@ function buildLevelNZ(seed){
     for (let e=0;e<E;e++){ const [ex, ez] = edgeMid(e), along = e < VN ? 'z' : 'x', [ca, cb] = edgeCells(e), ha = chOf(ca), hb = chOf(cb);
       const lr = (inG(ca[0],ca[1]) && Z.area[K(ca[0],ca[1])] === 2) || (inG(cb[0],cb[1]) && Z.area[K(cb[0],cb[1])] === 2);
       if (walls[e]){ const h = Math.max(ha, hb), lh = Math.min(h, NZ_WH);
-        if (lr){ const m = bx(g, along === 'x' ? CS + 0.2 : 0.2, h, along === 'x' ? 0.2 : CS + 0.2, ex, h/2, ez, glowEdgeM); continue; }
         lower[tintAt(ex, ez)].push([ex, lh, ez, along]); if (h > NZ_WH + 0.01) upper.push([ex, NZ_WH, h, ez, along]);
         for (const [c, s] of [[ca, -1], [cb, 1]]) if (inG(c[0], c[1])){ const nx = along === 'z' ? s : 0, nz = along === 'x' ? s : 0; spots.push({ i:c[0], j:c[1], a:Z.area[K(c[0],c[1])], ch:Z.CH[K(c[0],c[1])], x:ex + nx*0.1, z:ez + nz*0.1, nx, nz, ry:Math.atan2(nx, nz), edge:isBoundary(e), e }); }
       } else if (inG(ca[0],ca[1]) && inG(cb[0],cb[1]) && Math.abs(ha - hb) > 0.01){ upper.push([ex, Math.min(ha, hb), Math.max(ha, hb), ez, along]); } }
@@ -3186,13 +3201,18 @@ function buildLevelNZ(seed){
     lower.forEach((list, t)=>{ if (!list.length) return; const m = new THREE.InstancedMesh(lowGeo, wallMs[t], list.length);
       list.forEach(([x, lh, z, along], k)=>{ tmpQ.setFromAxisAngle(UP, along === 'z' ? Math.PI/2 : 0); tmpV.set(x, lh/2, z); tmpS.set(1, lh/NZ_WH, 1); tmpM.compose(tmpV, tmpQ, tmpS); m.setMatrixAt(k, tmpM); }); m.frustumCulled = false; g.add(m); });
     for (const [x, y0, y1, z, along] of upper){ const m = new THREE.Mesh(nzUpBox(CS + 0.2, y1 - y0, 0.2), nzUpM); m.position.set(x, (y0+y1)/2, z); if (along === 'z') m.rotation.y = Math.PI/2; g.add(m); } }
-  // ---- the light: a tall white room that glows through the fog, seen from far down the long hall
-  { const x0 = LR.i0*CS, z0 = LR.j0*CS, s = 3*CS, H = 6.5;
-    const fl = new THREE.Mesh(new THREE.PlaneGeometry(s, s), glowM); fl.rotation.x = -Math.PI/2; fl.position.set(x0 + s/2, 0.01, z0 + s/2); g.add(fl);
-    const cl = new THREE.Mesh(new THREE.PlaneGeometry(s, s), glowM); cl.rotation.x = Math.PI/2; cl.position.set(x0 + s/2, H, z0 + s/2); g.add(cl);
-    const sp = new THREE.Mesh(new THREE.PlaneGeometry(3.5, 3.5), new THREE.MeshBasicMaterial({ map:nzGlowTex(), transparent:true, depthWrite:false, blending:THREE.AdditiveBlending, fog:false })); sp.position.set(x0 + s/2, 2.0, z0 + s/2); g.add(sp);
-    Z.light = { x:x0 + s/2, z:z0 + s/2, sp }; L.exitPos = [x0 + s/2, z0 + s/2]; L.exitCell = [LR.i0 + 1, LR.j0 + 1];
-    exitLight.position.set(x0 + s/2, 3, z0 + s/2); }
+  // ---- the way out (v0.72, Ryan): an old elevator at the far end of the long hall, in a lobby (area 2). Call it (30 s), get in, press the button.
+  { const cz = cc(EC[1]), S = NZ_EL_S, D = NZ_EL_D*S, Wd = NZ_EL_W*S, O = NZ_EL_O*S;
+    const fx = EC[0]*CS, cx = fx + D/2, u = grp(cx, cz, Math.PI/2);   // set into the lobby's east wall, doors facing down the hall (-x)
+    { const z0 = EC[1]*CS, z1 = z0 + CS, a = cz - Wd/2, b = cz + Wd/2, H = 2.5*S/1.46*1.0;   // the wall round the elevator front + a header over it
+      for (const [p0, p1] of [[z0, a], [b, z1]]){ const m = new THREE.Mesh(boxUV(0.2, NZ_WH, p1 - p0 + 0.1), wallMat); m.position.set(fx - 0.1, NZ_WH/2, (p0+p1)/2); g.add(m); slab(fx - 0.2, fx, p0, p1); }
+      const top = 1.717*S; if (top < NZ_WH){ const m = new THREE.Mesh(nzUpBox(0.2, NZ_WH - top, Wd), nzUpM); m.position.set(fx - 0.1, (top + NZ_WH)/2, cz); g.add(m); } }
+    slab(fx, cx + D/2, cz - Wd/2 - 0.04, cz - Wd/2 + 0.08); slab(fx, cx + D/2, cz + Wd/2 - 0.08, cz + Wd/2 + 0.04); slab(cx + D/2 - 0.1, cx + D/2 + 0.04, cz - Wd/2, cz + Wd/2);
+    slab(fx - 0.06, fx + 0.08, cz - Wd/2, cz - O); slab(fx - 0.06, fx + 0.08, cz + O, cz + Wd/2);
+    const door = [fx - 0.06, fx + 0.08, cz - O, cz + O, 1]; L.slabs.push(door);
+    Z.elev = { x:cx, z:cz, fx, D, Wd, O, u, door, door0:door.slice(), st:0, t:0, d:0, ride:0, beepT:8 };
+    nzElevModel(Z.elev); L.exitPos = [cx, cz]; L.exitCell = [LR.i0 + 2, LR.j0 + 1];
+    Z.light = { x:cx, z:cz }; exitLight.position.set(cx, 2.0, cz); }
   L.door = new THREE.Mesh(new THREE.PlaneGeometry(0.1, 0.1), new THREE.MeshBasicMaterial({ color:0 })); L.door.visible = false; g.add(L.door); L.doorMatLocked = L.door.material; L.doorMatOpen = L.door.material;
   { let bk = 0, best = -1; for (let k=0;k<N*N;k++) if (D0[k] > best){ best = D0[k]; bk = k; } L.mspawn = [cc(Math.floor(bk/N)), cc(bk%N)]; }
   // ---- pillars: on the inner corners of the tall halls, all the way up
@@ -3208,10 +3228,10 @@ function buildLevelNZ(seed){
       const s = 2.2 + rng()*0.5; bx(g, s, NZ_WH, s, x, NZ_WH/2, z, wallMs[tintAt(x, z)]); slab(x - s/2, x + s/2, z - s/2, z + s/2); n++; } }
   // ---- lamps: recessed panels in normal cells, hanging lamps on long cords in the tall halls; some too red, some too dim
   const cordM = lam(0x111111);
-  for (let i=0;i<N;i++) for (let j=0;j<N;j++){ const a = Z.area[K(i,j)], ch = Z.CH[K(i,j)]; if (a === 2) continue;
-    const tall = a === 3; if (rng() > (tall ? 0.55 : a === 4 ? 0.5 : 0.5)) continue;
+  for (let i=0;i<N;i++) for (let j=0;j<N;j++){ const a = Z.area[K(i,j)], ch = Z.CH[K(i,j)]; if (i === EC[0] && j === EC[1]) continue; const lobby = a === 2;
+    const tall = a === 3; if (!lobby && rng() > 0.5) continue;
     const red = rng() < 0.08, dim = !red && rng() < 0.12, y = tall ? ch - 2.6 - rng()*2.2 : ch - 0.05;
-    const p = { idx:L.panels.length, i, j, t:0, x:cc(i), z:cc(j), y, sx:1.25, sy: tall ? 0.25 : 0.06, sz:0.62, faulty: rng() < 0.2, dead: rng() < 0.07, red:false, ph:rng()*10, b:1, gk:-1, col: red ? 0xff6a4a : dim ? 0x9a8458 : undefined, dist:8 };
+    const p = { idx:L.panels.length, i, j, t:0, x:cc(i), z:cc(j), y, sx:1.25, sy: tall ? 0.25 : 0.06, sz:0.62, faulty: !lobby && rng() < 0.2, dead: !lobby && rng() < 0.07, red:false, ph:rng()*10, b:1, gk:-1, col: !lobby && red ? 0xff6a4a : !lobby && dim ? 0x9a8458 : undefined, dist:8 };
     if (tall){ const c = bx(g, 0.02, ch - y, 0.02, p.x, (ch + y)/2, p.z, cordM); }
     L.panelAt[K(i,j)] = p.idx; L.panels.push(p); }
   L.panelMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1), new THREE.MeshBasicMaterial({ color:0xffffff }), Math.max(1, L.panels.length));
@@ -3266,7 +3286,7 @@ function buildLevelNZ(seed){
   L.circCell = Array.from({ length:N*N }, ()=>[]);
   for (const c of L.circles){ for (let i=cellOf(c.x-c.r-1); i<=cellOf(c.x+c.r+1); i++) for (let j=cellOf(c.z-c.r-1); j<=cellOf(c.z+c.r+1); j++) L.circCell[i*N+j].push(c); }
   for (let e=0;e<E;e++) L.edgeZ[e] = 9;
-  bakeStatic852(g, new Set([L.panelMesh, L.door, Z.light.sp, ...L.btM, ...Z.phones.map(p=>p.mesh)].filter(Boolean)));
+  bakeStatic852(g, new Set([L.panelMesh, L.door, Z.elev.u, ...L.btM, ...Z.phones.map(p=>p.mesh)].filter(Boolean)));
 }
 let nzGlowT = null;
 function nzGlowTex(){ if (nzGlowT) return nzGlowT; const c = document.createElement('canvas'); c.width = c.height = 128; const x = c.getContext('2d'), gr = x.createRadialGradient(64, 64, 0, 64, 64, 64);
@@ -3282,9 +3302,7 @@ function nzClient(dt){
     if (w === 9) nzArrive(); else if (!amHost() && G.w) { walls = hexToWalls(G.w); applyWalls(false); } }
   if (LK !== 9) return;
   const Z = level.nz; if (!Z) return;
-  // the light breathes; it's visible from far away
-  if (Z.light && Z.light.sp){ Z.light.sp.quaternion.copy(camera.quaternion); Z.light.sp.scale.setScalar(1 + Math.sin(nowS()*1.3)*0.06); }
-  exitLight.intensity = 14; exitLight.distance = 34; exitLight.position.set(Z.light.x, 3, Z.light.z);
+  nzElevUpdate(dt);
   // phones ring now and then; nobody is ever there
   Z.ringT -= dt;
   if (Z.ringT <= 0 && mode === 'play'){ Z.ringT = 26 + Math.random()*40; const near = Z.phones.filter(p=>Math.hypot(p.x - me.x, p.z - me.z) < 26); if (near.length){ Z.ring = near[Math.floor(Math.random()*near.length)]; Z.ringEnd = nowS() + 12; } }
@@ -3294,6 +3312,32 @@ function nzClient(dt){
       if (p.hs){ const y0 = p.hs.userData.y0 || 0, j = p.hs.userData.j || 0.015; p.hs.position.y = y0 + (Math.sin(t*40) > 0 ? j : 0); }
       if (mode === 'play' && me.alive && Math.hypot(p.x - me.x, p.z - me.z) < 1.5){ Z.ring = null; sfx.sample('phPick', { x:p.x, y:1.4, z:p.z }, 0.9, 2);
         msg(['…', 'Nobody there. Just breathing. Yours?', 'Silence. Then the line clicks, like somebody else picked up.', '"…turn around…" Then nothing.', 'A dial tone. It plays your footsteps back to you.'][Math.floor(Math.random()*5)], 4); } } }
+}
+// ---- the elevator (client-side: each player calls their own). 0 waiting (dings now and then so you can find it by ear) → CALL: 1 coming
+// (NZ_EL_CALL s, rumbling closer) → ding, 2 open (lit) → inside, USE: the doors close → 3 closing → 4 riding (shakes) → out: escaped Level 0.
+const NZ_EL_CALL = 30;
+function nzInCar(){ const E = level.nz && level.nz.elev; return !!E && me.x > E.fx + 0.35 && me.x < E.x + E.D/2 && Math.abs(me.z - E.z) < E.Wd/2 - 0.1; }
+function nzElevAction(){
+  if (LK !== 9 || !level.nz || !level.nz.elev) return null; const E = level.nz.elev;
+  if (E.st === 0 && me.x < E.fx && Math.hypot(E.fx - 0.6 - me.x, E.z - me.z) < 2.2) return { label:'CALL ELEVATOR', key:'E', fn:()=>{ E.st = 1; E.t = NZ_EL_CALL; E.rT = 0; elevSound188('thunk', E.fx, E.z); msg('Somewhere far above, something starts to move. It\'s coming… slowly.', 4); } };
+  if (E.st === 2 && nzInCar()) return { label:'PRESS THE BUTTON', key:'E', fn:()=>{ E.st = 3; elevSound188('door', E.fx, E.z); } };
+  return null;
+}
+function nzElevUpdate(dt){
+  const E = level.nz && level.nz.elev; if (!E) return; const t = nowS();
+  // doors
+  const want = E.st === 2 ? 1 : 0; E.d = clamp(E.d + (want ? dt/1.6 : -dt/1.4), 0, 1);
+  if (E.doorL){ E.doorL.position.x = NZ_EL_SH*(1 - E.d); E.doorR.position.x = -NZ_EL_SH*(1 - E.d); }
+  const shut = E.d < 0.6; E.door[0] = shut ? E.door0[0] : -999; E.door[1] = shut ? E.door0[1] : -998;
+  if (E.lamp) E.lamp.material.color.setScalar(E.st >= 2 ? (E.st === 4 ? 0.6 + Math.random()*0.4 : 1) : 0.08);
+  exitLight.position.set(E.x, 2.0, E.z); exitLight.distance = 9; exitLight.intensity = E.st >= 2 ? (E.st === 4 ? 2 + Math.random()*3 : 5) : 0;
+  if (E.st === 0){ if ((E.beepT -= dt) <= 0){ E.beepT = 30 + Math.random()*25; if (sfx.ctx){ const o = sfx.panner(E.fx, 2.1, E.z, 16); sfx.tone(o,{ f:1174.7, dur:2.2, gain:0.13, attack:0.003 }); sfx.tone(o,{ f:2349, dur:0.8, gain:0.035, attack:0.003 }); } } }   // a far-off ding: follow it
+  else if (E.st === 1){ E.t -= dt; if ((E.rT -= dt) <= 0){ E.rT = 5; elevSound188('hum', E.fx + 0.6, E.z); }
+    if (E.t <= 0){ E.st = 2; elevSound188('ding', E.fx, E.z); elevSound188('door', E.fx, E.z); if (Math.hypot(E.x - me.x, E.z - me.z) < 30) msg('Ding. The doors open.', 3); } }
+  else if (E.st === 3){ if (!nzInCar()){ E.st = 2; } else if (E.d <= 0){ E.st = 4; E.ride = 0; elevSound188('thunk', E.x, E.z); } }
+  else if (E.st === 4){ E.ride += dt; if (Math.random() < dt*8) elevSound188('hum', E.x, E.z);
+    if (mode === 'play'){ camera.position.y += (Math.random() - 0.5)*0.03; }
+    if (E.ride > 3.2 && !me.esc){ me.esc = true; nzLocal = false; useReq({ k:'nzx' }); mode = 'escAnim'; escT = 0; elevSound188('ding', null); const b = $('black'); b.style.transition = 'opacity 0.6s'; b.style.opacity = 1; } }
 }
 function nzArrive(){
   tapeEndOff();
@@ -3322,12 +3366,13 @@ function nzSurvivor(dt){
   Z.btS.forEach((t,i)=>{ if (!t && Math.hypot(level.bt[i][0]-me.x, level.bt[i][1]-me.z) < 1.1){ Z.btS[i] = 1; level.btM[i].visible = false; me.bat = Math.min(100, me.bat+50); sfx.pickup(); msg('Batteries.', 2); } });
   // the low rooms: you have to crouch (and can't stand up until you're out)
   const ch = Z.CH[cellOf(me.x)*N + cellOf(me.z)]; me.lowCeil = ch < 1.75; if (me.lowCeil && !me.crouch){ me.crouch = true; if (!Z.lowHint){ Z.lowHint = 1; msg('The ceiling is too low. You have to crouch.', 3); } }
-  // the light
-  if (Z.light && !me.esc && Math.hypot(Z.light.x - me.x, Z.light.z - me.z) < 3.6){ me.esc = true; nzLocal = false; useReq({ k:'nzx' }); mode = 'escAnim'; escT = 0; $('white').style.transition = 'opacity 1.2s'; $('white').style.opacity = 1; sfx.escape && sfx.escape(); }
   if (typeof slUpdate === 'function') slUpdate(dt);
 }
-function nzObj(){ const Z = level.nz; if (!Z || !Z.light) return 'Walk to the light.'; const d = Math.hypot(Z.light.x - me.x, Z.light.z - me.z);
-  return d < 25 ? 'The light is right there. Walk into it.' : 'Walk to the light · it\'s somewhere far away'; }
+function nzObj(){ const E = level.nz && level.nz.elev; if (!E) return 'Find a way out.';
+  if (E.st === 0) return Math.hypot(E.x - me.x, E.z - me.z) < 14 ? 'The elevator. Press the call button.' : 'Find the elevator · listen for the ding';
+  if (E.st === 1) return 'The elevator is coming · ' + Math.max(0, Math.ceil(E.t)) + ' s · stay alive';
+  if (E.st === 2) return nzInCar() ? 'Press the button.' : 'The elevator is here. GET IN.';
+  return 'Going up…'; }
 // ---- host: who's down here, the random glitch, the player Occupant following
 function nzHost(dt, ps){
   if (!G.nz) G.nz = [];
@@ -3385,7 +3430,7 @@ function slVisibleToMe(){ camera.getWorldDirection(_smF); const dx = SL.x - came
   return d < 34 && (dx*_smF.x + dz*_smF.z)/d > 0.55 && losClear(me.x, me.z, SL.x, SL.z); }
 function slGo(tx, tz, sp, dt){
   const Z = level.nz, ci = cellOf(SL.x), cj = cellOf(SL.z), ti = cellOf(tx), tj = cellOf(tz); let gx = tx, gz = tz;
-  if (ci !== ti || cj !== tj){ if ((SL.rp -= dt) <= 0 || !SL.path){ SL.rp = 0.4; const blk = new Uint8Array(N*N); for (let k=0;k<N*N;k++) if (Z.area[k] === 2) blk[k] = 1; SL.path = nextStep(ci, cj, ti, tj, blk); }
+  if (ci !== ti || cj !== tj){ if ((SL.rp -= dt) <= 0 || !SL.path){ SL.rp = 0.4; SL.path = nextStep(ci, cj, ti, tj); }
     if (SL.path){ gx = cc(SL.path[0]); gz = cc(SL.path[1]); } }
   const dx = gx - SL.x, dz = gz - SL.z, d = Math.hypot(dx, dz); if (d < 0.05) return 0;
   const st = Math.min(d, sp*dt); const c = collide(SL.x + dx/d*st, SL.z + dz/d*st, 0.3); SL.x = c[0]; SL.z = c[1];
@@ -6250,6 +6295,7 @@ const hDoorTex = canvasTex(32,64,(g,w,h)=>{
   g.fillStyle='#c9a85a'; g.fillRect(w-8,30,4,3); g.fillRect(w-7,33,2,5); g.fillStyle='#2a2116'; g.fillRect(w-7,24,2,3);
   g.fillStyle='#b89a50'; g.fillRect(12,12,8,4); g.fillStyle='#1d1914'; g.fillRect(15,8,2,2);
 });
+const hSteelPh = fileTex('textures/steel-brushed.jpg'), hSteelNor = fileTex('textures/steel-brushed-nor.png'); hSteelNor.colorSpace = THREE.NoColorSpace;   // v0.72: Poliigon MetalSteelBrushed 7174 (base colour + normal, 256 px)
 const hSteelTex = canvasTex(32,32,(g,w,h)=>{ g.fillStyle='#8f9294'; g.fillRect(0,0,w,h); for (let y=0;y<h;y++){ g.fillStyle=`rgba(${190+texR()*40|0},${190+texR()*40|0},${195+texR()*40|0},.25)`; g.fillRect(0,y,w,1); } });
 const hFacadeTex = canvasTex(64,64,(g,w,h)=>{ g.fillStyle='#d8d6cf'; g.fillRect(0,0,w,h); for (let i=0;i<500;i++){ g.fillStyle='rgba(150,148,140,.35)'; g.fillRect(texR()*w|0,texR()*h|0,1,1); } g.fillStyle='rgba(120,118,110,.5)'; g.fillRect(0,0,w,1); g.fillRect(0,0,1,h); });
 const hLawnTex = canvasTex(256,256,(g,w,h)=>{
@@ -6403,7 +6449,7 @@ function buildLevel188(seed){
   const isCourt = (f, i, j) => { const li = i-HO[f][0], lj = j-HO[f][1]; return li>=HCY0 && li<=HCY1 && lj>=HCY0 && lj<=HCY1; };
   const hv = (x, z) => { const f = floorAt188(x,z); return [x - HO[f][0]*CS, z - HO[f][1]*CS, hBaseY(f)]; };   // logical -> drawn (x, z, floor y)
   // ---- materials
-  const wallM = lam(0xffffff,{ map:hWallTex, normalMap:hWallNor, emissive:0xffffff, emissiveMap:hWallTex, emissiveIntensity:0.12 }), facadeM = lam(0xffffff,{ map:hFacadeTex, emissive:0xffffff, emissiveMap:hFacadeTex, emissiveIntensity:0.16 }), revealM = lam(0xd8d4c8, { emissive:0x30302c }), steelM = lam(0xffffff,{ map:hSteelTex });
+  const wallM = lam(0xffffff,{ map:hWallTex, normalMap:hWallNor, emissive:0xffffff, emissiveMap:hWallTex, emissiveIntensity:0.12 }), facadeM = lam(0xffffff,{ map:hFacadeTex, emissive:0xffffff, emissiveMap:hFacadeTex, emissiveIntensity:0.16 }), revealM = lam(0xd8d4c8, { emissive:0x30302c }), steelM = lam(0xffffff,{ map:hSteelPh, normalMap:hSteelNor });   /* v0.72: Ryan's Poliigon brushed steel */
   const carpetM = lam(0xffffff,{ map:hotelCarpetPh, normalMap:hotelCarpetNor, emissive:0xffffff, emissiveMap:hotelCarpetPh, emissiveIntensity:0.1 })   /* v0.70.5: Ryan's dirty carpet */, ceilM = lam(0xd8d0aa,{ map:offCeilPh, normalMap:offCeilNor, emissive:0xd8d0aa, emissiveMap:offCeilPh, emissiveIntensity:0.08 })   /* v0.70.3: Level 0's ceiling tiles (Ryan) */, doorM = lam(0xffffff,{ map:hDoorTex }), frameM = lam(0x4a3a2c);
   L.hm = { wallM, carpetM, ceilM, facadeM, lawn:null, open:0, glow:[{ m:revealM, e:0x30302c }] };   // glow: dimmed in a power outage (v0.36)   // v0.28: hall materials dim deep inside, the courtyard stays bright (updateZoneEnv)
   // ---- slabs (walls) and wall spots, per walkable cell
@@ -6486,10 +6532,10 @@ function buildLevel188(seed){
       bx(lg, 0.06, 2.24, 0.14, -0.62, 1.12, 0.05, frameM); bx(lg, 0.06, 2.24, 0.14, 0.62, 1.12, 0.05, frameM); bx(lg, 1.3, 0.06, 0.14, 0, 2.22, 0.05, frameM);
       const ind = new THREE.Mesh(new THREE.PlaneGeometry(0.26,0.18), new THREE.MeshBasicMaterial({ map:hNumTex[f+1] })); ind.position.set(0, 2.42, 0.105); lg.add(ind);
       bx(lg, 0.12, 0.2, 0.02, -0.86, 1.1, 0.11, lam(0x6a6a66)); const btn = bx(lg, 0.05, 0.05, 0.02, -0.86, 1.13, 0.125, btnOff);
-      const dl = bx(lg, 0.62, 2.2, 0.04, -0.3, 1.1, -0.03, steelM), dr = bx(lg, 0.62, 2.2, 0.04, 0.3, 1.1, -0.03, steelM);
+      const dl = bx(lg, 0.66, 2.2, 0.04, -0.3, 1.1, -0.03, steelM), dr = bx(lg, 0.66, 2.2, 0.04, 0.3, 1.1, -0.025, steelM);   // v0.72: wider leaves that overlap in the middle, so they seal
       el.landings.push({ ind, btn, dl, dr }); }
     const cg = new THREE.Group(); const l0 = L.lands[k][0], [cx0, cz0] = hv(l0.ex, l0.ez); cg.position.set(cx0, hBaseY(0), cz0); cg.rotation.y = th; g.add(cg);
-    const carWall = lam(0xb9b4a6), carFloor = lam(0x2e2a26);
+    const carWall = lam(0xd2cec6, { map:hSteelPh, normalMap:hSteelNor }), carFloor = lam(0x2e2a26);
     bx(cg, 2.2, 0.05, 3.1, 0, 0.0, -1.58, carFloor); bx(cg, 2.2, 0.04, 3.1, 0, 2.52, -1.58, lam(0x9a968a));
     bx(cg, 2.2, 2.5, 0.04, 0, 1.26, -3.08, carWall); bx(cg, 0.04, 2.5, 3.1, -1.08, 1.26, -1.58, carWall); bx(cg, 0.04, 2.5, 3.1, 1.08, 1.26, -1.58, carWall);
     bx(cg, 0.46, 2.5, 0.06, -0.85, 1.26, -0.06, steelM); bx(cg, 0.46, 2.5, 0.06, 0.85, 1.26, -0.06, steelM);
@@ -6497,7 +6543,7 @@ function buildLevel188(seed){
     bx(cg, 0.04, 0.04, 2.6, -1.03, 0.95, -1.6, lam(0xc8b070)); bx(cg, 0.04, 0.04, 2.6, 1.03, 0.95, -1.6, lam(0xc8b070));
     const pnl = new THREE.Mesh(new THREE.PlaneGeometry(0.2,0.5), new THREE.MeshBasicMaterial({ map: textTex('',32,80,(c,w,h)=>{ c.fillStyle='#6d6d6a'; c.fillRect(0,0,w,h); for (let n=0;n<5;n++){ c.fillStyle= n===0 ? '#2a2a28' : '#e8d8a8'; c.beginPath(); c.arc(w/2, 12+n*14, 4, 0, 7); c.fill(); c.fillStyle='#111'; c.font='8px monospace'; c.fillText(String(5-n), 2, 15+n*14); } }) }));
     pnl.position.set(1.05, 1.25, -0.5); pnl.rotation.y = -Math.PI/2; cg.add(pnl);
-    const cl = bx(cg, 0.6, 2.2, 0.03, -0.3, 1.1, -0.1, steelM), cr = bx(cg, 0.6, 2.2, 0.03, 0.3, 1.1, -0.1, steelM);
+    const cl = bx(cg, 0.66, 2.2, 0.03, -0.3, 1.1, -0.1, steelM), cr = bx(cg, 0.66, 2.2, 0.03, 0.3, 1.1, -0.095, steelM);
     el.car = { g:cg, cl, cr }; el.btnOn = btnOn; el.btnOff = btnOff; L.elv.push(el);
   }
   // ---- choose where things go
@@ -9954,6 +10000,7 @@ function contextAction(){
     { const c = bsAction(); if (c) return c; }
     { const c = gdoorAction(); if (c) return c; }
     { const c = doorAction37(); if (c) return c; }
+    { const c = nzElevAction(); if (c) return c; }
     const k = nearLocker(1.3); if (k>=0 && !lockerTaken(k)) return { label:'HIDE', key:'E', fn:()=>hide(k) };
     { const c = elevCall188(); if (c) return c; }
     { const c = mallAction852(); if (c) return c; }
