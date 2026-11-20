@@ -148,3 +148,10 @@ v0.65.3: online play can use a relay on port 443 so it works on school/work Wi-F
 v0.65.4: online play now goes through a relay when a network blocks direct connections (school Wi-Fi, mobile data), so blocked friends can join
 v0.66.0: new settings menu with tabs (Video, Graphics, Audio, Game, Controls), graphics presets LOW/MEDIUM/HIGH/ULTRA, flashlight shadows, lighting quality, reflection quality, render resolution, brightness, vertex wobble, film grain, frame rate limit, FPS counter, invert look
 v0.67.0: BODYCAM camera style (Settings > Video > Camera): fisheye lens, body-mounted camera motion, auto exposure, bloom, sensor noise; CAMCORDER keeps the original look
+v0.68.0: more graphics settings: texture filtering and anti-aliasing (fixes shimmering/jittery walls), ambient occlusion, volumetric flashlight beam, motion blur, sharpening, stronger bloom; the pitfalls use the normal Level 0 wallpaper
+v0.68.1: performance: unused flashlight shadows no longer render, floors/ceilings don't cast shadows, lighter HIGH/ULTRA presets; softer bloom and flashlight glow
+v0.68.2: SHOW FPS now shows where the time goes (CPU/GPU, draw calls, render size, which graphics card the browser uses) + a warning when the browser isn't using your graphics card
+v0.68.3: menu TV no longer stalls the graphics card (less menu lag), the TV's red button turns it off/on, Poolrooms radio stops when you leave, mouse always shows on the menu
+v0.68.4: menu TV shows Level 0 again, VHS noise fixed on the TV, old-TV wipe and blink animation when turning it on and off
+v0.69.0: the Smiler — 1 in 20 Level 0 runs, its glowing grin appears in the dark and only disappears once you stare at it for a second
+v0.70.0: dead bodies — a bloodied hazmat body slumped against a wall (1 in 30 Level 0/1 maps) and a sprawled body with a blood pool where a player died
