@@ -487,7 +487,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.69.0</div>
+<div class="osd" id="ver">v0.70.0</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -10100,6 +10100,151 @@ function updateDroppedFL(dt){
     d.lens.material.opacity = 0.95*k; d.cone.material.opacity = 0.07*k; d.pool.material.opacity = 0.55*k; }
 }
 
+/* ===== v0.70 dead bodies + blood (Ryan) =====
+   Ryan's hazmat survivor (models/survivor.glb) posed in code and baked into static meshes (`corpseGeo(kind)`):
+   'sit'   = slumped dead against a wall (his Mixamo screenshot): back on the wall, legs out, one knee up, head lolled, hands in the lap/on the floor.
+   'sprawl'= on his back on the floor, arms flung out, one leg bent (his second screenshot) — this is what's left where a player was caught,
+             next to their dropped flashlight (one per G.fl entry, every level).
+   Posing: `cpAim` turns a bone so its rest direction (bone → first child) points along a target direction in body space
+   (R right, U up, F forward = where the model faces), minimal rotation, parents first. The hips get a full basis for the sprawl.
+   Blood (style from Ryan's two reference pictures: near-black centre, rusty brown-red mottled edges, droplets round it): canvas textures
+   `bloodTex(kind, seed)` — pools under both bodies, a smear down the wall behind the sitting one, and the suit itself soaked
+   (`bloodySuitTex`: the survivor texture with dark blood painted at the UVs of chest/hip/leg vertices, legs + chest heaviest).
+   Wall bodies: 1 level in `CP_WALL_N` (30) on Levels 0 and 1 gets one, decided from the level seed so every client agrees
+   (`corpseWall`, on a wall face ≥ 18 m from spawn, not in the lab/pits/rooms). Test: __hp.CP.force(). */
+const CP_WALL_N = 30;
+const CP = { geo:{}, mat:null, key:'', wall:null, list:[] };
+function bloodTex(kind, seed){
+  const S = 256, c = document.createElement('canvas'); c.width = c.height = S; const x = c.getContext('2d');
+  let r = Math.abs(seed|0) % 2147483646 + 1; const rnd = () => { r = (r*16807) % 2147483647; return r/2147483647; };
+  const blob = (cx, cy, rad, col, n) => { x.fillStyle = col; for (let i = 0; i < n; i++){ const a = rnd()*6.283, d = Math.pow(rnd(), 0.6)*rad, rr = rad*(0.12 + rnd()*0.32);
+    x.beginPath(); x.arc(cx + Math.cos(a)*d, cy + Math.sin(a)*d*(kind === 'smear' ? 0.35 : 0.8), rr, 0, 6.283); x.fill(); } };
+  if (kind === 'smear'){   // where his back slid down the wall: a wide mottled smear, ragged drag streaks and a few drips running down
+    for (let i = 0; i < 18; i++){ let sx = S*0.3 + rnd()*S*0.4; const w = 2 + rnd()*9, top = S*(0.08 + rnd()*0.3), bot = S*(0.6 + rnd()*0.38);
+      for (let y = top; y < bot; y += 2){ sx += (rnd() - 0.5)*1.6; const k = (y - top)/(bot - top);
+        x.fillStyle = `rgba(${Math.round(60 - 30*k)},${Math.round(6 - 4*k)},4,${(0.35 + 0.5*rnd())*(k < 0.08 ? k/0.08 : 1)})`; x.fillRect(sx, y, w*(0.6 + 0.4*rnd()), 2.5); } }
+    blob(S*0.5, S*0.3, S*0.2, 'rgba(105,26,12,0.55)', 50); blob(S*0.5, S*0.32, S*0.15, 'rgba(40,4,3,0.8)', 50);
+    for (let i = 0; i < 7; i++){ const dx = S*0.32 + rnd()*S*0.36, y0 = S*0.35, y1 = y0 + S*(0.25 + rnd()*0.4);   // thin drips
+      x.fillStyle = 'rgba(55,5,3,0.85)'; x.fillRect(dx, y0, 1.6, y1 - y0); x.beginPath(); x.arc(dx + 0.8, y1, 2.2, 0, 6.283); x.fill(); }
+  } else {
+    const rust = kind === 'pool2' ? 'rgba(90,12,8,0.9)' : 'rgba(118,40,18,0.85)';
+    blob(S/2, S/2, S*0.36, rust, 120);                        // rusty, mottled outer edge
+    x.globalCompositeOperation = 'destination-out'; blob(S/2, S/2, S*0.4, 'rgba(0,0,0,0.55)', 26); x.globalCompositeOperation = 'source-over';   // holes in the edge
+    blob(S/2, S/2, S*0.27, 'rgba(48,5,3,0.95)', 90);           // dark red body
+    blob(S/2, S/2, S*0.18, 'rgba(14,1,1,0.97)', 60);           // near-black centre
+    for (let i = 0; i < 70; i++){ const a = rnd()*6.283, d = S*(0.3 + rnd()*0.18); x.fillStyle = rnd() < 0.5 ? 'rgba(110,30,14,0.9)' : 'rgba(60,6,4,0.95)';
+      x.beginPath(); x.arc(S/2 + Math.cos(a)*d, S/2 + Math.sin(a)*d, 0.8 + rnd()*2.6, 0, 6.283); x.fill(); }   // droplets
+  }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.magFilter = THREE.NearestFilter; t.minFilter = THREE.LinearMipmapLinearFilter; return t;
+}
+function bloodDecal(w, h, tex){
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshLambertMaterial({ map:tex, transparent:true, depthWrite:false, polygonOffset:true, polygonOffsetFactor:-4, polygonOffsetUnits:-4, color:0xb0b0b0 }));
+  m.userData.flat = true; return m;
+}
+const _cpV = new THREE.Vector3(), _cpW = new THREE.Vector3(), _cpQ = new THREE.Quaternion(), _cpQ2 = new THREE.Quaternion();
+function cpAim(root, name, dir){   // turn bone `name` so (bone → its first bone child) points along dir (world space)
+  const b = root.getObjectByName('mixamorig' + name); if (!b) return; const ch = b.children.find(o=>o.isBone); if (!ch) return;
+  root.updateMatrixWorld(true);
+  const p0 = b.getWorldPosition(new THREE.Vector3()), p1 = ch.getWorldPosition(new THREE.Vector3()), cur = p1.sub(p0).normalize();
+  _cpQ.setFromUnitVectors(cur, _cpW.copy(dir).normalize());
+  b.getWorldQuaternion(_cpQ2); _cpQ2.premultiply(_cpQ);                       // new world rotation
+  const pq = b.parent.getWorldQuaternion(new THREE.Quaternion()).invert(); b.quaternion.copy(pq.multiply(_cpQ2));
+  if (window._cpdbg){ root.updateMatrixWorld(true); const q0 = b.getWorldPosition(new THREE.Vector3()), q1 = ch.getWorldPosition(new THREE.Vector3()).sub(q0).normalize(); window._cpdbg.push([name, +q1.angleTo(_cpW).toFixed(3)]); }
+}
+function corpseGeo(kind){
+  if (CP.geo[kind] || !survSrc) return CP.geo[kind];
+  const o = cloneSkinned(survSrc.scene); o.updateMatrixWorld(true);
+  const R = new THREE.Vector3(1,0,0), U = new THREE.Vector3(0,1,0), F = new THREE.Vector3(0,0,1);   // the model faces +z
+  const V = (r, u, f) => new THREE.Vector3().addScaledVector(R, r).addScaledVector(U, u).addScaledVector(F, f).normalize();
+  const hips = o.getObjectByName('mixamorigHips');
+  if (kind === 'sit'){
+    cpAim(o, 'Spine', V(0.1, 0.85, -0.42)); cpAim(o, 'Spine1', V(0.12, 0.85, -0.38)); cpAim(o, 'Spine2', V(0.15, 0.86, -0.3));
+    cpAim(o, 'Neck', V(0.3, 0.8, 0.2)); cpAim(o, 'Head', V(0.5, 0.55, 0.55));            // head lolled forward and to the side
+    cpAim(o, 'LeftUpLeg', V(0.18, -0.08, 1)); cpAim(o, 'LeftLeg', V(0.12, -0.05, 1)); cpAim(o, 'LeftFoot', V(0.3, 0.8, 0.5));
+    cpAim(o, 'RightUpLeg', V(-0.2, 0.78, 0.6)); cpAim(o, 'RightLeg', V(-0.12, -0.82, 0.55)); cpAim(o, 'RightFoot', V(-0.2, 0.2, 0.95));   // knee up
+    for (const [sd, s] of [['Left', 1], ['Right', -1]]){
+      cpAim(o, sd + 'Arm', V(0.32*s, -0.92, 0.05)); cpAim(o, sd + 'ForeArm', V(0.1*s, -0.55, 0.85)); cpAim(o, sd + 'Hand', V(0.05*s, -0.7, 0.7)); }
+  } else {   // sprawl: on his back, head toward +F, chest facing up
+    hips.updateMatrixWorld(true);
+    const qh = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(new THREE.Vector3(-1,0,0), new THREE.Vector3(0,0,1), new THREE.Vector3(0,1,0)));
+    const pq = hips.parent.getWorldQuaternion(new THREE.Quaternion()).invert(); hips.quaternion.copy(pq.multiply(qh));
+    // body frame now: head along +z, chest facing +y, the body's LEFT side = −x (turned over onto its back)
+    cpAim(o, 'Spine', new THREE.Vector3(0.05, 0.02, 1)); cpAim(o, 'Spine1', new THREE.Vector3(0.1, 0.02, 1)); cpAim(o, 'Spine2', new THREE.Vector3(0.15, 0.03, 1));
+    cpAim(o, 'Neck', new THREE.Vector3(0.25, 0.1, 1)); cpAim(o, 'Head', new THREE.Vector3(0.7, 0.1, 0.7));
+    cpAim(o, 'LeftArm', new THREE.Vector3(-0.75, 0.0, 0.66)); cpAim(o, 'LeftForeArm', new THREE.Vector3(-0.2, 0.02, 1)); cpAim(o, 'LeftHand', new THREE.Vector3(-0.1, 0, 1));   // flung up over the head
+    cpAim(o, 'RightArm', new THREE.Vector3(1, -0.02, -0.15)); cpAim(o, 'RightForeArm', new THREE.Vector3(0.35, 0, -0.95)); cpAim(o, 'RightHand', new THREE.Vector3(0.2, 0, -1));   // out to the side, hand down by the hip
+    cpAim(o, 'LeftUpLeg', new THREE.Vector3(-0.55, 0.02, -0.84)); cpAim(o, 'LeftLeg', new THREE.Vector3(0.15, 0.0, -1)); cpAim(o, 'LeftFoot', new THREE.Vector3(0, 1, -0.3));
+    cpAim(o, 'RightUpLeg', new THREE.Vector3(0.85, 0.03, -0.55)); cpAim(o, 'RightLeg', new THREE.Vector3(-0.35, 0.0, -0.94)); cpAim(o, 'RightFoot', new THREE.Vector3(-0.3, 1, 0));   // bent at the knee
+  }
+  o.updateMatrixWorld(true);
+  let mesh = null; o.traverse(c=>{ if (c.isSkinnedMesh && !mesh) mesh = c; }); if (!mesh) return null;
+  const src = mesh.geometry, pos = src.attributes.position, uv = src.attributes.uv, n = pos.count, out = new Float32Array(n*3), v = new THREE.Vector3();
+  mesh.skeleton.update();
+  for (let i = 0; i < n; i++){ v.fromBufferAttribute(pos, i); mesh.applyBoneTransform(i, v); v.applyMatrix4(mesh.matrixWorld); out[i*3] = v.x; out[i*3+1] = v.y; out[i*3+2] = v.z; }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(out, 3)); g.setAttribute('uv', uv.clone()); if (src.index) g.setIndex(src.index.clone());
+  const sc = SURV_H/SURV_RAW_H; g.scale(sc, sc, sc); g.computeBoundingBox();
+  const bb = g.boundingBox; g.translate(-(bb.min.x + bb.max.x)/2, -bb.min.y + 0.005, kind === 'sit' ? -bb.min.z : -(bb.min.z + bb.max.z)/2);   // sit: back at z = 0 (the wall)
+  g.computeVertexNormals(); g.computeBoundingBox();
+  // which vertices are chest / hips / legs (for the blood) — by their strongest bone
+  const ji = src.attributes.skinIndex, jw = src.attributes.skinWeight, bones = mesh.skeleton.bones, part = new Uint8Array(n);
+  for (let i = 0; i < n; i++){ let bi = 0, bw = -1; for (let k = 0; k < 4; k++){ const w = jw.getComponent(i, k); if (w > bw){ bw = w; bi = ji.getComponent(i, k); } }
+    const nm = bones[bi].name; part[i] = /UpLeg|Leg$/.test(nm) ? 3 : /Spine|Hips/.test(nm) ? 2 : /Foot|ForeArm|Hand/.test(nm) ? 1 : 0; }
+  g.userData.part = part;
+  return CP.geo[kind] = g;
+}
+function bloodySuitTex(g){
+  const img = survSrc.map && survSrc.map.image; if (!img) return survSrc.map;
+  const W = img.width, H = img.height, c = document.createElement('canvas'); c.width = W; c.height = H; const x = c.getContext('2d'); x.drawImage(img, 0, 0);
+  const uv = g.attributes.uv, part = g.userData.part; let r = 7;
+  const rnd = () => { r = (r*16807) % 2147483647; return r/2147483647; };
+  for (let i = 0; i < uv.count; i++){
+    const p = part[i], ch = p === 3 ? 0.42 : p === 2 ? 0.36 : p === 1 ? 0.12 : 0; if (rnd() > ch) continue;   // legs + chest soaked, arms/feet a little
+    const k0 = W/512, u = uv.getX(i)*W, vv = (1 - uv.getY(i))*H, rad = k0*((p >= 2 ? 3 : 2) + rnd()*(p >= 2 ? 7 : 3));
+    for (let k = 0; k < 4; k++){ x.fillStyle = rnd() < 0.55 ? 'rgba(40,3,2,0.85)' : 'rgba(95,14,8,0.75)';
+      x.beginPath(); x.arc(u + (rnd()-0.5)*rad*1.4, vv + (rnd()-0.5)*rad*1.4, rad*(0.35 + rnd()*0.6), 0, 6.283); x.fill(); } }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.magFilter = THREE.NearestFilter; t.flipY = survSrc.map.flipY; return t;
+}
+function makeCorpse(kind, seed){
+  const g = corpseGeo(kind); if (!g) return null;
+  if (!CP.mat) CP.mat = lam(0xd8d8d8, { map: bloodySuitTex(g) });
+  const grp = new THREE.Group(), body = new THREE.Mesh(g, CP.mat); grp.add(body);
+  const pool = bloodDecal(kind === 'sit' ? 1.5 : 2.2, kind === 'sit' ? 1.5 : 1.9, bloodTex(seed % 2 ? 'pool2' : 'pool', seed + 11)); pool.rotation.x = -Math.PI/2;
+  pool.rotation.z = (seed % 7)*0.9; pool.position.set(0, 0.012, kind === 'sit' ? 0.45 : 0.1); grp.add(pool);
+  if (kind === 'sprawl'){ const sp = bloodDecal(0.8, 0.8, bloodTex('pool', seed + 3)); sp.rotation.x = -Math.PI/2; sp.position.set(0.9, 0.011, -0.7); grp.add(sp); }
+  else { const sm = bloodDecal(1.0, 1.55, bloodTex('smear', seed + 5)); sm.position.set(0, 0.82, 0.012); grp.add(sm); }   // smeared down the wall behind him
+  return grp;
+}
+// the wall body (1 level in CP_WALL_N on Levels 0/1, same for everyone: from the level seed)
+function corpseWall(){
+  const sd = (level.seed|0) % 100000, r = (k)=>h01(sd*1.37 + k*91.7);
+  if (r(1) >= 1/CP_WALL_N && !CP.forced) return null;
+  const sp = level.spawn || [cc(1), cc(1)], cand = [];
+  for (let i = 0; i < N; i++) for (let j = 0; j < N; j++){
+    const x = cc(i), z = cc(j); if (Math.hypot(x - sp[0], z - sp[1]) < 18) continue;
+    if (inLab(x, z) || inPit(x, z) || (level.solid && level.solid[i*N+j]) || (LK === 1 && inRoom1(x, z))) continue;
+    for (const [di, dj, nx, nz] of [[1,0,-1,0],[-1,0,1,0],[0,1,0,-1],[0,-1,0,1]]){   // wall on the (di,dj) side; body faces (nx,nz)
+      const e = edgeBetween(i, j, i+di, j+dj); if (e < 0 || !walls[e]) continue;
+      const wx = x + di*(CS/2 - 0.1), wz = z + dj*(CS/2 - 0.1), bx = wx + nx*0.42, bz = wz + nz*0.42;
+      const c = collide(bx, bz, 0.35); if (Math.hypot(c[0] - bx, c[1] - bz) > 0.02) continue;   // something in the way
+      cand.push([wx, wz, Math.atan2(nx, nz)]); } }
+  if (!cand.length) return null;
+  return cand[Math.floor(r(2)*cand.length)];
+}
+function updateCorpses(){
+  if (!level || !level.group || !survSrc) return;
+  const key = G.r + ':' + (G.lv|0) + ':' + level.seed;
+  if (key !== CP.key){ for (const c of CP.list) c.parent && c.parent.remove(c); CP.list = []; CP.key = key; CP.wall = null; CP.nfl = 0;
+    if (LK === 0 || LK === 1){ const w = corpseWall(); if (w){ const c = makeCorpse('sit', (level.seed|0) % 9973 + 1); if (c){ c.position.set(w[0], 0, w[1]); c.rotation.y = w[2]; level.group.add(c); CP.list.push(c); CP.wall = w; } } }
+    CP.forced = false; }
+  const fl = G.fl || [];
+  while (CP.nfl < fl.length){ const e = fl[CP.nfl++], [x, z, yaw] = e, y = floorY(x, z);
+    if (LK === 2 && y < -0.2) continue;                                           // sank in the pool
+    const c = makeCorpse('sprawl', (Math.abs(x*131 + z*71)|0) + 1); if (!c) continue;
+    const cpos = collide(x - Math.sin(yaw)*0.5, z - Math.cos(yaw)*0.5, 0.75), v = new THREE.Vector3(cpos[0], Math.max(y, LK === 2 ? -0.6 : -9), cpos[1]);   // kept off the walls if (LK === 3) vis188(v.x, v.y, v.z, v); else if (LK === 4 || LK === 6) vis852(v.x, v.y, v.z, v);
+    c.position.copy(v); c.rotation.y = yaw + 2.2; level.group.add(c); CP.list.push(c); }
+}
+CP.force = () => { CP.forced = true; CP.key = ''; };
+
 /* ===== v0.52 the tension director (Ryan): paces the scares for each survivor, on their own screen only.
    TD.t = how tense it is right now (0..1): jumps when the Occupant is close / chasing, a blackout, a teammate caught; falls slowly.
    After something big it gives you a breather (TD.calm); after a long quiet stretch it makes something happen near you:
@@ -10704,7 +10849,7 @@ function frame(now){
   } else {
     updateRemotes(dt);
     updateMonsterDisplay(dt);
-    updateLurker(dt); updateSprintPings(dt); updateDroppedFL(dt); updateListener(dt); updatePartygoers(dt);
+    updateLurker(dt); updateSprintPings(dt); updateDroppedFL(dt); updateCorpses(); updateListener(dt); updatePartygoers(dt);
     placeCamera(dt);
     updateZoneEnv(dt);
     updatePanels(t);
@@ -10737,7 +10882,7 @@ function frame(now){
 }
 requestAnimationFrame(frame);
 
-window.__hp = { SML, get smSrc(){ return smSrc; }, PERF, tvPower, get TVR(){ return TVR; }, setGfx:(o)=>{ Object.assign(SET, o); applyGfx(); applySet(); }, get SET(){ return SET; }, spots, killSurvivor, hostCreaker, hostBS, bsUse, bsObj, bsCold, get CRV(){ return CRV; }, inRoom1, lrCampSpot, FR, frOpen, frClose, frJoin, frRender, frToast, FPH, placeFPHand, get flSrc(){ return flSrc; }, updateLab, hostFun, hostPartygoers, funAction, funObj, funNight, funDoorsToWalls, get PGV(){ return PGV; }, get scarePg(){ return scarePg; }, get FL_DRAIN(){ return FL_DRAIN; }, LS_HUNT, startOpt:(v)=>{ startOpt = v; }, hostTick, nextStep, isDead, killSurvivor, get remotes(){ return remotes; }, setRole:(r)=>{ role = r; }, get MON_WALK(){ return MON_WALK; }, get MONS(){ return MONS; }, get LSJ(){ return LSJ; }, get deathT(){ return deathT; }, get scareLs(){ return scareLs; }, hostListener, lsAlert, get LSV(){ return LSV; }, TD, updateTension, tdFakeSteps, DFL, boT, panelBright, collide, gen52, hostSchool52, hostMonitors52, assign52, tardy52, roomAt52, schoolObj52, schoolTarget52, myRoom52, MV52, get HMJ(){ return HMJ; }, S52_LANES, get radio37(){ return radio37; }, get fig37(){ return fig37; }, get zLevel(){ return zLevel; }, get zK(){ return zK; }, deepDay37, deep37, forceFig37:()=>{ figT = 0; }, duskIn37, wakeLay37, nowS, buildLevel, hotelOpen188, hostOutage188, pipeObj2, pipeTarget2, p2Diag, MQV, hostMannequins852, mqSeen852, floorAt852, laneAt852, MLANES, mallObj852, mallTarget852, mallWayTo852, aiTick852, mallMove852, get mallHold(){ return mallHold; }, get guide(){ return guide; }, hostLurker, opusTweak, fillDevices, get LRK(){ return LRK; }, lrSpot, animLurker, get running(){ return me.running; }, get W(){ return W; }, get N(){ return N; }, get stunCharge(){ return stunCharge; }, losClear, me, H, net, hide, unhide, throwCan, contextAction, useSkin, get mySkin(){ return mySkin; }, set mySkin(v){ mySkin=v; }, inPit, zoneOf, get G(){ return G; }, set G(v){ G=v; }, get mode(){ return mode; }, get role(){ return role; }, get level(){ return level; }, get walls(){ return walls; }, mDisp, doShift, monsterPos, ability, get abCD(){ return abCD; }, disguisedFrom, get fakes(){ return fakes; }, enterVent, nearVent, get ventT(){ return ventT; }, get ventCD(){ return ventCD; }, set ventCD(v){ ventCD=v; }, get abCD2(){ return abCD; }, inPit, get LK(){ return LK; }, get crankK(){ return crankK; }, ability, get curRH(){ return curRH; }, get MON(){ return MON; }, sfx, voice, noiseLevel, get settingsOpen(){ return settingsOpen; }, myPid, monsterVoice, pitchDown, dropDust, get silT(){ return silT; }, set silNext(v){ silNext=v; }, advanceLevel, aiObjectives, poolBlock, aiTick, aiReset, bfsFrom, cellOf, cc, floorY, TU, PG, camera, scene, renderer, applyUse, AI_DIFF, set diffOpt(v){ diffOpt=v; }, get M37(){ return M37; }, buildL37test:(sd)=>build37(sd), ripP, ripWho, makeAvatar, animAvatar, buildLevelTest:(sd,k)=>buildLevel(sd,k), fpArm:(roll,axis,curl)=>{ FP_ROLL = roll; FP_AXIS = axis; if (curl) Object.assign(FP_CURL, curl); buildFPArm(survSrc); }, VM, collide, k37, h37, d37, nav37, isNight, dayK, aiTick37, collide37, K37, sdShape, floorAt188, vis188, hostElev188, aiTick188, myCar188, elevPress188, ELV, HO, elDisp, update188, inLab, hostLab, labUse, labSensor, labStatus, startHatch, get hatchT(){ return hatchT; }, connected };
+window.__hp = { CP, corpseGeo, makeCorpse, corpseWall, updateCorpses, SML, get smSrc(){ return smSrc; }, PERF, tvPower, get TVR(){ return TVR; }, setGfx:(o)=>{ Object.assign(SET, o); applyGfx(); applySet(); }, get SET(){ return SET; }, spots, killSurvivor, hostCreaker, hostBS, bsUse, bsObj, bsCold, get CRV(){ return CRV; }, inRoom1, lrCampSpot, FR, frOpen, frClose, frJoin, frRender, frToast, FPH, placeFPHand, get flSrc(){ return flSrc; }, updateLab, hostFun, hostPartygoers, funAction, funObj, funNight, funDoorsToWalls, get PGV(){ return PGV; }, get scarePg(){ return scarePg; }, get FL_DRAIN(){ return FL_DRAIN; }, LS_HUNT, startOpt:(v)=>{ startOpt = v; }, hostTick, nextStep, isDead, killSurvivor, get remotes(){ return remotes; }, setRole:(r)=>{ role = r; }, get MON_WALK(){ return MON_WALK; }, get MONS(){ return MONS; }, get LSJ(){ return LSJ; }, get deathT(){ return deathT; }, get scareLs(){ return scareLs; }, hostListener, lsAlert, get LSV(){ return LSV; }, TD, updateTension, tdFakeSteps, DFL, boT, panelBright, collide, gen52, hostSchool52, hostMonitors52, assign52, tardy52, roomAt52, schoolObj52, schoolTarget52, myRoom52, MV52, get HMJ(){ return HMJ; }, S52_LANES, get radio37(){ return radio37; }, get fig37(){ return fig37; }, get zLevel(){ return zLevel; }, get zK(){ return zK; }, deepDay37, deep37, forceFig37:()=>{ figT = 0; }, duskIn37, wakeLay37, nowS, buildLevel, hotelOpen188, hostOutage188, pipeObj2, pipeTarget2, p2Diag, MQV, hostMannequins852, mqSeen852, floorAt852, laneAt852, MLANES, mallObj852, mallTarget852, mallWayTo852, aiTick852, mallMove852, get mallHold(){ return mallHold; }, get guide(){ return guide; }, hostLurker, opusTweak, fillDevices, get LRK(){ return LRK; }, lrSpot, animLurker, get running(){ return me.running; }, get W(){ return W; }, get N(){ return N; }, get stunCharge(){ return stunCharge; }, losClear, me, H, net, hide, unhide, throwCan, contextAction, useSkin, get mySkin(){ return mySkin; }, set mySkin(v){ mySkin=v; }, inPit, zoneOf, get G(){ return G; }, set G(v){ G=v; }, get mode(){ return mode; }, get role(){ return role; }, get level(){ return level; }, get walls(){ return walls; }, mDisp, doShift, monsterPos, ability, get abCD(){ return abCD; }, disguisedFrom, get fakes(){ return fakes; }, enterVent, nearVent, get ventT(){ return ventT; }, get ventCD(){ return ventCD; }, set ventCD(v){ ventCD=v; }, get abCD2(){ return abCD; }, inPit, get LK(){ return LK; }, get crankK(){ return crankK; }, ability, get curRH(){ return curRH; }, get MON(){ return MON; }, sfx, voice, noiseLevel, get settingsOpen(){ return settingsOpen; }, myPid, monsterVoice, pitchDown, dropDust, get silT(){ return silT; }, set silNext(v){ silNext=v; }, advanceLevel, aiObjectives, poolBlock, aiTick, aiReset, bfsFrom, cellOf, cc, floorY, TU, PG, camera, scene, renderer, applyUse, AI_DIFF, set diffOpt(v){ diffOpt=v; }, get M37(){ return M37; }, buildL37test:(sd)=>build37(sd), ripP, ripWho, makeAvatar, animAvatar, buildLevelTest:(sd,k)=>buildLevel(sd,k), fpArm:(roll,axis,curl)=>{ FP_ROLL = roll; FP_AXIS = axis; if (curl) Object.assign(FP_CURL, curl); buildFPArm(survSrc); }, VM, collide, k37, h37, d37, nav37, isNight, dayK, aiTick37, collide37, K37, sdShape, floorAt188, vis188, hostElev188, aiTick188, myCar188, elevPress188, ELV, HO, elDisp, update188, inLab, hostLab, labUse, labSensor, labStatus, startHatch, get hatchT(){ return hatchT; }, connected };
 </script>
 </body>
 </html>
