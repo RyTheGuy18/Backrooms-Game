@@ -488,7 +488,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.73.2</div>
+<div class="osd" id="ver">v0.74.0</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -643,6 +643,7 @@
         <div class="sr sel" data-k="cmo"></div>
         <div class="sr sel" data-k="aexp"></div>
         <div class="sr sel" data-k="bloom"></div>
+        <div class="sr sel" data-k="flare"></div>
         <div class="sr sel" data-k="mblur"></div>
         <div class="sr sel" data-k="sharp"></div>
         <div class="sr sel" data-k="noise"></div>
@@ -8541,15 +8542,16 @@ setTimeout(frStart, 1500);
 const SET_DEF = { vol:100, vv:100, sens:100, fov:74, mg:isIOS ? 220 : 160, mic:'', spk:'',
   gq:'med', res:'psx', lq:'med', shd:'off', shq:'low', refl:'med', wob:'psx', grain:'normal', bri:100, fps:'off', showFps:'off', invY:'off',
   cam:'camcorder', lens:'normal', cmo:'steady', aexp:'off', bloom:'off', noise:'off',
-  mblur:'off', sharp:'off', tex:'pixel', aa:'off', ao:'high', shaft:'off' };   // v0.70.9: SSAO high by default (Ryan)
+  mblur:'off', sharp:'off', tex:'pixel', aa:'off', ao:'high', shaft:'off', flare:'high' };   // v0.74: lens flare on by default; v0.70.9: SSAO high by default (Ryan)
 const SET = { ...SET_DEF };
 try { Object.assign(SET, JSON.parse(localStorage.getItem('lvl0_set') || '{}')); } catch(e){}
 try { if (!localStorage.getItem('lvl0_ao1')){ localStorage.setItem('lvl0_ao1', '1'); if (SET.gq !== 'low') SET.ao = 'high'; localStorage.setItem('lvl0_set', JSON.stringify(SET)); } } catch(e){}
+try { const sv = JSON.parse(localStorage.getItem('lvl0_set') || '{}'); if (sv.gq && !('flare' in sv)) SET.flare = sv.gq === 'low' ? 'off' : 'high'; } catch(e){}   // v0.74: LOW keeps no lens flare
 try { if (!localStorage.getItem('lvl0_shaft0')){ localStorage.setItem('lvl0_shaft0', '1'); SET.shaft = 'off'; localStorage.setItem('lvl0_set', JSON.stringify(SET)); } } catch(e){}   // v0.70.10: volumetric flashlight off for everyone once (Ryan: too much)   // v0.70.9: turn it on once for saved settings too (not on LOW)
-const GQ = { low:{ res:'low', lq:'low', shd:'off', shq:'low', refl:'low', tex:'pixel', aa:'off', ao:'off', shaft:'off' },
-  med:{ res:'psx', lq:'med', shd:'off', shq:'low', refl:'med', tex:'pixel', aa:'off', ao:'high', shaft:'off' },
-  high:{ res:'sharp', lq:'med', shd:'mine', shq:'high', refl:'high', tex:'clean', aa:'fxaa', ao:'high', shaft:'off' },
-  ultra:{ res:'hd', lq:'high', shd:'all', shq:'high', refl:'ultra', tex:'smooth', aa:'fxaa', ao:'high', shaft:'off' } };
+const GQ = { low:{ res:'low', lq:'low', shd:'off', shq:'low', refl:'low', tex:'pixel', aa:'off', ao:'off', shaft:'off', flare:'off' },
+  med:{ res:'psx', lq:'med', shd:'off', shq:'low', refl:'med', tex:'pixel', aa:'off', ao:'high', shaft:'off', flare:'high' },
+  high:{ res:'sharp', lq:'med', shd:'mine', shq:'high', refl:'high', tex:'clean', aa:'fxaa', ao:'high', shaft:'off', flare:'high' },
+  ultra:{ res:'hd', lq:'high', shd:'all', shq:'high', refl:'ultra', tex:'smooth', aa:'fxaa', ao:'high', shaft:'off', flare:'high' } };
 const OFFON = [['off','OFF'],['on','ON']];
 /* v0.67 (Ryan, after playing Bodycam: "ultra realistic"): CAMERA STYLE = a preset over lens / motion / exposure / bloom / noise
    (+ it turns the PSX wobble and film grain off for BODYCAM, back on for CAMCORDER). Post effects live in renderMain (POST). */
@@ -8583,6 +8585,8 @@ const SXK = {
   aexp:{ t:'Auto Exposure', d:'The camera adjusts to the light like a real one: walk into the dark and it\'s black for a moment before the picture slowly gains up (with more noise); point your light at a wall up close and everything else dims.',
     o:[['off','OFF','Default.'],['on','ON']] },
   bloom:{ t:'Bloom', d:'Bright lights glow and bleed into the picture like an overexposed camera sensor.', o:[['off','OFF','Default.'],['low','LOW'],['high','HIGH'],['max','MAX','Big, wide glow around every light.']] },
+  flare:{ t:'Lens Flare', d:'Bright lights do what they do to a real camera lens: coloured ghost rings across the picture, a streak through the light, and a vertical smear when a teammate\'s flashlight points straight at you.',
+    o:[['off','OFF'],['low','LOW','Faint.'],['high','HIGH','Default.']] },
   mblur:{ t:'Motion Blur', d:'The picture smears when you turn quickly, like a real camera\'s shutter.', o:[['off','OFF','Default.'],['low','LOW','A light smear on fast turns.'],['high','HIGH','Strong smear.']] },
   sharp:{ t:'Sharpening', d:'Crisper edges and detail, like the over-sharpened picture of a cheap digital camera.', o:OFFON },
   tex:{ t:'Texture Filtering', d:'How textures look up close and far away. Fixes walls, carpet and ceilings shimmering and crawling when you move.',
@@ -8642,7 +8646,7 @@ function applyGfx(){
   if (PL.length !== LQN[SET.lq]) setPL(LQN[SET.lq] || 8);
   if (PG.water){ const z = reflSz(), rt = PG.water.getRenderTarget(); if (rt.width !== z) rt.setSize(z, z); }
   $('fpsc').style.display = SET.showFps === 'on' ? 'block' : 'none';
-  { const on = SET.lens !== 'normal' || SET.aexp === 'on' || SET.bloom !== 'off' || SET.noise === 'on' || SET.mblur !== 'off' || SET.sharp === 'on' || SET.aa !== 'off' || SET.ao !== 'off' || SET.shaft === 'on';
+  { const on = SET.lens !== 'normal' || SET.aexp === 'on' || SET.bloom !== 'off' || SET.noise === 'on' || SET.mblur !== 'off' || SET.sharp === 'on' || SET.aa !== 'off' || SET.ao !== 'off' || SET.shaft === 'on' || SET.flare !== 'off';
     if (on && !POST.on) POST.init = true; POST.on = on; }
   $('game').style.imageRendering = SET.aa === 'fxaa' || SET.tex === 'smooth' ? 'auto' : '';
   texSweep();
@@ -11336,6 +11340,7 @@ let last = performance.now();
    The lens: a barrel bend with the centre magnified by (1 + k), so the scene is rendered with a wider FOV to cancel it. */
 const POST = { on:false, init:true, dt:0.016, ei:0, pf:null };
 const LENS_K = { normal:0, wide:0.16, fisheye:0.38 }, LENS_CA = { normal:0, wide:0.004, fisheye:0.009 };
+const FLARE_K = { off:0, low:0.5, high:1 };
 const BLOOM_K = { off:0, low:0.45, high:0.8, max:1.3 }, MBLUR_K = { off:0, low:0.45, high:0.9 };
 const _pv2 = new THREE.Vector2(), _pv3 = new THREE.Vector3(), _pv4 = new THREE.Vector3(), _pq = new THREE.Quaternion();
 function postInit(){
@@ -11346,6 +11351,7 @@ function postInit(){
   POST.rt = new THREE.WebGLRenderTarget(4, 4, { type, depthBuffer:true, minFilter:THREE.LinearFilter, magFilter:THREE.LinearFilter });
   POST.rt.depthTexture = new THREE.DepthTexture(4, 4); POST.rt.depthTexture.type = THREE.UnsignedIntType;
   POST.rt2 = mk(4, 4); POST.b1 = mk(8, 8); POST.b2 = mk(8, 8); POST.ao = mk(8, 8); POST.ao2 = mk(8, 8); POST.vl = mk(8, 8); POST.vl2 = mk(8, 8);
+  POST.f1 = mk(8, 8); POST.f2 = mk(8, 8); POST.f3 = mk(8, 8); POST.fc = mk(8, 1);
   POST.lum = mk(16, 16, true); POST.ex = [mk(1, 1, true), mk(1, 1, true)];
   POST.cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1); POST.sc = new THREE.Scene();
   POST.quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2)); POST.quad.frustumCulled = false; POST.sc.add(POST.quad);
@@ -11407,7 +11413,39 @@ function postInit(){
       float avg = exp(s/ws), tgt = clamp(pow(0.09/avg, 0.6), 0.55, 1.55), p = texture2D(tp, vec2(0.5)).r;
       if (init > 0.5) p = tgt; float r = tgt > p ? 0.55 : 2.6; gl_FragColor = vec4(mix(p, tgt, 1.0 - exp(-r*dt)), 0.0, 0.0, 1.0); }`,
     { tl:T(), tp:T(), dt:F(), init:F(1) });
-  POST.mComp = M(`uniform sampler2D tS; uniform sampler2D tB; uniform sampler2D tE; uniform sampler2D tA; uniform sampler2D tV;
+  /* v0.74 LENS FLARE (Ryan: "the rays you get looking at a bright light"). Quarter res, three passes:
+     mFlB = bright pass with a high threshold (only lamps / blown-out spots) + teammates' flashlights aimed at you injected as
+            glowing dots (FL.L: screen uv, strength, radius; FL.C: colour + view z, hidden if something is in front of it);
+     mFlC = one row: the average of every column (for the camcorder CCD smear);
+     mFl  = ghosts mirrored through the centre (coloured, chromatic), a halo ring, a horizontal streak, the vertical smear. */
+  POST.mFlB = M(DEPTH + `uniform sampler2D t; uniform vec2 px; uniform float th0, th1, asp; uniform vec4 L[4]; uniform vec4 Lc[4]; varying vec2 vUv;
+    void main(){ vec3 c = vec3(0.0); for (int i=-1;i<=1;i++) for (int j=-1;j<=1;j++) c += texture2D(t, vUv + vec2(float(i), float(j))*px*1.5).rgb; c /= 9.0;
+      float l = dot(c, vec3(0.299, 0.587, 0.114)); vec3 o = c*smoothstep(th0, th1, l)*smoothstep(0.7, 1.2, -vz(vUv));   // not your own hand / flashlight
+      for (int i = 0; i < 4; i++){ if (L[i].z > 0.0){ vec2 d = (vUv - L[i].xy)*vec2(asp, 1.0);
+        float vis = vz(clamp(L[i].xy, 0.0, 1.0)) > Lc[i].w + 0.35 ? 0.0 : 1.0;
+        o += Lc[i].rgb*L[i].z*exp(-dot(d, d)/(L[i].w*L[i].w))*vis; } }
+      gl_FragColor = vec4(o, 1.0); }`, { tD:T(), near:F(), far:F(), p0:F(), p1:F(), t:T(), px:V2(), th0:F(), th1:F(), asp:F(1),
+      L:{ value:[0,1,2,3].map(()=>new THREE.Vector4()) }, Lc:{ value:[0,1,2,3].map(()=>new THREE.Vector4()) } });
+  POST.mFlC = M(`uniform sampler2D t; varying vec2 vUv;
+    void main(){ vec3 s = vec3(0.0); for (int i = 0; i < 96; i++) s += texture2D(t, vec2(vUv.x, (float(i) + 0.5)/96.0)).rgb; gl_FragColor = vec4(s/96.0, 1.0); }`, { t:T() });
+  POST.mFl = M(`uniform sampler2D t; uniform sampler2D tc; uniform float asp, gk, hk, vk, vt; varying vec2 vUv;
+    vec3 S(vec2 u){ return (u.x < 0.0 || u.x > 1.0 || u.y < 0.0 || u.y > 1.0) ? vec3(0.0) : texture2D(t, u).rgb; }
+    vec3 tint(int i){ return i == 0 ? vec3(1.0, 0.62, 0.3) : i == 1 ? vec3(0.45, 1.0, 0.55) : i == 2 ? vec3(0.75, 0.45, 1.0) : i == 3 ? vec3(1.0, 0.85, 0.5) : vec3(0.4, 0.7, 1.0); }
+    void main(){
+      vec2 uv = vUv, g = 1.0 - uv, gv = (vec2(0.5) - g)*0.42; vec3 c = vec3(0.0);
+      for (int i = 0; i < 5; i++){ vec2 q = g + gv*float(i); float w = pow(1.0 - clamp(length(vec2(0.5) - q)/0.72, 0.0, 1.0), 5.0);
+        vec3 sm = vec3(S(q + gv*0.06).r, S(q).g, S(q - gv*0.06).b); c += sm*w*tint(i)*(i == 0 ? 0.5 : 1.0); }
+      vec2 hd = (vec2(0.5) - g)*vec2(asp, 1.0); hd = normalize(hd + 1e-5)/vec2(asp, 1.0)*0.4;
+      vec2 hq = g + hd; float hw = pow(1.0 - clamp(length(vec2(0.5) - hq)/0.72, 0.0, 1.0), 4.0);
+      c += vec3(S(hq + hd*0.05).r, S(hq).g, S(hq - hd*0.05).b)*hw*vec3(0.6, 0.8, 1.0)*0.45;
+      c *= gk;
+      vec3 st = vec3(0.0); for (int i = 1; i <= 12; i++){ float o = float(i)*0.011/asp, w = exp(-float(i)*0.28); st += (S(uv + vec2(o, 0.0)) + S(uv - vec2(o, 0.0)))*w; }
+      c += st*hk*vec3(0.55, 0.72, 1.0);
+      vec3 col = texture2D(tc, vec2(uv.x, 0.5)).rgb; float cl = dot(col, vec3(0.3, 0.59, 0.11));
+      c += col/(cl + 1e-4)*max(cl - vt, 0.0)*vk*(0.75 + 0.25*sin(uv.y*3.14159));
+      c /= 1.0 + dot(c, vec3(0.333))*0.7;   // soft cap: a far lamp still shows, a lamp right above you doesn't white out the screen
+      gl_FragColor = vec4(c, 1.0); }`, { t:T(), tc:T(), asp:F(1), gk:F(), hk:F(), vk:F(), vt:F() });
+  POST.mComp = M(`uniform sampler2D tS; uniform sampler2D tB; uniform sampler2D tE; uniform sampler2D tA; uniform sampler2D tV; uniform sampler2D tF; uniform float fl;
     uniform float k, ca, bl, ns, eo, tm, asp, aoOn, vOn, sh; uniform vec2 vel, px;
     varying vec2 vUv;
     float h(vec2 p, float o){ return fract(sin(dot(p, vec2(12.9898, 78.233)) + tm*7.13 + o)*43758.5453); }
@@ -11425,6 +11463,7 @@ function postInit(){
       if (aoOn > 0.5) c *= texture2D(tA, bu).r;
       if (vOn > 0.5) c += texture2D(tV, bu).rgb;
       c += texture2D(tB, bu).rgb*bl;
+      if (fl > 0.0) c += texture2D(tF, bu).rgb*fl;
       float e = eo > 0.5 ? texture2D(tE, vec2(0.5)).r : 1.0; c *= e;
       if (ns > 0.0){ float l = dot(c, vec3(0.299, 0.587, 0.114)), g = 0.03 + 0.08*clamp(e - 1.0, 0.0, 0.6);
         vec2 q = floor(u*vec2(1280.0, 720.0)/1.5); float n = h(q, 0.0) - 0.5; vec3 cn = vec3(h(q, 1.3), h(q, 2.7), h(q, 4.1)) - 0.5;
@@ -11434,7 +11473,7 @@ function postInit(){
       c = mix(c, 0.6 + 0.4*(1.0 - exp(-(c - 0.6)/0.4)), step(0.6, c));
       gl_FragColor = vec4(c, 1.0);
       #include <colorspace_fragment>
-    }`, { tS:T(), tB:T(), tE:T(), tA:T(), tV:T(), k:F(), ca:F(), bl:F(), ns:F(), eo:F(), tm:F(), asp:F(1), aoOn:F(), vOn:F(), sh:F(), vel:V2(), px:V2() });
+    }`, { tS:T(), tB:T(), tE:T(), tA:T(), tV:T(), tF:T(), fl:F(), k:F(), ca:F(), bl:F(), ns:F(), eo:F(), tm:F(), asp:F(1), aoOn:F(), vOn:F(), sh:F(), vel:V2(), px:V2() });
 }
 function postPass(m, t){ POST.quad.material = m; renderer.setRenderTarget(t); renderer.render(POST.sc, POST.cam); }
 function postSize(t, w, h){ if (t.width !== w || t.height !== h) t.setSize(w, h); }
@@ -11453,6 +11492,25 @@ function shadowGate(){
   else shTeam = -1;
   for (let i = 0; i < spots.length; i++){ const sp = spots[i];
     sp.shadow.autoUpdate = sp.castShadow && sp.intensity > 0.02 && (i === 0 || sp.position.distanceToSquared(camera.position) < 22*22); }
+}
+/* v0.74 lens flare: a teammate's flashlight pointed at the camera is a strong light source on screen (its lens is too small
+   to blow out the picture by itself), so up to 4 of them are added to the flare's bright pass by hand. FL_K / FL_TH = tuning. */
+const FL_K = { ghost:5, streak:2.5, smear:2.5, smearT:0.004, torch:1.6 }, FL_TH = [0.6, 1.1];
+const _flc = new THREE.Vector3(), FLD = { fake:null };   // FLD.fake = a spot-like { position, target:{position}, intensity, angle, color } (tests)
+function flareLights(B, mvi, p0, p1){
+  const Ls = B.L.value, Cs = B.Lc.value; let n = 0;
+  camera.getWorldPosition(_flc);
+  const list = FLD.fake ? [FLD.fake, ...spots.slice(1)] : spots.slice(1);
+  for (const s of list){ if (n >= 4) break; if (!(s.intensity > 0.05)) continue;
+    _pv3.copy(s.target.position).sub(s.position).normalize();
+    _pv4.copy(_flc).sub(s.position); const d = _pv4.length(); if (d < 0.3) continue;
+    const face = _pv3.dot(_pv4.divideScalar(d)), ca = Math.cos(s.angle), cone = Math.max(0, Math.min(1, (face - ca)/(1 - ca)));
+    if (cone <= 0) continue;
+    _pv4.copy(s.position).applyMatrix4(mvi); if (_pv4.z > -0.15) continue;
+    const u = 0.5 + 0.5*_pv4.x*p0/-_pv4.z, v = 0.5 + 0.5*_pv4.y*p1/-_pv4.z; if (u < -0.2 || u > 1.2 || v < -0.2 || v > 1.2) continue;
+    const k = cone*cone*(s.intensity/SPOT_I)*FL_K.torch/(1 + d*d*0.01);
+    Ls[n].set(u, v, k, 0.008 + 0.02*cone/(1 + d*0.15)); Cs[n].set(s.color.r, s.color.g, s.color.b, _pv4.z); n++; }
+  for (; n < 4; n++) Ls[n].set(0, 0, 0, 1);
 }
 function renderMain(){
   shadowGate();
@@ -11482,6 +11540,17 @@ function renderMain(){
   const bl = BLOOM_K[SET.bloom] || 0;
   if (bl){ const B = POST.mBright.uniforms; B.t.value = src.texture; B.px.value.set(1/w, 1/h); postPass(POST.mBright, POST.b1);
     for (const sp of SET.bloom === 'max' ? [1, 2.2, 4] : [1, 2.2]) blurPass(POST.b1, POST.b2, sp); }
+  const fk = FLARE_K[SET.flare] || 0;
+  if (fk){ const qw = Math.max(8, w >> 2), qh = Math.max(8, h >> 2);
+    postSize(POST.f1, qw, qh); postSize(POST.f2, qw, qh); postSize(POST.f3, qw, qh); postSize(POST.fc, qw, 1);
+    const B = POST.mFlB.uniforms; setD(B); B.t.value = src.texture; B.px.value.set(1/w, 1/h); B.asp.value = w/h;
+    if (POST.hf){ B.th0.value = FL_TH[0]; B.th1.value = FL_TH[1]; } else { B.th0.value = 0.6; B.th1.value = 1.0; }
+    flareLights(B, mvi, p0, p1);
+    postPass(POST.mFlB, POST.f1); blurPass(POST.f1, POST.f3, 1);
+    POST.mFlC.uniforms.t.value = POST.f1.texture; postPass(POST.mFlC, POST.fc);
+    const U = POST.mFl.uniforms; U.t.value = POST.f1.texture; U.tc.value = POST.fc.texture; U.asp.value = w/h;
+    U.gk.value = FL_K.ghost; U.hk.value = FL_K.streak; U.vk.value = FL_K.smear; U.vt.value = FL_K.smearT;
+    postPass(POST.mFl, POST.f2); blurPass(POST.f2, POST.f3, 1.4); }
   const ae = SET.aexp === 'on' && POST.hf;
   if (ae){ POST.mLum.uniforms.t.value = src.texture; postPass(POST.mLum, POST.lum);
     const A = POST.mAdapt.uniforms, s0 = POST.ex[POST.ei], d0 = POST.ex[1 - POST.ei];
@@ -11496,6 +11565,7 @@ function renderMain(){
   POST.pf = (POST.pf || new THREE.Vector3()).copy(_pv3);
   C.tS.value = src.texture; C.tB.value = POST.b1.texture; C.tE.value = POST.ex[POST.ei].texture; C.tA.value = POST.ao.texture; C.tV.value = POST.vl.texture;
   C.k.value = k; C.ca.value = LENS_CA[SET.lens] || 0; C.bl.value = bl; C.ns.value = SET.noise === 'on' ? 1 : 0; C.eo.value = ae ? 1 : 0; C.tm.value = (nowS() % 100); C.asp.value = w/h;
+  C.tF.value = POST.f2.texture; C.fl.value = fk;
   C.aoOn.value = ao ? 1 : 0; C.vOn.value = vOn ? 1 : 0; C.sh.value = SET.sharp === 'on' ? 0.55 : 0; C.px.value.set(1/w, 1/h);
   postPass(POST.mComp, null);
 }
@@ -11607,7 +11677,7 @@ function frame(now){
 }
 requestAnimationFrame(frame);
 
-window.__hp = { get walls(){ return walls; }, get N(){ return N; }, vIdx, hIdx, collide, SL, slPeople, slOwner, slPack, smSpot, smTargets, lightAtCell, slTurn:()=>{ SL.wrong = 99; }, slNow:()=>{ SL.due = 0; }, nzEnter:()=>{ nzLocal = true; useReq({ k:'nzin' }); }, nzGlitch:()=>{ H.nzForce = true; }, nzWorld, CP, corpseGeo, makeCorpse, corpseWall, updateCorpses, SML, get smSrc(){ return smSrc; }, PERF, tvPower, get TVR(){ return TVR; }, setGfx:(o)=>{ Object.assign(SET, o); applyGfx(); applySet(); }, get SET(){ return SET; }, spots, killSurvivor, hostCreaker, hostBS, bsUse, bsObj, bsCold, get CRV(){ return CRV; }, inRoom1, lrCampSpot, FR, frOpen, frClose, frJoin, frRender, frToast, FPH, placeFPHand, get flSrc(){ return flSrc; }, updateLab, hostFun, hostPartygoers, funAction, funObj, funNight, funDoorsToWalls, get PGV(){ return PGV; }, get scarePg(){ return scarePg; }, get FL_DRAIN(){ return FL_DRAIN; }, LS_HUNT, startOpt:(v)=>{ startOpt = v; }, hostTick, nextStep, isDead, killSurvivor, get remotes(){ return remotes; }, setRole:(r)=>{ role = r; }, get MON_WALK(){ return MON_WALK; }, get MONS(){ return MONS; }, get LSJ(){ return LSJ; }, get deathT(){ return deathT; }, get scareLs(){ return scareLs; }, hostListener, lsAlert, get LSV(){ return LSV; }, TD, updateTension, tdFakeSteps, DFL, boT, panelBright, collide, gen52, hostSchool52, hostMonitors52, assign52, tardy52, roomAt52, schoolObj52, schoolTarget52, myRoom52, MV52, get HMJ(){ return HMJ; }, S52_LANES, get radio37(){ return radio37; }, get fig37(){ return fig37; }, get zLevel(){ return zLevel; }, get zK(){ return zK; }, deepDay37, deep37, forceFig37:()=>{ figT = 0; }, duskIn37, wakeLay37, nowS, buildLevel, hotelOpen188, hostOutage188, pipeObj2, pipeTarget2, p2Diag, MQV, hostMannequins852, mqSeen852, floorAt852, laneAt852, MLANES, mallObj852, mallTarget852, mallWayTo852, aiTick852, mallMove852, get mallHold(){ return mallHold; }, get guide(){ return guide; }, hostLurker, opusTweak, fillDevices, get LRK(){ return LRK; }, lrSpot, animLurker, get running(){ return me.running; }, get W(){ return W; }, get N(){ return N; }, get stunCharge(){ return stunCharge; }, losClear, me, H, net, hide, unhide, throwCan, contextAction, useSkin, get mySkin(){ return mySkin; }, set mySkin(v){ mySkin=v; }, inPit, zoneOf, get G(){ return G; }, set G(v){ G=v; }, get mode(){ return mode; }, get role(){ return role; }, get level(){ return level; }, get walls(){ return walls; }, mDisp, doShift, monsterPos, ability, get abCD(){ return abCD; }, disguisedFrom, get fakes(){ return fakes; }, enterVent, nearVent, get ventT(){ return ventT; }, get ventCD(){ return ventCD; }, set ventCD(v){ ventCD=v; }, get abCD2(){ return abCD; }, inPit, get LK(){ return LK; }, get crankK(){ return crankK; }, ability, get curRH(){ return curRH; }, get MON(){ return MON; }, sfx, voice, noiseLevel, get settingsOpen(){ return settingsOpen; }, myPid, monsterVoice, pitchDown, dropDust, get silT(){ return silT; }, set silNext(v){ silNext=v; }, advanceLevel, aiObjectives, poolBlock, aiTick, aiReset, bfsFrom, cellOf, cc, floorY, TU, PG, camera, scene, renderer, applyUse, AI_DIFF, set diffOpt(v){ diffOpt=v; }, get M37(){ return M37; }, buildL37test:(sd)=>build37(sd), ripP, ripWho, makeAvatar, animAvatar, buildLevelTest:(sd,k)=>buildLevel(sd,k), fpArm:(roll,axis,curl)=>{ FP_ROLL = roll; FP_AXIS = axis; if (curl) Object.assign(FP_CURL, curl); buildFPArm(survSrc); }, VM, collide, k37, h37, d37, nav37, isNight, dayK, aiTick37, collide37, K37, sdShape, floorAt188, vis188, hostElev188, aiTick188, myCar188, elevPress188, ELV, HO, elDisp, update188, inLab, hostLab, labUse, labSensor, labStatus, startHatch, get hatchT(){ return hatchT; }, connected };
+window.__hp = { FLD, FL_K, FL_TH, get POST(){ return POST; }, get walls(){ return walls; }, get N(){ return N; }, vIdx, hIdx, collide, SL, slPeople, slOwner, slPack, smSpot, smTargets, lightAtCell, slTurn:()=>{ SL.wrong = 99; }, slNow:()=>{ SL.due = 0; }, nzEnter:()=>{ nzLocal = true; useReq({ k:'nzin' }); }, nzGlitch:()=>{ H.nzForce = true; }, nzWorld, CP, corpseGeo, makeCorpse, corpseWall, updateCorpses, SML, get smSrc(){ return smSrc; }, PERF, tvPower, get TVR(){ return TVR; }, setGfx:(o)=>{ Object.assign(SET, o); applyGfx(); applySet(); }, get SET(){ return SET; }, spots, killSurvivor, hostCreaker, hostBS, bsUse, bsObj, bsCold, get CRV(){ return CRV; }, inRoom1, lrCampSpot, FR, frOpen, frClose, frJoin, frRender, frToast, FPH, placeFPHand, get flSrc(){ return flSrc; }, updateLab, hostFun, hostPartygoers, funAction, funObj, funNight, funDoorsToWalls, get PGV(){ return PGV; }, get scarePg(){ return scarePg; }, get FL_DRAIN(){ return FL_DRAIN; }, LS_HUNT, startOpt:(v)=>{ startOpt = v; }, hostTick, nextStep, isDead, killSurvivor, get remotes(){ return remotes; }, setRole:(r)=>{ role = r; }, get MON_WALK(){ return MON_WALK; }, get MONS(){ return MONS; }, get LSJ(){ return LSJ; }, get deathT(){ return deathT; }, get scareLs(){ return scareLs; }, hostListener, lsAlert, get LSV(){ return LSV; }, TD, updateTension, tdFakeSteps, DFL, boT, panelBright, collide, gen52, hostSchool52, hostMonitors52, assign52, tardy52, roomAt52, schoolObj52, schoolTarget52, myRoom52, MV52, get HMJ(){ return HMJ; }, S52_LANES, get radio37(){ return radio37; }, get fig37(){ return fig37; }, get zLevel(){ return zLevel; }, get zK(){ return zK; }, deepDay37, deep37, forceFig37:()=>{ figT = 0; }, duskIn37, wakeLay37, nowS, buildLevel, hotelOpen188, hostOutage188, pipeObj2, pipeTarget2, p2Diag, MQV, hostMannequins852, mqSeen852, floorAt852, laneAt852, MLANES, mallObj852, mallTarget852, mallWayTo852, aiTick852, mallMove852, get mallHold(){ return mallHold; }, get guide(){ return guide; }, hostLurker, opusTweak, fillDevices, get LRK(){ return LRK; }, lrSpot, animLurker, get running(){ return me.running; }, get W(){ return W; }, get N(){ return N; }, get stunCharge(){ return stunCharge; }, losClear, me, H, net, hide, unhide, throwCan, contextAction, useSkin, get mySkin(){ return mySkin; }, set mySkin(v){ mySkin=v; }, inPit, zoneOf, get G(){ return G; }, set G(v){ G=v; }, get mode(){ return mode; }, get role(){ return role; }, get level(){ return level; }, get walls(){ return walls; }, mDisp, doShift, monsterPos, ability, get abCD(){ return abCD; }, disguisedFrom, get fakes(){ return fakes; }, enterVent, nearVent, get ventT(){ return ventT; }, get ventCD(){ return ventCD; }, set ventCD(v){ ventCD=v; }, get abCD2(){ return abCD; }, inPit, get LK(){ return LK; }, get crankK(){ return crankK; }, ability, get curRH(){ return curRH; }, get MON(){ return MON; }, sfx, voice, noiseLevel, get settingsOpen(){ return settingsOpen; }, myPid, monsterVoice, pitchDown, dropDust, get silT(){ return silT; }, set silNext(v){ silNext=v; }, advanceLevel, aiObjectives, poolBlock, aiTick, aiReset, bfsFrom, cellOf, cc, floorY, TU, PG, camera, scene, renderer, applyUse, AI_DIFF, set diffOpt(v){ diffOpt=v; }, get M37(){ return M37; }, buildL37test:(sd)=>build37(sd), ripP, ripWho, makeAvatar, animAvatar, buildLevelTest:(sd,k)=>buildLevel(sd,k), fpArm:(roll,axis,curl)=>{ FP_ROLL = roll; FP_AXIS = axis; if (curl) Object.assign(FP_CURL, curl); buildFPArm(survSrc); }, VM, collide, k37, h37, d37, nav37, isNight, dayK, aiTick37, collide37, K37, sdShape, floorAt188, vis188, hostElev188, aiTick188, myCar188, elevPress188, ELV, HO, elDisp, update188, inLab, hostLab, labUse, labSensor, labStatus, startHatch, get hatchT(){ return hatchT; }, connected };
 </script>
 </body>
 </html>
