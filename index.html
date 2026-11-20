@@ -488,7 +488,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.76.1</div>
+<div class="osd" id="ver">v0.76.2</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -636,6 +636,7 @@
         <div class="sh">PICTURE</div>
         <div class="sr sel" data-k="fs" id="srFs"></div>
         <div class="sr sel" data-k="res"></div>
+        <div class="sr sel" data-k="drs"></div>
         <div class="sr rng" data-k="bri"></div>
         <div class="sr rng" data-id="sFov" data-t="Field of View" data-d="How wide you see. Wider shows more around you; narrower feels closer and more claustrophobic."><span class="sl">Field of View</span><span class="sv"><span class="svt" id="vFov"></span><input type="range" id="sFov" min="60" max="100"></span></div>
         <div class="sr sel" data-k="wob"></div>
@@ -899,6 +900,7 @@ const carpetTex = canvasTex(64,64,(g,w,h)=>{
 });
 /* v0.62.7 (Ryan): Level 0's ceiling tiles = his OfficeCeiling001 (ambientCG): colour × AO baked at 512 px (one 4 m cell = 6×6 tiles), GL normal map 512 px. */
 const hotelCarpetPh = fileTex('textures/hotel-carpet.jpg'), hotelCarpetNor = fileTex('textures/hotel-carpet-nor.png'); hotelCarpetNor.colorSpace = THREE.NoColorSpace;   // v0.70.5: Ryan's Poly Haven dirty_carpet (diffuse ×1.5, 256 px = one 2 m tile; GL normal map 256 px) — the hotel's hall floors
+const labConcPh = fileTex('textures/lab-conc.jpg'), labConcNor = fileTex('textures/lab-conc-nor.jpg'); labConcNor.colorSpace = THREE.NoColorSpace;   // v0.76.2: Ryan's Poly Haven concrete_wall_009 (tie-hole panels) for the lab walls + ceiling, 3 m per image
 const labFloorPh = fileTex('textures/lab-floor.jpg'), labFloorNor = fileTex('textures/lab-floor-nor.jpg'); labFloorNor.colorSpace = THREE.NoColorSpace;   // v0.76.1: Ryan's Poliigon TilesCeramicWhite 6956 (5×5 tiles per image, × AO²)
 const offCeilPh = fileTex('textures/office-ceil.jpg'), offCeilNor = fileTex('textures/office-ceil-nor.jpg'); offCeilNor.colorSpace = THREE.NoColorSpace;
 const ceilTex = canvasTex(64,64,(g,w,h)=>{
@@ -6140,13 +6142,14 @@ function labPanels(L){
 }
 function buildLab(L, g, rng, dist0, far){
   const lab = L.lab = { sh:0, ld:0, glow:[], bo:false, dispT:0, beepT:0, exits:[] };
-  const steel = lam(0x585d58), dark = lam(0x2c2e2b), wallM = lam(0xffffff, { map:labWallTex }), hz = lam(0xffffff, { map:hazardTex });
+  const steel = lam(0x585d58), dark = lam(0x2c2e2b), wallM = lam(0xffffff, { map:labConcPh, normalMap:labConcNor }), hz = lam(0xffffff, { map:hazardTex });
   const glow = (m, c) => { lab.glow.push({ m, c }); return m; };
   const dec = m => { m.polygonOffset = true; m.polygonOffsetFactor = -2; m.polygonOffsetUnits = -6; return m; };   // decals: never fight the surface under them (PSX snapping)
   // floor, ceiling, concrete walls (in front of the shared wallpaper wall boxes)
   const fl = labPlane(LAB_W, LAB_D, LAB_W/3, LAB_D/3, lam(0xffffff, { map:labFloorPh, normalMap:labFloorNor })); fl.rotation.x = -Math.PI/2; fl.position.set(LAB_W/2, 0.003, LAB_D/2); g.add(fl);   // v0.75.5: 5 tiles of 0.6 m per repeat (same tile size as before)
-  const ce = labPlane(LAB_W, LAB_D, LAB_W*0.75, LAB_D*0.75, lam(0xffffff, { map:labCeilTex })); ce.rotation.x = Math.PI/2; ce.position.set(LAB_W/2, LAB_H, LAB_D/2); g.add(ce);
-  const wall = (w, h, x, y, z, ry) => { const m = labPlane(w, h, w/4, h/4, wallM); m.position.set(x, y, z); m.rotation.y = ry; g.add(m); return m; };
+  const ce = labPlane(LAB_W, LAB_D, LAB_W/3, LAB_D/3, lam(0xe2ded6, { map:labConcPh, normalMap:labConcNor })); ce.rotation.x = Math.PI/2; ce.position.set(LAB_W/2, LAB_H, LAB_D/2); g.add(ce);
+  const wall = (w, h, x, y, z, ry) => { const m = labPlane(w, h, w/3, h/3, wallM); { const uv = m.geometry.attributes.uv; for (let k=0;k<uv.count;k++) uv.setY(k, uv.getY(k) + (y - h/2)/3); }   // v0.76.2: panel seams line up at the same height on every wall
+    m.position.set(x, y, z); m.rotation.y = ry; g.add(m); return m; };
   const I = 0.15;
   wall(LAB_W, LAB_H, LAB_W/2, LAB_H/2, I, 0);
   wall(LAB_D, LAB_H, I, LAB_H/2, LAB_D/2, Math.PI/2);
@@ -8556,7 +8559,7 @@ setTimeout(frStart, 1500);
    flashlight spots: yours / everyone's), shadow quality, water reflection size (Poolrooms Reflector). The preset sets
    resolution + lighting + shadows + reflections; touching one of those makes it CUSTOM. MEDIUM = the old look. */
 const SET_DEF = { vol:100, vv:100, sens:100, fov:74, mg:isIOS ? 220 : 160, mic:'', spk:'',
-  gq:'med', res:'psx', lq:'med', shd:'off', shq:'low', refl:'med', wob:'psx', grain:'normal', bri:100, fps:'off', showFps:'off', invY:'off',
+  drs:'on', gq:'med', res:'psx', lq:'med', shd:'off', shq:'low', refl:'med', wob:'psx', grain:'normal', bri:100, fps:'off', showFps:'off', invY:'off',
   cam:'camcorder', lens:'normal', cmo:'steady', aexp:'off', bloom:'off', noise:'off',
   mblur:'off', sharp:'off', tex:'pixel', aa:'off', ao:'high', shaft:'off', flare:'off', tq:'std', mat:'flat', look:'lowpoly' };   // v0.76: visual style LOW POLY + flat (Lambert) materials   // v0.75: texture quality STANDARD; v0.74.2: lens flare off by default (HIGH/ULTRA turn it on); v0.70.9: SSAO high by default (Ryan)
 const SET = { ...SET_DEF };
@@ -8581,10 +8584,11 @@ const CAMS = { camcorder:{ lens:'normal', cmo:'steady', aexp:'off', bloom:'off',
    camera that moves with you, digital noise instead of film grain, and PBR materials (mat 'pbr'). Changing
    anything below makes it CUSTOM. Last in PRESETS so gq / cam are worked out before it is. */
 const LOOKS = { lowpoly:{ ...GQ.med, ...CAMS.camcorder, gq:'med', cam:'camcorder', mat:'flat' },
-  real:{ res:'native', lq:'ultra', shd:'all', shq:'ultra', refl:'ultra', tex:'smooth', aa:'fxaa', ao:'high', shaft:'off', flare:'low', tq:'high', gq:'custom',
+  real:{ res:'native', lq:'high', shd:'all', shq:'ultra', refl:'ultra', tex:'smooth', aa:'fxaa', ao:'high', shaft:'off', flare:'low', tq:'high', gq:'custom',
     lens:'normal', cmo:'body', aexp:'on', bloom:'high', noise:'on', wob:'off', grain:'off', sharp:'off', cam:'custom', mat:'pbr' } };
 const PRESETS = [['gq', () => GQ], ['cam', () => CAMS], ['look', () => LOOKS]];
 // saved settings from before v0.76 have no look: work it out from what they have
+if (SET.look === 'real' && SET.lq === 'ultra') SET.lq = 'high';   // v0.76.2: REALISTIC uses 12 lamp lights (lamps behind walls don't take one any more)
 { const m = Object.keys(LOOKS).find(p => Object.entries(LOOKS[p]).every(([a, b]) => SET[a] === b)); if (!localStorage.getItem('lvl0_look1')){ try { localStorage.setItem('lvl0_look1', '1'); } catch(e){} SET.look = m || 'custom'; } }
 const SXK = {
   look:{ t:'Visual Style', d:'The two looks of the game. Sets resolution, wobble, grain, lighting, shadows, textures, materials and the camera in one go. Change anything on its own and this turns to CUSTOM.',
@@ -8593,6 +8597,7 @@ const SXK = {
     o:[['flat','FLAT','The original matte look (default).'],['pbr','REALISTIC','Physically based materials. Heavier on the graphics card. On with the REALISTIC style.']] },
   fs:{ t:'Fullscreen', d:'Plays the game fullscreen. F11 does the same. In Chrome and Edge a quick Esc only opens settings; HOLD Esc to leave fullscreen.',
     o:[['off','OFF'],['on','ON']] },
+  drs:{ t:'Dynamic Resolution', d:'Only for HD and NATIVE resolution. When the frame rate drops below about 50 FPS the game draws a few less pixels until it can keep up, then goes back to full sharpness. Keeps it smooth on laptops.', o:[['on','ON','Default.'],['off','OFF','Always the full resolution, even if it gets choppy.']] },
   res:{ t:'Render Resolution', d:'How many pixels the game draws before it gets stretched to your screen. Low and PSX are the crunchy camcorder look the game was made with. Higher is sharper and costs more.',
     o:[['low','LOW','Extra crunchy, the fastest.'],['psx','PSX','The original look (default).'],['sharp','SHARP','480 lines: clearer, still pixelated.'],['hd','HD','720 lines: clean. Heavier on phones.'],['native','NATIVE','Your screen\'s full resolution (up to 1440p). Heaviest.']] },
   bri:{ t:'Brightness', d:'Makes the picture brighter or darker. The game is meant to be dark: turn it up only if you can\'t see anything at all.', min:50, max:150, step:5, u:'%' },
@@ -8703,7 +8708,7 @@ addEventListener('resize', ()=>{ if (SET.res === 'native' || SET.res === 'hd' ||
    - Pipe Dreams' brick / gravel concrete / floors / rust get normal maps they never had (HI_NOR), added to and taken off
      the materials. Off in the menu TV room. Roughness / displacement maps are not used: the game's lighting (Lambert) has
      no shine to drive. */
-const HI_FILES = new Set(['lab-floor','lab-floor-nor','hotel-wall','garage-conc','bs-beam','bs-conc','bs-conc-nor','bs-plank','bs-plank-nor','bs-wall','bs-wall-nor','garage-conc-nor','hotel-carpet','hotel-carpet-nor',
+const HI_FILES = new Set(['lab-conc','lab-conc-nor','lab-floor','lab-floor-nor','hotel-wall','garage-conc','bs-beam','bs-conc','bs-conc-nor','bs-plank','bs-plank-nor','bs-wall','bs-wall-nor','garage-conc-nor','hotel-carpet','hotel-carpet-nor',
   'hotel-wall-nor','office-ceil','office-ceil-nor','p2-brick','p2-concrete','p2-floor-cracked','p2-rust','steel-brushed','steel-brushed-nor','p2-floor']);
 const HI_ALIAS = { 'p2-floor':'garage-conc' };
 const HI_NOR = { 'p2-brick':'p2-brick-nor', 'p2-concrete':'p2-concrete-nor', 'p2-floor':'garage-conc-nor', 'p2-floor-cracked':'p2-floor-cracked-nor', 'p2-rust':'p2-rust-nor' };
@@ -10648,9 +10653,15 @@ function updatePanels(t){
   const cx = cellOf(camera.position.x), cz = cellOf(camera.position.z);
   const near = [];
   const seenP = new Set();
-  for (let i=cx-3;i<=cx+3;i++) for (let j=cz-3;j<=cz+3;j++){ if (!inGrid(i,j)) continue; const k=L.panelAt[i*N+j]; if (k<0 || seenP.has(k)) continue; seenP.add(k); const p=L.panels[k]; if (LK === 1 && p.b < 0.02 && p.gk < 0) continue; near.push([Math.hypot(p.x-camera.position.x, p.z-camera.position.z), p]); }
-  // Level 1: a running generator's lamp keeps its light however far away you are
-  if (LK === 1) for (const p of L.panels) if (p.gk >= 0 && p.b > 0.02 && !near.some(e=>e[1] === p)) near.push([Math.hypot(p.x-camera.position.x, p.z-camera.position.z), p]);
+  /* v0.76.2 (Ryan: lamp light / reflections came through the walls): point lights have no shadows, so a lamp on the other side
+     of a wall lit (and, with REALISTIC materials, put shiny highlights on) your side. Only lamps with a clear line from the
+     lamp to the camera get one of the real lights; p.lv eases in/out (~0.2 s) so lights don't pop when you round a corner. */
+  const ccx = camera.position.x, ccz = camera.position.z, pdt = Math.min(0.1, Math.max(0, t - (L._pt ?? t))); L._pt = t;
+  const lvis = p => { const v = losClear(p.x, p.z, ccx, ccz) ? 1 : 0;
+    p.lv = (p.lv == null || t - (p._lt ?? -9) > 0.5) ? v : p.lv + (v - p.lv)*Math.min(1, pdt*5); p._lt = t; return p.lv; };
+  for (let i=cx-3;i<=cx+3;i++) for (let j=cz-3;j<=cz+3;j++){ if (!inGrid(i,j)) continue; const k=L.panelAt[i*N+j]; if (k<0 || seenP.has(k)) continue; seenP.add(k); const p=L.panels[k]; if (LK === 1 && p.b < 0.02 && p.gk < 0) continue; if (lvis(p) < 0.02) continue; near.push([Math.hypot(p.x-ccx, p.z-ccz), p]); }
+  // Level 1: a running generator's lamp keeps its light however far away you are (if you can see it)
+  if (LK === 1) for (const p of L.panels) if (p.gk >= 0 && p.b > 0.02 && !seenP.has(p.idx) && lvis(p) >= 0.02) near.push([Math.hypot(p.x-ccx, p.z-ccz), p]);
   near.sort((a,b)=>(LK === 1 ? (a[1].b < 0.02) - (b[1].b < 0.02) : 0) || a[0]-b[0]);
   localLight = 0;
   for (let k=0;k<PL.length;k++){
@@ -10659,9 +10670,9 @@ function updatePanels(t){
     const p = e[1];
     l.position.set(p.x, p.y != null ? p.y-0.22 : p.t===2 ? ZH[2]-0.25 : WH-0.25, p.z);
     l.distance = p.dist || (LK === 1 && p.gk >= 0 ? 13 : 9.5);
-    l.intensity = LI * Math.min(1.3, p.b) * (p.t===2 ? 1.25 : 1) * (LK === 3 && level.hm && role !== 'monster' ? 0.5 + 0.5*level.hm.open : 1);
+    l.intensity = LI * (p.lv ?? 1) * Math.min(1.3, p.b) * (p.t===2 ? 1.25 : 1) * (LK === 3 && level.hm && role !== 'monster' ? 0.5 + 0.5*level.hm.open : 1);
     l.color.setHex(p.col ? p.col : p.red ? 0xff3018 : p.t===1 ? 0xd8ffe6 : p.t===2 ? 0xfff6dc : 0xfff0c0);
-    localLight = Math.max(localLight, p.b * clamp(1 - e[0]/6.5, 0, 1));
+    localLight = Math.max(localLight, p.b * (p.lv ?? 1) * clamp(1 - e[0]/6.5, 0, 1));
   }
   if (LK === 2) localLight = 1;
   if (near[0]){ const nb = near[0][1].b; if (Math.abs(nb-lastNearB) > 0.5 && near[0][0] < 6) sfx.flick({x:near[0][1].x, y:WH, z:near[0][1].z}); lastNearB = nb; }
@@ -11221,7 +11232,8 @@ function updateLowRes(dt, sees){
     target = mode==='deadAnim' ? 1 : Math.max(t - lastSeenK < 0.6 ? 0.45 : 0, disguisedFrom(me.x, me.z) ? 0 : clamp(1 - (d-1.5)/5, 0, 1)*0.28);   // v0.38.1: softer (Ryan: too fuzzy)
   }
   lowK = lerp(lowK, target, 1-Math.exp(-(target > lowK ? 9 : 2.5)*dt));
-  const base = zK > 0.05 ? Math.round(RH*(1 + 0.6*zK)/24)*24 : RH;   // zoomed in: a bit more detail
+  const RHd = DRS.k < 1 ? Math.round(RH*DRS.k/8)*8 : RH;   // v0.76.2 dynamic resolution
+  const base = zK > 0.05 ? Math.round(RHd*(1 + 0.6*zK)/24)*24 : RHd;   // zoomed in: a bit more detail
   const h = lowK < 0.02 ? base : Math.max(96, Math.round(base * (1 - 0.62*lowK) / 12) * 12);   // stepped so it snaps like a camera dropping quality
   if (h !== curRH){ curRH = h; resize(); }
 }
@@ -11772,6 +11784,21 @@ function gpuQ(start){
     else PERF.q = null;
   } else if (PERF.q){ gl.endQuery(X.TIME_ELAPSED_EXT); PERF.qs.push(PERF.q); PERF.q = null; }
 }
+/* v0.76.2 DYNAMIC RESOLUTION (Ryan: more FPS without visibly less quality): at HD / NATIVE, when the last second ran under
+   ~50 FPS (or under 90% of the FRAME RATE LIMIT) the render height steps down 8% (not below 62%); after 3 s of holding it,
+   it steps back up 5%. Only in a round, never on the menu TV. DRS.k = scale; updateLowRes applies it. */
+const DRS = { k:1, acc:0, n:0, good:0 };
+function drsTick(fdt){
+  const on = SET.drs !== 'off' && (SET.res === 'native' || SET.res === 'hd') && (mode === 'play' || mode === 'spectate') && !tvRoomOn();
+  if (!on){ DRS.k = 1; DRS.acc = DRS.n = DRS.good = 0; return; }
+  if (fdt > 250){ DRS.acc = DRS.n = 0; return; }   // a hitch (tab switch, level build) says nothing
+  DRS.acc += fdt; DRS.n++; if (DRS.acc < 1000) return;
+  const avg = DRS.acc/DRS.n, cap = +SET.fps, slow = cap ? 1000/(cap*0.9) : 20, fast = cap ? 1000/(cap*0.97) : 17.6;
+  DRS.acc = DRS.n = 0;
+  if (avg > slow && DRS.k > 0.62){ DRS.k = Math.max(0.62, DRS.k - 0.08); DRS.good = 0; }
+  else if (avg < fast && DRS.k < 1){ if (++DRS.good >= 3){ DRS.k = Math.min(1, DRS.k + 0.05); DRS.good = 0; } }
+  else DRS.good = 0;
+}
 function perfFrame(fdt){
   const c = PERF.c, a = PERF.acc;
   if (fdt > 30 && mode === 'play'){ PERF.spikes.push({ ms:+fdt.toFixed(1), me:+c.me.toFixed(1), host:+c.host.toFixed(1), upd:+c.upd.toFixed(1), rend:+c.rend.toFixed(1), lv:LK }); if (PERF.spikes.length > 20) PERF.spikes.shift(); }
@@ -11792,7 +11819,7 @@ function frame(now){
   requestAnimationFrame(frame);
   { const cap = +SET.fps; if (cap && now - lastDraw < 1000/cap - 2) return; lastDraw = now; }   // v0.66: FRAME RATE LIMIT
   const fdt = now - last; const dt = Math.min(0.05, fdt/1000); last = now;
-  const pf0 = performance.now(); perfFrame(fdt);
+  const pf0 = performance.now(); perfFrame(fdt); drsTick(fdt);
   if ((renderer.shadowMap.enabled || SET.tex !== 'pixel' || SET.tq === 'high' || HIQ.on || SET.mat === 'pbr' || MATR.on) && now - shdT > 1200){ shdT = now; if (SET.mat === 'pbr' || MATR.on) matSync(); if (renderer.shadowMap.enabled) shadowFlags(false); if (SET.tex !== 'pixel') texSweep(); if (SET.tq === 'high' || HIQ.on) hiSync(); }   // new models / avatars pick up shadows (real time, not game time)
   const t = nowS();
   if (mode==='play' && myRound===G.r && !soloPaused()) updateMe(dt);
@@ -11859,7 +11886,7 @@ function frame(now){
 }
 requestAnimationFrame(frame);
 
-window.__hp = { HIQ, hiSync, get concPTs(){ return concPTs; }, FLD, FL_K, FL_TH, get POST(){ return POST; }, get walls(){ return walls; }, get N(){ return N; }, vIdx, hIdx, collide, SL, slPeople, slOwner, slPack, smSpot, smTargets, lightAtCell, slTurn:()=>{ SL.wrong = 99; }, slNow:()=>{ SL.due = 0; }, nzEnter:()=>{ nzLocal = true; useReq({ k:'nzin' }); }, nzGlitch:()=>{ H.nzForce = true; }, nzWorld, CP, corpseGeo, makeCorpse, corpseWall, updateCorpses, SML, get smSrc(){ return smSrc; }, PERF, tvPower, get TVR(){ return TVR; }, setGfx:(o)=>{ Object.assign(SET, o); applyGfx(); applySet(); }, setLook:(v)=>sxSet('look', v), MATR, matSync, get SET(){ return SET; }, spots, killSurvivor, hostCreaker, hostBS, bsUse, bsObj, bsCold, get CRV(){ return CRV; }, inRoom1, lrCampSpot, FR, frOpen, frClose, frJoin, frRender, frToast, FPH, placeFPHand, get flSrc(){ return flSrc; }, updateLab, hostFun, hostPartygoers, funAction, funObj, funNight, funDoorsToWalls, get PGV(){ return PGV; }, get scarePg(){ return scarePg; }, get FL_DRAIN(){ return FL_DRAIN; }, LS_HUNT, startOpt:(v)=>{ startOpt = v; }, hostTick, nextStep, isDead, killSurvivor, get remotes(){ return remotes; }, setRole:(r)=>{ role = r; }, get MON_WALK(){ return MON_WALK; }, get MONS(){ return MONS; }, get LSJ(){ return LSJ; }, get deathT(){ return deathT; }, get scareLs(){ return scareLs; }, hostListener, lsAlert, get LSV(){ return LSV; }, TD, updateTension, tdFakeSteps, DFL, boT, panelBright, collide, gen52, hostSchool52, hostMonitors52, assign52, tardy52, roomAt52, schoolObj52, schoolTarget52, myRoom52, MV52, get HMJ(){ return HMJ; }, S52_LANES, get radio37(){ return radio37; }, get fig37(){ return fig37; }, get zLevel(){ return zLevel; }, get zK(){ return zK; }, deepDay37, deep37, forceFig37:()=>{ figT = 0; }, duskIn37, wakeLay37, nowS, buildLevel, hotelOpen188, hostOutage188, pipeObj2, pipeTarget2, p2Diag, MQV, hostMannequins852, mqSeen852, floorAt852, laneAt852, MLANES, mallObj852, mallTarget852, mallWayTo852, aiTick852, mallMove852, get mallHold(){ return mallHold; }, get guide(){ return guide; }, hostLurker, opusTweak, fillDevices, get LRK(){ return LRK; }, lrSpot, animLurker, get running(){ return me.running; }, get W(){ return W; }, get N(){ return N; }, get stunCharge(){ return stunCharge; }, losClear, me, H, net, hide, unhide, throwCan, contextAction, useSkin, get mySkin(){ return mySkin; }, set mySkin(v){ mySkin=v; }, inPit, zoneOf, get G(){ return G; }, set G(v){ G=v; }, get mode(){ return mode; }, get role(){ return role; }, get level(){ return level; }, get walls(){ return walls; }, mDisp, doShift, monsterPos, ability, get abCD(){ return abCD; }, disguisedFrom, get fakes(){ return fakes; }, enterVent, nearVent, get ventT(){ return ventT; }, get ventCD(){ return ventCD; }, set ventCD(v){ ventCD=v; }, get abCD2(){ return abCD; }, inPit, get LK(){ return LK; }, get crankK(){ return crankK; }, ability, get curRH(){ return curRH; }, get MON(){ return MON; }, sfx, voice, noiseLevel, get settingsOpen(){ return settingsOpen; }, myPid, monsterVoice, pitchDown, dropDust, get silT(){ return silT; }, set silNext(v){ silNext=v; }, advanceLevel, aiObjectives, poolBlock, aiTick, aiReset, bfsFrom, cellOf, cc, floorY, TU, PG, camera, scene, renderer, applyUse, AI_DIFF, set diffOpt(v){ diffOpt=v; }, get M37(){ return M37; }, buildL37test:(sd)=>build37(sd), ripP, ripWho, makeAvatar, animAvatar, buildLevelTest:(sd,k)=>buildLevel(sd,k), fpArm:(roll,axis,curl)=>{ FP_ROLL = roll; FP_AXIS = axis; if (curl) Object.assign(FP_CURL, curl); buildFPArm(survSrc); }, VM, collide, k37, h37, d37, nav37, isNight, dayK, aiTick37, collide37, K37, sdShape, floorAt188, vis188, hostElev188, aiTick188, myCar188, elevPress188, ELV, HO, elDisp, update188, inLab, hostLab, labUse, labSensor, labStatus, startHatch, get hatchT(){ return hatchT; }, connected };
+window.__hp = { HIQ, hiSync, get concPTs(){ return concPTs; }, FLD, FL_K, FL_TH, get POST(){ return POST; }, get walls(){ return walls; }, get N(){ return N; }, vIdx, hIdx, collide, SL, slPeople, slOwner, slPack, smSpot, smTargets, lightAtCell, slTurn:()=>{ SL.wrong = 99; }, slNow:()=>{ SL.due = 0; }, nzEnter:()=>{ nzLocal = true; useReq({ k:'nzin' }); }, nzGlitch:()=>{ H.nzForce = true; }, nzWorld, CP, corpseGeo, makeCorpse, corpseWall, updateCorpses, SML, get smSrc(){ return smSrc; }, PERF, tvPower, get TVR(){ return TVR; }, setGfx:(o)=>{ Object.assign(SET, o); applyGfx(); applySet(); }, setLook:(v)=>sxSet('look', v), DRS, MATR, matSync, get SET(){ return SET; }, spots, killSurvivor, hostCreaker, hostBS, bsUse, bsObj, bsCold, get CRV(){ return CRV; }, inRoom1, lrCampSpot, FR, frOpen, frClose, frJoin, frRender, frToast, FPH, placeFPHand, get flSrc(){ return flSrc; }, updateLab, hostFun, hostPartygoers, funAction, funObj, funNight, funDoorsToWalls, get PGV(){ return PGV; }, get scarePg(){ return scarePg; }, get FL_DRAIN(){ return FL_DRAIN; }, LS_HUNT, startOpt:(v)=>{ startOpt = v; }, hostTick, nextStep, isDead, killSurvivor, get remotes(){ return remotes; }, setRole:(r)=>{ role = r; }, get MON_WALK(){ return MON_WALK; }, get MONS(){ return MONS; }, get LSJ(){ return LSJ; }, get deathT(){ return deathT; }, get scareLs(){ return scareLs; }, hostListener, lsAlert, get LSV(){ return LSV; }, TD, updateTension, tdFakeSteps, DFL, boT, panelBright, collide, gen52, hostSchool52, hostMonitors52, assign52, tardy52, roomAt52, schoolObj52, schoolTarget52, myRoom52, MV52, get HMJ(){ return HMJ; }, S52_LANES, get radio37(){ return radio37; }, get fig37(){ return fig37; }, get zLevel(){ return zLevel; }, get zK(){ return zK; }, deepDay37, deep37, forceFig37:()=>{ figT = 0; }, duskIn37, wakeLay37, nowS, buildLevel, hotelOpen188, hostOutage188, pipeObj2, pipeTarget2, p2Diag, MQV, hostMannequins852, mqSeen852, floorAt852, laneAt852, MLANES, mallObj852, mallTarget852, mallWayTo852, aiTick852, mallMove852, get mallHold(){ return mallHold; }, get guide(){ return guide; }, hostLurker, opusTweak, fillDevices, get LRK(){ return LRK; }, lrSpot, animLurker, get running(){ return me.running; }, get W(){ return W; }, get N(){ return N; }, get stunCharge(){ return stunCharge; }, losClear, me, H, net, hide, unhide, throwCan, contextAction, useSkin, get mySkin(){ return mySkin; }, set mySkin(v){ mySkin=v; }, inPit, zoneOf, get G(){ return G; }, set G(v){ G=v; }, get mode(){ return mode; }, get role(){ return role; }, get level(){ return level; }, get walls(){ return walls; }, mDisp, doShift, monsterPos, ability, get abCD(){ return abCD; }, disguisedFrom, get fakes(){ return fakes; }, enterVent, nearVent, get ventT(){ return ventT; }, get ventCD(){ return ventCD; }, set ventCD(v){ ventCD=v; }, get abCD2(){ return abCD; }, inPit, get LK(){ return LK; }, get crankK(){ return crankK; }, ability, get curRH(){ return curRH; }, get MON(){ return MON; }, sfx, voice, noiseLevel, get settingsOpen(){ return settingsOpen; }, myPid, monsterVoice, pitchDown, dropDust, get silT(){ return silT; }, set silNext(v){ silNext=v; }, advanceLevel, aiObjectives, poolBlock, aiTick, aiReset, bfsFrom, cellOf, cc, floorY, TU, PG, camera, scene, renderer, applyUse, AI_DIFF, set diffOpt(v){ diffOpt=v; }, get M37(){ return M37; }, buildL37test:(sd)=>build37(sd), ripP, ripWho, makeAvatar, animAvatar, buildLevelTest:(sd,k)=>buildLevel(sd,k), fpArm:(roll,axis,curl)=>{ FP_ROLL = roll; FP_AXIS = axis; if (curl) Object.assign(FP_CURL, curl); buildFPArm(survSrc); }, VM, collide, k37, h37, d37, nav37, isNight, dayK, aiTick37, collide37, K37, sdShape, floorAt188, vis188, hostElev188, aiTick188, myCar188, elevPress188, ELV, HO, elDisp, update188, inLab, hostLab, labUse, labSensor, labStatus, startHatch, get hatchT(){ return hatchT; }, connected };
 </script>
 </body>
 </html>
