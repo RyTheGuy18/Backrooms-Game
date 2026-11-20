@@ -488,7 +488,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.76.0</div>
+<div class="osd" id="ver">v0.76.1</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -899,6 +899,7 @@ const carpetTex = canvasTex(64,64,(g,w,h)=>{
 });
 /* v0.62.7 (Ryan): Level 0's ceiling tiles = his OfficeCeiling001 (ambientCG): colour × AO baked at 512 px (one 4 m cell = 6×6 tiles), GL normal map 512 px. */
 const hotelCarpetPh = fileTex('textures/hotel-carpet.jpg'), hotelCarpetNor = fileTex('textures/hotel-carpet-nor.png'); hotelCarpetNor.colorSpace = THREE.NoColorSpace;   // v0.70.5: Ryan's Poly Haven dirty_carpet (diffuse ×1.5, 256 px = one 2 m tile; GL normal map 256 px) — the hotel's hall floors
+const labFloorPh = fileTex('textures/lab-floor.jpg'), labFloorNor = fileTex('textures/lab-floor-nor.jpg'); labFloorNor.colorSpace = THREE.NoColorSpace;   // v0.76.1: Ryan's Poliigon TilesCeramicWhite 6956 (5×5 tiles per image, × AO²)
 const offCeilPh = fileTex('textures/office-ceil.jpg'), offCeilNor = fileTex('textures/office-ceil-nor.jpg'); offCeilNor.colorSpace = THREE.NoColorSpace;
 const ceilTex = canvasTex(64,64,(g,w,h)=>{
   g.fillStyle='#cdc6a2'; g.fillRect(0,0,w,h);
@@ -6143,7 +6144,7 @@ function buildLab(L, g, rng, dist0, far){
   const glow = (m, c) => { lab.glow.push({ m, c }); return m; };
   const dec = m => { m.polygonOffset = true; m.polygonOffsetFactor = -2; m.polygonOffsetUnits = -6; return m; };   // decals: never fight the surface under them (PSX snapping)
   // floor, ceiling, concrete walls (in front of the shared wallpaper wall boxes)
-  const fl = labPlane(LAB_W, LAB_D, LAB_W/0.6, LAB_D/0.6, lam(0xffffff, { map:labTileTex })); fl.rotation.x = -Math.PI/2; fl.position.set(LAB_W/2, 0.003, LAB_D/2); g.add(fl);
+  const fl = labPlane(LAB_W, LAB_D, LAB_W/3, LAB_D/3, lam(0xffffff, { map:labFloorPh, normalMap:labFloorNor })); fl.rotation.x = -Math.PI/2; fl.position.set(LAB_W/2, 0.003, LAB_D/2); g.add(fl);   // v0.75.5: 5 tiles of 0.6 m per repeat (same tile size as before)
   const ce = labPlane(LAB_W, LAB_D, LAB_W*0.75, LAB_D*0.75, lam(0xffffff, { map:labCeilTex })); ce.rotation.x = Math.PI/2; ce.position.set(LAB_W/2, LAB_H, LAB_D/2); g.add(ce);
   const wall = (w, h, x, y, z, ry) => { const m = labPlane(w, h, w/4, h/4, wallM); m.position.set(x, y, z); m.rotation.y = ry; g.add(m); return m; };
   const I = 0.15;
@@ -8702,7 +8703,7 @@ addEventListener('resize', ()=>{ if (SET.res === 'native' || SET.res === 'hd' ||
    - Pipe Dreams' brick / gravel concrete / floors / rust get normal maps they never had (HI_NOR), added to and taken off
      the materials. Off in the menu TV room. Roughness / displacement maps are not used: the game's lighting (Lambert) has
      no shine to drive. */
-const HI_FILES = new Set(['hotel-wall','garage-conc','bs-beam','bs-conc','bs-conc-nor','bs-plank','bs-plank-nor','bs-wall','bs-wall-nor','garage-conc-nor','hotel-carpet','hotel-carpet-nor',
+const HI_FILES = new Set(['lab-floor','lab-floor-nor','hotel-wall','garage-conc','bs-beam','bs-conc','bs-conc-nor','bs-plank','bs-plank-nor','bs-wall','bs-wall-nor','garage-conc-nor','hotel-carpet','hotel-carpet-nor',
   'hotel-wall-nor','office-ceil','office-ceil-nor','p2-brick','p2-concrete','p2-floor-cracked','p2-rust','steel-brushed','steel-brushed-nor','p2-floor']);
 const HI_ALIAS = { 'p2-floor':'garage-conc' };
 const HI_NOR = { 'p2-brick':'p2-brick-nor', 'p2-concrete':'p2-concrete-nor', 'p2-floor':'garage-conc-nor', 'p2-floor-cracked':'p2-floor-cracked-nor', 'p2-rust':'p2-rust-nor' };
@@ -8762,6 +8763,7 @@ const PBR_FWD = ['map','normalMap','emissiveMap','alphaMap','aoMap','aoMapIntens
 const PBR_FIN = [[/carpet/, 0.96, 0], [/wallpaper|hotel-wall/, 0.78, 0], [/ceil/, 0.93, 0], [/brick/, 0.9, 0], [/conc|bs-wall|p2-floor/, 0.82, 0],
   [/plank|beam/, 0.66, 0], [/rust/, 0.72, 0.25], [/steel/, 0.36, 0.55], [/diffuser/, 0.5, 0]];
 // the game's own canvas textures: polished / glazed floors shine, metal glints, carpet stays dead matte
+labFloorPh.userData.pbr = [0.2, 0];   // v0.76.1: glazed ceramic lab floor
 for (const [ts, f] of [[[labTileTex, mallTileTex, mallCheckTex, s52HallTex, s52BathTex, nzTileTex, nzPoolWallTex], [0.24, 0]], [[s52RoomTex, s52CafeTex, nzCheckTex], [0.34, 0]],
   [[hSteelTex, mallGateTex, shutterTex, escStepTex, grateTex], [0.42, 0.4]], [[cabTex, s52LockerTex], [0.48, 0.3]], [[p2RustTex], [0.72, 0.25]],
   [[hDoorTex, s52DoorTex, p2DoorTex], [0.55, 0]], [[carpetTex, hCarpetTex, mallCarpetTex, funRugTex, cleanRugTex], [0.97, 0]], [[s52BoardTex], [0.88, 0]]]) for (const t of ts) t.userData.pbr = f;
