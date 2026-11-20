@@ -487,7 +487,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.72.0</div>
+<div class="osd" id="ver">v0.72.1</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -3098,7 +3098,7 @@ function hostPipe2(dt, ps){
    A computer Occupant never comes down; a player Occupant turns human and follows once every living survivor is down here.
    THE STILL-LIFE (stage 3, client-side: each player down here has their own) — see its own block below. */
 const NZ_N = 38, NZ_WH = 2.8, NZ_LOW = 1.5, NZ_GLITCH = 20;
-let nzLocal = false, nzWas = false;
+let nzLocal = false, nzWas = false, specNZ = 0;
 // v0.71.2 (Ryan: the tall walls and the crawlspace headers 'lost the texture'): the wallpaper without its baseboard/top band
 // (rows 3–118 of wallpaper.png), so it can run up any height; nzUpBox keeps it at the walls' scale (one 96 px tile per 2.1 m, 2.54 m tall)
 const nzPaperUp = (()=>{ const c = document.createElement('canvas'); c.width = 96; c.height = 116; const t = new THREE.CanvasTexture(c);
@@ -3108,7 +3108,7 @@ const nzUpM = lam(0xffffff, { map:nzPaperUp });
 function nzUpBox(w, h, d){ const g = new THREE.BoxGeometry(w, h, d), uv = g.attributes.uv; const fu = [d, d, w, w, w, w], fv = [h, h, d, d, h, h];
   for (let f=0;f<6;f++) for (let k=0;k<4;k++){ const q = f*4+k; uv.setXY(q, uv.getX(q)*fu[f]/2.1, uv.getY(q)*fv[f]/2.54); } uv.needsUpdate = true; return g; }
 const nzIn = () => !!(nzLocal || (G.nz && G.nz.includes(myPid)));
-function nzWorld(){ return (G.ph === 'play' && (G.lv|0) === 0 && nzIn()) ? 9 : (G.lv|0); }
+function nzWorld(){ return (G.ph === 'play' && (G.lv|0) === 0 && (nzIn() || (mode === 'spect' && specNZ))) ? 9 : (G.lv|0); }   // v0.72.1: spectators follow who they watch
 const nzPlasterTex = canvasTex(64, 64, (g, w, h)=>{ g.fillStyle = '#b8a878'; g.fillRect(0, 0, w, h);
   for (let i = 0; i < 900; i++){ const v = texR(); g.fillStyle = v < 0.5 ? 'rgba(120,104,70,.3)' : 'rgba(214,200,160,.25)'; g.fillRect(texR()*w|0, texR()*h|0, 1, 1); }
   for (let i = 0; i < 5; i++){ const x = texR()*w, y = texR()*h, r = 6 + texR()*12, gr = g.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, 'rgba(90,72,40,.25)'); gr.addColorStop(1, 'rgba(90,72,40,0)'); g.fillStyle = gr; g.fillRect(x-r, y-r, r*2, r*2); } });
@@ -3299,7 +3299,7 @@ function nzClient(dt){
   const w = nzWorld();
   if (w !== LK && (LK === 9 || w === 9)){ buildLevel(lvSeed(w), w); sfx.bindLevel(); wallsLoadedV = -1;
     if (w !== 9) slReset();
-    if (w === 9) nzArrive(); else if (!amHost() && G.w) { walls = hexToWalls(G.w); applyWalls(false); } }
+    if (w === 9 && nzIn()) nzArrive(); else if (w === 9){ $('black').style.opacity = 0; } else if (!amHost() && G.w) { walls = hexToWalls(G.w); applyWalls(false); } }
   if (LK !== 9) return;
   const Z = level.nz; if (!Z) return;
   nzElevUpdate(dt);
@@ -8987,7 +8987,7 @@ function startRoundLocal(){
 }
 function monFilter(){ return role==='monster' ? `sepia(.85) saturate(2.6) hue-rotate(-38deg) contrast(1.1) brightness(${LK === 1 ? .86 : LK === 2 ? 1.0 : LK === 3 || LK === 4 || LK === 6 ? .82 : .64})` : ''; }
 function enterLevel(){
-  nzLocal = false; me.nzFall = false;
+  nzLocal = false; me.nzFall = false; specNZ = 0;
   seenLv = G.lv|0; seenOpen = G.open; seenPl = G.pl; genSeen = []; mallHold = null; clawWon = false; sodaT = 0; seenPam = G.pam ? G.pam[0] : -1; mallMapT = 0; if ($('mmap')) $('mmap').style.display = 'none'; knownBo.clear(); boWas = false; liveBo.clear(); crankK = -1; dashT = 0; ventT = 0; ventCD = 8; pendingEnd = false;
   PHANTOM.g.visible = false; seenZones.add(1); seenZones.add(2); for (const s of spots) s.intensity = 0; hatchT = 0;
   $('locker').style.display='none'; me.hidden = -1; $('white').style.transition='none'; $('white').style.opacity = 0; $('flash').style.opacity = 0; $('spec').style.display = 'none';
@@ -11032,10 +11032,12 @@ function placeCamera(dt){
     if (escT > 2.5){ $('blacktext').textContent = 'YOU NOCLIPPED OUT'; $('blacksub').textContent = ''; $('black').style.opacity = 1; $('white').style.opacity = 0; }
     if (escT > 5) toSpectate();
   } else if (mode==='spect'){
-    const living = [...remotes.values()].filter(r=>r.pid!==G.mo && r.a && !isDead(r.pid) && !isEsc(r.pid) && (r.nz|0) === (LK === 9 ? 1 : 0));
-    if (!living.length){ specPid=null; $('spec').textContent='Nobody left to watch…'; return; }
+    const living = [...remotes.values()].filter(r=>r.pid!==G.mo && r.a && !isDead(r.pid) && !isEsc(r.pid));   // v0.72.1: everyone, in either world
+    if (amHost() && living.some(r=>!r.nz)) for (let k = living.length - 1; k >= 0; k--) if (living[k].nz) living.splice(k, 1);   // the host runs Level 0: it can only follow someone down while nobody is left up there
+    if (!living.length){ specPid=null; specNZ = 0; $('spec').textContent='Nobody left to watch…'; return; }
     const r = living[((specIdx % living.length)+living.length)%living.length];
-    specPid = r.pid;
+    specPid = r.pid; specNZ = r.nz|0;   // watching someone down in Level -0 → nzClient builds that world for you
+    if ((specNZ ? 9 : (G.lv|0)) !== LK) return;
     camera.position.set(r.x, EYE + floorY(r.x, r.z), r.z); camera.rotation.set(r.pitch, r.yaw, 0);
     $('spec').textContent = `WATCHING ${r.n.toUpperCase()}  ·  ${isTouch?'tap':'click'} to switch`;
   }
