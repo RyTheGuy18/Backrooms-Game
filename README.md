@@ -189,3 +189,4 @@ v0.75.2: bodycam: removed the colour fringing and edge blur that doubled every l
 v0.75.3: lens flare no longer smears grey stripes down/across the screen; only the coloured ghosts are left
 v0.75.4: fixed soft grey bands across flat floors (ambient occlusion); motion blur removed completely
 v0.76.0: VISUAL STYLE setting (Video + Graphics tabs): LOW POLY (the original PS1 look, default) or REALISTIC (full res, realistic materials that shine on polished floors and metal, 2K soft shadows from every flashlight, 2K textures, lamp glow, auto exposure, body camera); new Surface Materials and 2K shadow options; auto exposure no longer brightens near-black scenes
+v0.76.1: Async lab floor uses real white ceramic tiles (shiny with the Realistic style)
