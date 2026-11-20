@@ -488,7 +488,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.73.1</div>
+<div class="osd" id="ver">v0.73.2</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -3289,7 +3289,7 @@ function buildLevelNZ(seed){
   const cordM = lam(0x111111);
   for (let i=0;i<N;i++) for (let j=0;j<N;j++){ const a = Z.area[K(i,j)], ch = Z.CH[K(i,j)]; if (i === EC[0] && j === EC[1]) continue; const lobby = a === 2;
     const tall = a === 3 || a === 10, every = a === 6 || a === 7 || a === 5 || a === 8; if (!lobby && !every && rng() > 0.5) continue;
-    const red = rng() < 0.08, dim = !red && rng() < 0.12, y = a === 10 ? 3.2 + rng()*4 : tall ? ch - 2.6 - rng()*2.2 : ch - 0.05;
+    const red = (rng(), false), dim = rng() < 0.12, y = a === 10 ? 3.2 + rng()*4 : tall ? ch - 2.6 - rng()*2.2 : ch - 0.05;
     const p = { idx:L.panels.length, i, j, t:0, x:cc(i), z:cc(j), y, sx:1.25, sy: tall ? 0.25 : 0.06, sz:0.62, faulty: !lobby && rng() < 0.2, dead: !lobby && !every && rng() < 0.07, red:false, ph:rng()*10, b:1, gk:-1, col: !lobby && red ? 0xff6a4a : !lobby && dim ? 0x9a8458 : undefined, dist:8 };
     if (tall){ const c = bx(g, 0.02, ch - y, 0.02, p.x, (ch + y)/2, p.z, cordM); }
     L.panelAt[K(i,j)] = p.idx; L.panels.push(p); }
