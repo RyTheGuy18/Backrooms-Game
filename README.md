@@ -193,3 +193,4 @@ v0.76.1: Async lab floor uses real white ceramic tiles (shiny with the Realistic
 v0.76.2: concrete tie-hole walls + ceiling in the Async lab; lamp light no longer shines/reflects through walls; dynamic resolution keeps FPS up at HD/native; Realistic uses 12 lamp lights
 v0.76.3: Async lab gets real props: office chairs, folding tables, the menu TV as desk CRTs, an ASYNC coffee mug, mixed papers/dossiers/debris, a chain barrier
 v0.76.4: jumping! Space / JUMP button, with real standing + running jump animations (you can clear a pit gap); server racks in the lab; bigger ASYNC mug; bigger, busier desks
+v0.76.5: jump higher (~1 m) — you can hop over the benches in the Poolrooms
