@@ -182,4 +182,5 @@ v0.74.0: lens flare: ghosts, halo and streaks from bright lights and from teamma
 v0.74.1: softer lens flare, stronger bodycam motion, more fisheye, more sensor noise
 v0.74.2: lens flare only comes from real lights (no flashlight blow-out); off by default, on with HIGH/ULTRA
 v0.74.3: reverted the v0.74.1 bodycam tweaks (fisheye a touch under v0.74.1); lens flare much weaker and only when you look straight at a light
+v0.74.4: Esc no longer kicks you out of fullscreen (Chrome/Edge): a quick press opens settings, hold Esc to leave fullscreen; F11 and the new Settings > Video > Fullscreen option use the game's own fullscreen
 v0.75.0: TEXTURE QUALITY setting (Graphics tab): HIGH loads 2K photo textures with surface detail for the basement, garage, office ceilings, hotel and Pipe Dreams (on with ULTRA; STANDARD stays the default)
