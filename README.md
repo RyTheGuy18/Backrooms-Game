@@ -155,3 +155,30 @@ v0.68.3: menu TV no longer stalls the graphics card (less menu lag), the TV's re
 v0.68.4: menu TV shows Level 0 again, VHS noise fixed on the TV, old-TV wipe and blink animation when turning it on and off
 v0.69.0: the Smiler — 1 in 20 Level 0 runs, its glowing grin appears in the dark and only disappears once you stare at it for a second
 v0.70.0: dead bodies — a bloodied hazmat body slumped against a wall (1 in 30 Level 0/1 maps) and a sprawled body with a blood pool where a player died
+v0.70.1: removed the floor puddles from every level
+v0.70.2: removed drips, ceiling creaks, far-off noises, static on phone calls, close knocks/slams, the dash whoosh and the hotel outage thunk (real recordings to come later)
+v0.70.3: hotel ceiling uses Level 0's ceiling tiles
+v0.70.4: mall floors are Ryan's dirty carpet
+v0.70.5: dirty carpet moved from the mall to the hotel floors; mall back to its old floors
+v0.70.6: hotel barefoot-on-carpet footsteps (walk + run sets) and a beige wall texture
+v0.70.7: batteries use Ryan's Battery Low Poly model (CC BY 4.0, credited)
+v0.70.8: mall mannequins use the Art Mannequin model (same poses) and creak on every step
+v0.70.9: ambient occlusion on HIGH by default
+v0.70.10: volumetric flashlight beam off by default (and 60% weaker when turned on)
+v0.70.11: closed the gap above the office where the taller pitfalls ceiling meets it
+v0.71.0: Level -0 (secret): the huge wrong Backrooms, reached by noclipping (falling in the pitfalls 50/50, or a 1-in-20 glitch); walk to the light to reach Level 1
+v0.71.1: the Still-Life (Level -0): a friendly fake teammate that comes back bloodier and more crooked each time until it turns
+v0.71.2: Level -0 fixes: no coloured wallpaper, wallpaper all the way up tall walls and crawlspace headers, smaller giant doors that don't stick out of the wall, wooden stairs model
+v0.72.0: the Level -0 exit is an elevator (call it, wait 30 s, press the button); hotel elevators get brushed steel and doors that seal
+v0.72.1: spectators can watch players who noclipped into Level -0
+v0.72.2: Level -0: no more walking through walls; dead players revive down there when the last survivor falls in
+v0.72.3: player nametags appear over their heads when you look right at them
+v0.72.4: the objective box is hidden while spectating
+v0.72.5: nametags removed; the Still-Life in Level -0 is now shared (one per round, everyone sees the same one)
+v0.73.0: the Smiler is shared between players; the Still-Life gets gradually more mangled, snaps its bones as it turns, never vanishes and runs; Level -0 gets rare new rooms (atrium, pillar field, pool room, tiny-entrance room, very tall room, green carpet, furniture piles)
+v0.73.1: reverted the Level -0 brightness change
+v0.73.2: no red lamps in Level -0
+v0.74.0: lens flare: ghosts, halo and streaks from bright lights and from teammates' flashlights aimed at you
+v0.74.1: softer lens flare, stronger bodycam motion, more fisheye, more sensor noise
+v0.74.2: lens flare only comes from real lights (no flashlight blow-out); off by default, on with HIGH/ULTRA
+v0.74.3: reverted the v0.74.1 bodycam tweaks (fisheye a touch under v0.74.1); lens flare much weaker and only when you look straight at a light
