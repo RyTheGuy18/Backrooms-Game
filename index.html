@@ -488,7 +488,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.75.0</div>
+<div class="osd" id="ver">v0.75.1</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -11425,6 +11425,7 @@ let last = performance.now();
 const POST = { on:false, init:true, dt:0.016, ei:0, pf:null };
 const LENS_K = { normal:0, wide:0.16, fisheye:0.42 }, LENS_CA = { normal:0, wide:0.004, fisheye:0.01 };   // v0.74.3: fisheye 0.42 (v0.74.1 had 0.46, before that 0.38)
 const FLARE_K = { off:0, low:0.5, high:1 };
+const LENS_CV = { normal:0, wide:0.6, fisheye:1 };   // v0.75.1 round vignette strength
 const BLOOM_K = { off:0, low:0.45, high:0.8, max:1.3 }, MBLUR_K = { off:0, low:0.45, high:0.9 };
 const _pv2 = new THREE.Vector2(), _pv3 = new THREE.Vector3(), _pv4 = new THREE.Vector3(), _pq = new THREE.Quaternion();
 function postInit(){
@@ -11530,7 +11531,7 @@ function postInit(){
       c /= 1.0 + dot(c, vec3(0.333))*0.7;   // soft cap: a far lamp still shows, a lamp right above you doesn't white out the screen
       gl_FragColor = vec4(c, 1.0); }`, { t:T(), tc:T(), asp:F(1), gk:F(), hk:F(), vk:F(), vt:F() });
   POST.mComp = M(`uniform sampler2D tS; uniform sampler2D tB; uniform sampler2D tE; uniform sampler2D tA; uniform sampler2D tV; uniform sampler2D tF; uniform float fl;
-    uniform float k, ca, bl, ns, eo, tm, asp, aoOn, vOn, sh; uniform vec2 vel, px;
+    uniform float k, ca, bl, ns, eo, tm, asp, aoOn, vOn, sh, cv; uniform vec2 vel, px;
     varying vec2 vUv;
     float h(vec2 p, float o){ return fract(sin(dot(p, vec2(12.9898, 78.233)) + tm*7.13 + o)*43758.5453); }
     vec2 bend(vec2 uv, float kk){ vec2 p = (uv - 0.5)*vec2(asp, 1.0); float r2 = dot(p, p)/((asp*asp + 1.0)*0.25); return p*(1.0 + kk*r2)/(1.0 + kk)/vec2(asp, 1.0) + 0.5; }
@@ -11546,18 +11547,24 @@ function postInit(){
         c = max(c + (c - nb)*sh, 0.0); }
       if (aoOn > 0.5) c *= texture2D(tA, bu).r;
       if (vOn > 0.5) c += texture2D(tV, bu).rgb;
+      // v0.75.1 round body-cam vignette (Ryan's reference): a true circle (not the screen's rectangle), soft and a little blurred at the rim
+      float rn = length(p)/(0.5*sqrt(asp*asp + 1.0)), vg = cv*smoothstep(0.58, 1.02, rn);
+      if (vg > 0.01){ vec2 dc = (vec2(0.5) - bu)*vg*0.035; vec3 rb = c;
+        for (int i = 1; i <= 4; i++) rb += texture2D(tS, bu + dc*float(i)/4.0).rgb;
+        c = mix(c, rb/5.0, clamp(vg*1.4, 0.0, 1.0)); }
       c += texture2D(tB, bu).rgb*bl;
       if (fl > 0.0) c += texture2D(tF, bu).rgb*fl;
       float e = eo > 0.5 ? texture2D(tE, vec2(0.5)).r : 1.0; c *= e;
       if (ns > 0.0){ float l = dot(c, vec3(0.299, 0.587, 0.114)), g = 0.03 + 0.08*clamp(e - 1.0, 0.0, 0.6);
         vec2 q = floor(u*vec2(1280.0, 720.0)/1.5); float n = h(q, 0.0) - 0.5; vec3 cn = vec3(h(q, 1.3), h(q, 2.7), h(q, 4.1)) - 0.5;
         c += (n*0.8 + cn*0.35)*g*ns*(1.0 - smoothstep(0.05, 0.6, l)); c = max(c, 0.0); }
-      c *= 1.0 - 0.28*k*r2*r2 - 0.18*r2*step(0.001, k);
+      if (cv > 0.0) c *= 1.0 - cv*0.96*pow(smoothstep(0.42, 1.0, rn), 1.6);
+      else c *= 1.0 - 0.28*k*r2*r2 - 0.18*r2*step(0.001, k);
       // soft highlight shoulder above 0.6: hot spots roll off toward white instead of clipping to a flat blob
       c = mix(c, 0.6 + 0.4*(1.0 - exp(-(c - 0.6)/0.4)), step(0.6, c));
       gl_FragColor = vec4(c, 1.0);
       #include <colorspace_fragment>
-    }`, { tS:T(), tB:T(), tE:T(), tA:T(), tV:T(), tF:T(), fl:F(), k:F(), ca:F(), bl:F(), ns:F(), eo:F(), tm:F(), asp:F(1), aoOn:F(), vOn:F(), sh:F(), vel:V2(), px:V2() });
+    }`, { tS:T(), tB:T(), tE:T(), tA:T(), tV:T(), tF:T(), fl:F(), k:F(), ca:F(), cv:F(), bl:F(), ns:F(), eo:F(), tm:F(), asp:F(1), aoOn:F(), vOn:F(), sh:F(), vel:V2(), px:V2() });
 }
 function postPass(m, t){ POST.quad.material = m; renderer.setRenderTarget(t); renderer.render(POST.sc, POST.cam); }
 function postSize(t, w, h){ if (t.width !== w || t.height !== h) t.setSize(w, h); }
@@ -11614,6 +11621,8 @@ function flareLights(B, mvi, p0, p1){
 }
 function renderMain(){
   shadowGate();
+  const cvOn = POST.on && !tvRoomOn() && SET.lens !== 'normal';
+  if (cvOn !== POST.cvOn){ POST.cvOn = cvOn; $('vig').style.display = cvOn ? 'none' : ''; }   // v0.75.1: the round vignette replaces the screen-shaped CSS one
   if (!POST.on || tvRoomOn()){ renderer.render(scene, camera); POST.pf = null; return; }
   postInit();
   const sz = renderer.getDrawingBufferSize(_pv2), w = sz.x, h = sz.y, hw = Math.max(8, w >> 1), hh = Math.max(8, h >> 1);
@@ -11664,7 +11673,7 @@ function renderMain(){
     if (l > 0.0015) C.vel.value.set(vx, vy).multiplyScalar(l > m ? m/l : 1); }
   POST.pf = (POST.pf || new THREE.Vector3()).copy(_pv3);
   C.tS.value = src.texture; C.tB.value = POST.b1.texture; C.tE.value = POST.ex[POST.ei].texture; C.tA.value = POST.ao.texture; C.tV.value = POST.vl.texture;
-  C.k.value = k; C.ca.value = LENS_CA[SET.lens] || 0; C.bl.value = bl; C.ns.value = SET.noise === 'on' ? 1 : 0; C.eo.value = ae ? 1 : 0; C.tm.value = (nowS() % 100); C.asp.value = w/h;
+  C.k.value = k; C.ca.value = LENS_CA[SET.lens] || 0; C.cv.value = LENS_CV[SET.lens] || 0; C.bl.value = bl; C.ns.value = SET.noise === 'on' ? 1 : 0; C.eo.value = ae ? 1 : 0; C.tm.value = (nowS() % 100); C.asp.value = w/h;
   C.tF.value = POST.f2.texture; C.fl.value = fk;
   C.aoOn.value = ao ? 1 : 0; C.vOn.value = vOn ? 1 : 0; C.sh.value = SET.sharp === 'on' ? 0.55 : 0; C.px.value.set(1/w, 1/h);
   postPass(POST.mComp, null);
