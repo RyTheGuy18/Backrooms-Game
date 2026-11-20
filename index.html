@@ -488,7 +488,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.74.2</div>
+<div class="osd" id="ver">v0.74.3</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -11134,7 +11134,7 @@ function updateHUD(dt){
    the flashlight follows the camera, and the lag is capped at a few degrees. */
 const BC = { yaw:null, pitch:0, vy:0, roll:0, t:0 };
 function bodyCam(dt){
-  const S = SET.cmo === 'heavy' ? 1.9 : 1.25, run = me.vmRun || 0;
+  const S = SET.cmo === 'heavy' ? 1.7 : 1, run = me.vmRun || 0;
   if (BC.yaw === null){ BC.yaw = me.yaw; BC.pitch = me.pitch; }
   const py = BC.yaw; BC.yaw = angLerp(BC.yaw, me.yaw, 1 - Math.exp(-16/S*dt)); BC.pitch = lerp(BC.pitch, me.pitch, 1 - Math.exp(-18/S*dt));
   const dy = ((me.yaw - BC.yaw + Math.PI*3) % (Math.PI*2)) - Math.PI, vy = dt > 0 ? ((BC.yaw - py + Math.PI*3) % (Math.PI*2) - Math.PI)/dt : 0;
@@ -11339,7 +11339,7 @@ let last = performance.now();
        exposure, sensor noise, vignette → screen.
    The lens: a barrel bend with the centre magnified by (1 + k), so the scene is rendered with a wider FOV to cancel it. */
 const POST = { on:false, init:true, dt:0.016, ei:0, pf:null };
-const LENS_K = { normal:0, wide:0.16, fisheye:0.46 }, LENS_CA = { normal:0, wide:0.004, fisheye:0.011 };   // v0.74.1: fisheye 0.38 → 0.46
+const LENS_K = { normal:0, wide:0.16, fisheye:0.42 }, LENS_CA = { normal:0, wide:0.004, fisheye:0.01 };   // v0.74.3: fisheye 0.42 (v0.74.1 had 0.46, before that 0.38)
 const FLARE_K = { off:0, low:0.5, high:1 };
 const BLOOM_K = { off:0, low:0.45, high:0.8, max:1.3 }, MBLUR_K = { off:0, low:0.45, high:0.9 };
 const _pv2 = new THREE.Vector2(), _pv3 = new THREE.Vector3(), _pv4 = new THREE.Vector3(), _pq = new THREE.Quaternion();
@@ -11465,7 +11465,7 @@ function postInit(){
       c += texture2D(tB, bu).rgb*bl;
       if (fl > 0.0) c += texture2D(tF, bu).rgb*fl;
       float e = eo > 0.5 ? texture2D(tE, vec2(0.5)).r : 1.0; c *= e;
-      if (ns > 0.0){ float l = dot(c, vec3(0.299, 0.587, 0.114)), g = 0.042 + 0.1*clamp(e - 1.0, 0.0, 0.6);
+      if (ns > 0.0){ float l = dot(c, vec3(0.299, 0.587, 0.114)), g = 0.03 + 0.08*clamp(e - 1.0, 0.0, 0.6);
         vec2 q = floor(u*vec2(1280.0, 720.0)/1.5); float n = h(q, 0.0) - 0.5; vec3 cn = vec3(h(q, 1.3), h(q, 2.7), h(q, 4.1)) - 0.5;
         c += (n*0.8 + cn*0.35)*g*ns*(1.0 - smoothstep(0.05, 0.6, l)); c = max(c, 0.0); }
       c *= 1.0 - 0.28*k*r2*r2 - 0.18*r2*step(0.001, k);
@@ -11495,9 +11495,10 @@ function shadowGate(){
 }
 /* v0.74 lens flare: a teammate's flashlight pointed at the camera is a strong light source on screen (its lens is too small
    to blow out the picture by itself), so up to 4 of them are added to the flare's bright pass by hand. FL_K / FL_TH = tuning. */
-const FL_K = { ghost:2.6, streak:1.2, smear:0.9, smearT:0.03, torch:1.3, lamp:0.35, scene:0 }, FL_TH = [0.6, 1.1];   // v0.74.1: about half as strong (Ryan: too harsh), the vertical smear only for really bright lights
+const FL_K = { ghost:1.4, streak:0.6, smear:0.5, smearT:0.03, torch:0.7, lamp:0.14, scene:0 }, FL_TH = [0.6, 1.1];   // v0.74.1: about half as strong (Ryan: too harsh), the vertical smear only for really bright lights
 /* v0.74.2 (Ryan: with the flashlight on, a lit wall blew the whole screen out): the flare no longer comes from bright pixels at all (FL_K.scene 0) —
    only from real light sources: up to 8 lit ceiling lamps in view (flareLights, by brightness and distance) + teammates' flashlights aimed at you. */
+const flSm = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a)/(b - a))); return t*t*(3 - 2*t); };
 const _flcol = new THREE.Color(), _flc = new THREE.Vector3(), FLD = { fake:null };   // FLD.fake = a spot-like { position, target:{position}, intensity, angle, color } (tests)
 function flareLights(B, mvi, p0, p1){
   const Ls = B.L.value, Cs = B.Lc.value; let n = 0;
@@ -11510,7 +11511,9 @@ function flareLights(B, mvi, p0, p1){
     if (cone <= 0) continue;
     _pv4.copy(s.position).applyMatrix4(mvi); if (_pv4.z > -0.15) continue;
     const u = 0.5 + 0.5*_pv4.x*p0/-_pv4.z, v = 0.5 + 0.5*_pv4.y*p1/-_pv4.z; if (u < -0.2 || u > 1.2 || v < -0.2 || v > 1.2) continue;
-    const k = cone*cone*(s.intensity/SPOT_I)*FL_K.torch/(1 + d*d*0.01);
+    const look = flSm(0.94, 0.995, -_pv4.z/_pv4.length());   // v0.74.3: only when you look (nearly) straight at it
+    if (look <= 0) continue;
+    const k = look*cone*cone*(s.intensity/SPOT_I)*FL_K.torch/(1 + d*d*0.01);
     Ls[n].set(u, v, k, 0.008 + 0.02*cone/(1 + d*0.15)); Cs[n].set(s.color.r, s.color.g, s.color.b, _pv4.z); n++; }
   // ceiling lamps (drawn coords on the stacked levels, like visPass188)
   const PS = level && level.panels; if (PS && LK !== 2){ const V = LK === 3 ? vis188 : LK === 4 || LK === 6 ? vis852 : null, cand = [];
@@ -11518,7 +11521,8 @@ function flareLights(B, mvi, p0, p1){
       const y = (p.y != null ? p.y : p.t === 2 ? ZH[2] : WH) - 0.03; if (V) V(p.x, y, p.z, _pv4); else _pv4.set(p.x, y, p.z);
       const d = _pv4.distanceTo(_flc); if (d > 22 || d < 0.5) continue; _pv4.applyMatrix4(mvi); if (_pv4.z > -0.3) continue;
       const u = 0.5 + 0.5*_pv4.x*p0/-_pv4.z, v = 0.5 + 0.5*_pv4.y*p1/-_pv4.z; if (u < -0.1 || u > 1.1 || v < -0.1 || v > 1.1) continue;
-      cand.push([Math.min(1.3, p.b)/(1 + d*0.18), u, v, _pv4.z, d, p]); }
+      const look = flSm(0.965, 0.997, -_pv4.z/_pv4.length()); if (look <= 0) continue;   // v0.74.3: only a lamp you look straight at
+      cand.push([look*Math.min(1.3, p.b)/(1 + d*0.18), u, v, _pv4.z, d, p]); }
     cand.sort((a, b)=>b[0] - a[0]);
     for (const c of cand){ if (n >= 12) break; const p = c[5], col = p.col || (p.red ? 0xff3018 : 0xfff0c8);
       Ls[n].set(c[1], c[2], c[0]*FL_K.lamp, 0.01 + 0.03/(1 + c[4]*0.25)); _flcol.setHex(col); Cs[n].set(_flcol.r, _flcol.g, _flcol.b, c[3]); n++; } }

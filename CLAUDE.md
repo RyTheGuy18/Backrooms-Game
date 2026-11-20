@@ -6,7 +6,7 @@ First-person co-op Backrooms horror game for 1–4 players, played in the browse
 
 - Live: https://rytheguy18.github.io/Haunted-Pines/ (GitHub Pages, `main` branch, repo root)
 - Owner: Ryan (GitHub `rytheguy18` / `RyTheGuy18`). Plays it with friends and younger brothers, mostly on phones.
-- Current version: **v0.74.2** (shown bottom-right of the menu, `#ver`)
+- Current version: **v0.74.3** (shown bottom-right of the menu, `#ver`)
 
 ## Files
 
@@ -422,3 +422,5 @@ Controls (desktop): WASD, Shift sprint, C crouch, Left click / F flashlight, E h
 **v0.74.1 (Ryan, iPhone screenshot: "really harsh, especially those vertical rays"):** `FL_K` ghost 5 → 2.6, streak 2.5 → 1.2, smear 2.5 → 0.9 with threshold `smearT` 0.004 → 0.03 (ceiling lamps no longer smear a white column down the screen; a flashlight aimed at you still can), torch 1.6 → 1.3, halo ring ×0.45 → ×0.3. Also BODYCAM a bit stronger: camera motion BODY ×1.25 (HEAVY 1.7 → 1.9) in `bodyCam`, fisheye `LENS_K` 0.38 → 0.46 (`LENS_CA` 0.009 → 0.011), sensor noise 0.03 + 0.08·gain → 0.042 + 0.1·gain.
 
 **v0.74.2 (Ryan, Mac screenshot: still a total white/yellow blow-out with the flashlight on; and lens flare should only come with HIGH/ULTRA):** the flare no longer reads bright pixels at all (`FL_K.scene` 0 → `sk` uniform in `mFlB`), because your own beam on a wall was the "light source". Sources are now only real lights, put in by `flareLights()`: teammates' flashlights aimed at you (as before) + up to 8 lit ceiling lamps in view within 22 m (`level.panels`, strength `min(1.3, p.b)/(1 + 0.18·d)` × `FL_K.lamp` 0.35, drawn coords via `vis188`/`vis852` on the stacked levels; not the Poolrooms), 12 slots in the shader, depth-tested so walls hide them. **Default OFF**: `SET_DEF.flare` off; presets LOW/MEDIUM off, HIGH low, ULTRA high; one-time migration `lvl0_flare2` sets everyone's flare from their preset.
+
+**v0.74.3 (Ryan: still "wild"; the v0.74.1 bodycam changes were too much):** v0.74.1 bodycam changes REVERTED (camera motion BODY ×1 / HEAVY 1.7, sensor noise 0.03 + 0.08·gain) except the fisheye, now `LENS_K` 0.42 (`LENS_CA` 0.01), a little under v0.74.1's 0.46. Lens flare much weaker (`FL_K` ghost 1.4, streak 0.6, smear 0.5, torch 0.7, lamp 0.14) and only when you look (nearly) straight at the light: `flSm` look factor on the view-space angle, lamps cos 0.965 → 0.997 (~15° → 4.5°), teammates' flashlights cos 0.94 → 0.995 (~20° → 6°). Your own flashlight never makes a flare (scene term stays 0).
