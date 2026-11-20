@@ -487,7 +487,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.70.2</div>
+<div class="osd" id="ver">v0.70.3</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -5950,7 +5950,7 @@ function buildLevel188(seed){
   const hv = (x, z) => { const f = floorAt188(x,z); return [x - HO[f][0]*CS, z - HO[f][1]*CS, hBaseY(f)]; };   // logical -> drawn (x, z, floor y)
   // ---- materials
   const wallM = lam(0xffffff,{ map:hWallTex, emissive:0xffffff, emissiveMap:hWallTex, emissiveIntensity:0.12 }), facadeM = lam(0xffffff,{ map:hFacadeTex, emissive:0xffffff, emissiveMap:hFacadeTex, emissiveIntensity:0.16 }), revealM = lam(0xd8d4c8, { emissive:0x30302c }), steelM = lam(0xffffff,{ map:hSteelTex });
-  const carpetM = lam(0xffffff,{ map:hCarpetTex, emissive:0xffffff, emissiveMap:hCarpetTex, emissiveIntensity:0.1 }), ceilM = lam(0xffffff,{ map:hCeilTex, emissive:0xffffff, emissiveMap:hCeilTex, emissiveIntensity:0.08 }), doorM = lam(0xffffff,{ map:hDoorTex }), frameM = lam(0x4a3a2c);
+  const carpetM = lam(0xffffff,{ map:hCarpetTex, emissive:0xffffff, emissiveMap:hCarpetTex, emissiveIntensity:0.1 }), ceilM = lam(0xd8d0aa,{ map:offCeilPh, normalMap:offCeilNor, emissive:0xd8d0aa, emissiveMap:offCeilPh, emissiveIntensity:0.08 })   /* v0.70.3: Level 0's ceiling tiles (Ryan) */, doorM = lam(0xffffff,{ map:hDoorTex }), frameM = lam(0x4a3a2c);
   L.hm = { wallM, carpetM, ceilM, facadeM, lawn:null, open:0, glow:[{ m:revealM, e:0x30302c }] };   // glow: dimmed in a power outage (v0.36)   // v0.28: hall materials dim deep inside, the courtyard stays bright (updateZoneEnv)
   // ---- slabs (walls) and wall spots, per walkable cell
   const vSlabs = [], wins = [], spots = [];
@@ -5979,7 +5979,7 @@ function buildLevel188(seed){
     m.frustumCulled = false; g.add(m); }
   // floors + ceilings
   { const cells = []; for (let f=0;f<3;f++) for (const c of L.hcells[f]) cells.push(c);
-    const fm = new THREE.InstancedMesh(cellPlane(2,false), carpetM, cells.length), cm = new THREE.InstancedMesh(cellPlane(6,true), ceilM, cells.length);
+    const fm = new THREE.InstancedMesh(cellPlane(2,false), carpetM, cells.length), cm = new THREE.InstancedMesh(cellPlane(1,true), ceilM, cells.length);
     cells.forEach(([i,j],k)=>{ const [x,z,y] = hv(cc(i), cc(j)); tmpM.makeTranslation(x, y, z); fm.setMatrixAt(k, tmpM); tmpM.makeTranslation(x, y+HCH, z); cm.setMatrixAt(k, tmpM); });
     fm.frustumCulled = cm.frustumCulled = false; g.add(fm, cm); }
   // ---- the courtyard: window walls on every floor, the lawn, the roof
