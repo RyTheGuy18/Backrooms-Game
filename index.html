@@ -488,7 +488,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.74.3</div>
+<div class="osd" id="ver">v0.74.4</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -632,6 +632,7 @@
     <div class="sxList" id="sxList">
       <div class="sxPage" data-page="video">
         <div class="sh">PICTURE</div>
+        <div class="sr sel" data-k="fs" id="srFs"></div>
         <div class="sr sel" data-k="res"></div>
         <div class="sr rng" data-k="bri"></div>
         <div class="sr rng" data-id="sFov" data-t="Field of View" data-d="How wide you see. Wider shows more around you; narrower feels closer and more claustrophobic."><span class="sl">Field of View</span><span class="sv"><span class="svt" id="vFov"></span><input type="range" id="sFov" min="60" max="100"></span></div>
@@ -8559,6 +8560,8 @@ const CAMS = { camcorder:{ lens:'normal', cmo:'steady', aexp:'off', bloom:'off',
   bodycam:{ lens:'fisheye', cmo:'body', aexp:'on', bloom:'high', noise:'on', wob:'off', grain:'off', mblur:'low', sharp:'on' } };
 const PRESETS = [['gq', () => GQ], ['cam', () => CAMS]];
 const SXK = {
+  fs:{ t:'Fullscreen', d:'Plays the game fullscreen. F11 does the same. In Chrome and Edge a quick Esc only opens settings; HOLD Esc to leave fullscreen.',
+    o:[['off','OFF'],['on','ON']] },
   res:{ t:'Render Resolution', d:'How many pixels the game draws before it gets stretched to your screen. Low and PSX are the crunchy camcorder look the game was made with. Higher is sharper and costs more.',
     o:[['low','LOW','Extra crunchy, the fastest.'],['psx','PSX','The original look (default).'],['sharp','SHARP','480 lines: clearer, still pixelated.'],['hd','HD','720 lines: clean. Heavier on phones.'],['native','NATIVE','Your screen\'s full resolution (up to 1440p). Heaviest.']] },
   bri:{ t:'Brightness', d:'Makes the picture brighter or darker. The game is meant to be dark: turn it up only if you can\'t see anything at all.', min:50, max:150, step:5, u:'%' },
@@ -8685,6 +8688,7 @@ function sxPaint(r){
   if (r === sxRow) sxDesc(r);
 }
 function sxSet(k, v){
+  if (k === 'fs'){ v === 'on' ? enterFS() : exitFS(); return; }
   SET[k] = v;
   for (const [pk, pm] of PRESETS){ const M = pm(); if (k === pk && M[v]) Object.assign(SET, M[v]); }
   for (const [pk, pm] of PRESETS){ const M = pm(), first = Object.values(M)[0]; if (k !== pk && k in first) SET[pk] = Object.keys(M).find(p => Object.entries(M[p]).every(([a, b]) => SET[a] === b)) || 'custom'; }
@@ -9606,7 +9610,8 @@ function playEventSound(k, x, z, m){
 /* ================= input ================= */
 const keys = new Set();
 addEventListener('keydown', e=>{
-  if (e.code === 'Escape'){ if (settingsOpen) closeSettings(); else if (mode === 'play' || mode === 'spect' || mode === 'lobby' || mode === 'menu') openSettings(); return; }
+  if (e.code === 'F11' && !isTouch){ e.preventDefault(); fsOn() ? exitFS() : enterFS(); return; }   // v0.74.4: our own fullscreen, so Esc can be kept
+  if (e.code === 'Escape'){ if (e.repeat) return; if (settingsOpen) closeSettings(); else if (mode === 'play' || mode === 'spect' || mode === 'lobby' || mode === 'menu') openSettings(); return; }
   if (settingsOpen){ sxKey(e); return; }
   if (e.target.tagName === 'INPUT') return;
   keys.add(e.code);
@@ -9777,6 +9782,19 @@ function ability(k){
 /* ================= menu ================= */
 function readName(){ myName = ($('name').value.trim() || 'Wanderer').slice(0,12); try { localStorage.setItem('lvl0_name', myName); } catch(e){} }
 function genCode(){ const A='ABCDEFGHJKLMNPQRSTUVWXYZ'; let s=''; for (let i=0;i<4;i++) s+=A[Math.floor(Math.random()*A.length)]; return s; }
+/* v0.74.4 (Ryan: Esc kicked the game out of fullscreen): desktop fullscreen goes through requestFullscreen (F11 or
+   Settings > Video > Fullscreen) and then claims Esc with the Keyboard Lock API (Chrome / Edge). A quick Esc press then
+   reaches the game (settings) and HOLDING Esc ~2 s leaves fullscreen (the browser shows that hint itself).
+   Firefox / Safari have no keyboard lock: there Esc still leaves fullscreen. SET.fs only mirrors the real state. */
+const kbLock = !!(navigator.keyboard && navigator.keyboard.lock);
+function fsOn(){ return !!document.fullscreenElement; }
+function lockEsc(){ if (kbLock && fsOn()) try { navigator.keyboard.lock(['Escape']).catch(()=>{}); } catch(e){} }
+function enterFS(){ try { const r = document.documentElement.requestFullscreen({ navigationUI:'hide' }); if (r && r.then) r.then(lockEsc, ()=>{}); } catch(e){} }
+function exitFS(){ try { if (kbLock) navigator.keyboard.unlock(); } catch(e){} try { if (fsOn()){ const r = document.exitFullscreen(); if (r && r.catch) r.catch(()=>{}); } } catch(e){} }
+function fsSync(){ SET.fs = fsOn() ? 'on' : 'off'; const r = $('srFs'); if (r && r.querySelector('.svt')) sxPaint(r); }
+document.addEventListener('fullscreenchange', ()=>{ if (fsOn()) lockEsc(); else try { if (kbLock) navigator.keyboard.unlock(); } catch(e){} fsSync(); });
+if (isTouch) $('srFs').style.display = 'none';
+queueMicrotask(fsSync);
 function goFull(){ try { const el=document.documentElement; const r = el.requestFullscreen && el.requestFullscreen(); if (r && r.catch) r.catch(()=>{}); } catch(e){} }
 function diffLabel(){ $('bDiff1').textContent = 'COMPUTER: ' + AI_DIFF[diffOpt].name; }
 function exLabel(){ $('bEx1').textContent = 'MODE: ' + (exOpt ? 'EXPLORATION (NO MONSTER)' : 'NORMAL'); }   // solo: Normal or Exploration (Hunter needs friends)
