@@ -446,7 +446,8 @@
   .sxB .k{background:#f1ece4;color:#111;font-size:10px;padding:1px 4px;border-radius:2px}
   #bResume{background:var(--sx);border-color:var(--sx);color:#140806}#bResume .k{background:#140806;color:#f1ece4}
   .sxQuit{margin-left:auto;color:#ff9c86;border-color:rgba(255,120,100,.45)}
-  #fpsc{position:fixed;left:max(8px,env(safe-area-inset-left));top:50%;z-index:30;font:bold 12px monospace;color:#9fe08a;text-shadow:0 0 3px #000;pointer-events:none;display:none}
+  #fpsc{position:fixed;left:max(8px,env(safe-area-inset-left));top:124px;max-width:46vw;z-index:30;font:bold 12px monospace;color:#9fe08a;text-shadow:0 0 3px #000;pointer-events:none;display:none;line-height:1.35}
+  #fpsc span{font-weight:normal;font-size:10.5px;color:#cfe8c4}
   @container (max-width:700px){
     .sxBody{flex-direction:column;gap:6px}
     .sxDesc{flex:0 0 auto;max-height:58px;border-left:0;border-top:1px solid var(--sxd);padding:5px 2px 0}
@@ -483,7 +484,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.68.1</div>
+<div class="osd" id="ver">v0.68.2</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -7882,7 +7883,7 @@ const SXK = {
     o:[['psx','PSX','Full wobble (default).'],['subtle','SUBTLE','Half as much.'],['off','OFF','Rock steady. Nicer with high resolution.']] },
   grain:{ t:'Film Grain', d:'The moving noise over the picture.', o:[['off','OFF'],['low','LOW'],['normal','NORMAL','Default.'],['heavy','HEAVY']] },
   fps:{ t:'Frame Rate Limit', d:'Caps how many frames per second the game draws. 30 saves a lot of battery and heat on phones.', o:[['30','30'],['60','60'],['off','UNLIMITED','Default: as fast as your screen.']] },
-  showFps:{ t:'Show FPS', d:'Shows the frame rate in the corner.', o:OFFON },
+  showFps:{ t:'Show FPS', d:'Shows the frame rate in the corner, plus where the time goes (CPU, GPU, draw calls, render size) and which graphics card the browser is using.', o:OFFON },
   gq:{ t:'Graphics Preset', d:'Sets render resolution, lighting, shadows and reflections in one go. Change any of them on their own and this turns to CUSTOM.',
     o:[['low','LOW','For older phones.'],['med','MEDIUM','The original look (default).'],['high','HIGH','Sharper, more lamps lit, your flashlight casts shadows.'],['ultra','ULTRA','HD, every lamp near you lit, everyone\'s flashlight casts soft shadows. Needs a good PC.'],['custom','CUSTOM','You picked your own settings below.']] },
   lq:{ t:'Lighting Quality', d:'How many of the ceiling lights near you give off real light. More = rooms lit further out and softer pools of light.',
@@ -8441,6 +8442,7 @@ function afterState(){
 const knownBo = new Set(), liveBo = new Set();
 function startRoundLocal(){
   tapeEndOff();
+  if (PERF.soft && !PERF.warned){ PERF.warned = true; setTimeout(()=>msg("Your browser isn't using your graphics card, so the game will lag. Turn on hardware acceleration (Chrome: Settings → System → Use graphics acceleration when available) and relaunch.", 14), 4000); }
   role = G.mo === myPid ? 'monster' : 'survivor';
   if (!amHost() && G.w) walls = hexToWalls(G.w);
   applyWalls(false); wallsLoadedV = G.wv;
@@ -10487,18 +10489,55 @@ function renderMain(){
   postPass(POST.mComp, null);
 }
 let lastDraw = 0, fpsN = 0, fpsT = 0;
+/* v0.68.2 performance readout (SHOW FPS) + "the browser isn't using your graphics card" check.
+   PERF.c = this frame's CPU ms by section (me = your movement, host = game logic/AI, upd = the rest of the update, rend = submitting the draw).
+   PERF.spikes = the last 20 frames that took > 30 ms between frames, with what the CPU did in them (tests: __hp.PERF). */
+const PERF = { c:{ me:0, host:0, upd:0, rend:0, all:0 }, acc:{ me:0, host:0, upd:0, rend:0, all:0 }, n:0, t:0, worst:0, gpu:0, gpuN:0, spikes:[], q:null, qs:[], gl:null };
+(function(){
+  const gl = renderer.getContext(); let name = '', vendor = '';
+  try { const e = gl.getExtension('WEBGL_debug_renderer_info'); name = e ? gl.getParameter(e.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER); vendor = e ? gl.getParameter(e.UNMASKED_VENDOR_WEBGL) : ''; } catch(e){}
+  PERF.gpuRaw = String(name || '?'); PERF.gpuName = String(name || '?').replace(/^ANGLE \((.*)\)$/, '$1').replace(/Direct3D.*$/,'').replace(/,\s*$/,'').trim().slice(0, 64);
+  PERF.soft = /swiftshader|llvmpipe|softpipe|basic render|software/i.test(name + ' ' + vendor);
+  PERF.tq = gl.getExtension('EXT_disjoint_timer_query_webgl2'); PERF.gl = gl;
+})();
+function gpuQ(start){
+  const X = PERF.tq, gl = PERF.gl; if (!X || SET.showFps !== 'on') return;
+  if (start){
+    for (let i = PERF.qs.length - 1; i >= 0; i--){ const q = PERF.qs[i];
+      if (gl.getQueryParameter(q, gl.QUERY_RESULT_AVAILABLE)){ if (!gl.getParameter(X.GPU_DISJOINT_EXT)){ PERF.gpu += gl.getQueryParameter(q, gl.QUERY_RESULT)/1e6; PERF.gpuN++; } gl.deleteQuery(q); PERF.qs.splice(i, 1); } }
+    if (PERF.qs.length < 4){ PERF.q = gl.createQuery(); gl.beginQuery(X.TIME_ELAPSED_EXT, PERF.q); }
+    else PERF.q = null;
+  } else if (PERF.q){ gl.endQuery(X.TIME_ELAPSED_EXT); PERF.qs.push(PERF.q); PERF.q = null; }
+}
+function perfFrame(fdt){
+  const c = PERF.c, a = PERF.acc;
+  if (fdt > 30 && mode === 'play'){ PERF.spikes.push({ ms:+fdt.toFixed(1), me:+c.me.toFixed(1), host:+c.host.toFixed(1), upd:+c.upd.toFixed(1), rend:+c.rend.toFixed(1), lv:LK }); if (PERF.spikes.length > 20) PERF.spikes.shift(); }
+  if (PERF.rec) PERF.rec.push([c.me, c.host, c.upd, c.rend, c.all, LK]);
+  for (const k in c){ a[k] += c[k]; c[k] = 0; }
+  PERF.n++; PERF.t += fdt; PERF.worst = Math.max(PERF.worst, fdt);
+  if (PERF.t < 500) return;
+  if (SET.showFps === 'on'){
+    const n = PERF.n, f = (v)=>(v/n).toFixed(1), info = renderer.info.render, sz = renderer.getDrawingBufferSize(new THREE.Vector2());
+    $('fpsc').innerHTML = `${Math.round(n*1000/PERF.t)} FPS <span>· ${f(PERF.t)} ms (worst ${Math.round(PERF.worst)})</span><br>`
+      + `<span>CPU ${f(a.all)} ms (logic ${f(a.host)} · update ${f(a.upd + a.me)} · draw ${f(a.rend)})`
+      + (PERF.gpuN ? ` · GPU ${(PERF.gpu/PERF.gpuN).toFixed(1)} ms` : '') + `<br>${info.calls} draws · ${sz.x}×${sz.y} · ${PERF.gpuName}</span>`
+      + (PERF.soft ? `<br><b style="color:#ff6a50">SOFTWARE RENDERING: your browser isn't using the graphics card</b>` : '');
+  }
+  for (const k in a) a[k] = 0; PERF.n = 0; PERF.t = 0; PERF.worst = 0; PERF.gpu = 0; PERF.gpuN = 0;
+}
 function frame(now){
   requestAnimationFrame(frame);
   { const cap = +SET.fps; if (cap && now - lastDraw < 1000/cap - 2) return; lastDraw = now; }   // v0.66: FRAME RATE LIMIT
-  const dt = Math.min(0.05, (now-last)/1000); last = now;
-  fpsN++; fpsT += dt; if (fpsT >= 0.5){ if (SET.showFps === 'on') $('fpsc').textContent = Math.round(fpsN/fpsT) + ' FPS'; fpsN = 0; fpsT = 0; }
+  const fdt = now - last; const dt = Math.min(0.05, fdt/1000); last = now;
+  const pf0 = performance.now(); perfFrame(fdt);
   if ((renderer.shadowMap.enabled || SET.tex !== 'pixel') && now - shdT > 1200){ shdT = now; if (renderer.shadowMap.enabled) shadowFlags(false); if (SET.tex !== 'pixel') texSweep(); }   // new models / avatars pick up shadows (real time, not game time)
   const t = nowS();
   if (mode==='play' && myRound===G.r && !soloPaused()) updateMe(dt);
+  const pf1 = performance.now();
   if (!(mode==='play' && myRound===G.r && !soloPaused() && G.ph==='play')){ sfx.wade(me, 0, null); sfx.puff(0); me.puffing = false; crankK = -1; }
   crankWatch();
   if (amHost()){
-    if (!soloPaused()) hostTick(dt); afterState();
+    const ph0 = performance.now(); if (!soloPaused()) hostTick(dt); PERF.c.host += performance.now() - ph0; afterState();
     stateT -= dt; if (stateT <= 0){ stateT = G.ph==='play' ? 0.1 : 0.5; broadcastState(); }
   }
   presT -= dt; if (presT <= 0){ presT = 0.1; sendPresence(); }
@@ -10547,16 +10586,17 @@ function frame(now){
   const tvr = tvRoomOn(); if (tvr) tvAcc += dt;
   if (!tvr || tvAcc >= 0.07){
     if (LK === 3 || LK === 4 || LK === 6) visPass188();
-    POST.dt = Math.min(0.1, tvr ? tvAcc : dt); renderMain();
+    POST.dt = Math.min(0.1, tvr ? tvAcc : dt); const pr0 = performance.now(); PERF.c.upd += pr0 - pf1; gpuQ(true); renderMain(); gpuQ(false); PERF.c.rend += performance.now() - pr0;
     if (tvr){ updateCRT(tvAcc); tvAcc = 0; }
     if (LK === 3 || LK === 4 || LK === 6) visRestore188();
   }
   if (tvr) renderTVRoom(dt); else tvRoomOff();
   grain();
+  PERF.c.me += pf1 - pf0; PERF.c.all += performance.now() - pf0;
 }
 requestAnimationFrame(frame);
 
-window.__hp = { setGfx:(o)=>{ Object.assign(SET, o); applyGfx(); applySet(); }, get SET(){ return SET; }, spots, killSurvivor, hostCreaker, hostBS, bsUse, bsObj, bsCold, get CRV(){ return CRV; }, inRoom1, lrCampSpot, FR, frOpen, frClose, frJoin, frRender, frToast, FPH, placeFPHand, get flSrc(){ return flSrc; }, updateLab, hostFun, hostPartygoers, funAction, funObj, funNight, funDoorsToWalls, get PGV(){ return PGV; }, get scarePg(){ return scarePg; }, get FL_DRAIN(){ return FL_DRAIN; }, LS_HUNT, startOpt:(v)=>{ startOpt = v; }, hostTick, nextStep, isDead, killSurvivor, get remotes(){ return remotes; }, setRole:(r)=>{ role = r; }, get MON_WALK(){ return MON_WALK; }, get MONS(){ return MONS; }, get LSJ(){ return LSJ; }, get deathT(){ return deathT; }, get scareLs(){ return scareLs; }, hostListener, lsAlert, get LSV(){ return LSV; }, TD, updateTension, tdFakeSteps, DFL, boT, panelBright, collide, gen52, hostSchool52, hostMonitors52, assign52, tardy52, roomAt52, schoolObj52, schoolTarget52, myRoom52, MV52, get HMJ(){ return HMJ; }, S52_LANES, get radio37(){ return radio37; }, get fig37(){ return fig37; }, get zLevel(){ return zLevel; }, get zK(){ return zK; }, deepDay37, deep37, forceFig37:()=>{ figT = 0; }, duskIn37, wakeLay37, nowS, buildLevel, hotelOpen188, hostOutage188, pipeObj2, pipeTarget2, p2Diag, MQV, hostMannequins852, mqSeen852, floorAt852, laneAt852, MLANES, mallObj852, mallTarget852, mallWayTo852, aiTick852, mallMove852, get mallHold(){ return mallHold; }, get guide(){ return guide; }, hostLurker, opusTweak, fillDevices, get LRK(){ return LRK; }, lrSpot, animLurker, get running(){ return me.running; }, get W(){ return W; }, get N(){ return N; }, get stunCharge(){ return stunCharge; }, losClear, me, H, net, hide, unhide, throwCan, contextAction, useSkin, get mySkin(){ return mySkin; }, set mySkin(v){ mySkin=v; }, inPit, zoneOf, get G(){ return G; }, set G(v){ G=v; }, get mode(){ return mode; }, get role(){ return role; }, get level(){ return level; }, get walls(){ return walls; }, mDisp, doShift, monsterPos, ability, get abCD(){ return abCD; }, disguisedFrom, get fakes(){ return fakes; }, enterVent, nearVent, get ventT(){ return ventT; }, get ventCD(){ return ventCD; }, set ventCD(v){ ventCD=v; }, get abCD2(){ return abCD; }, inPit, get LK(){ return LK; }, get crankK(){ return crankK; }, ability, get curRH(){ return curRH; }, get MON(){ return MON; }, sfx, voice, noiseLevel, get settingsOpen(){ return settingsOpen; }, myPid, monsterVoice, pitchDown, dropDust, get silT(){ return silT; }, set silNext(v){ silNext=v; }, advanceLevel, aiObjectives, poolBlock, aiTick, aiReset, bfsFrom, cellOf, cc, floorY, TU, PG, camera, scene, renderer, applyUse, AI_DIFF, set diffOpt(v){ diffOpt=v; }, get M37(){ return M37; }, buildL37test:(sd)=>build37(sd), ripP, ripWho, makeAvatar, animAvatar, buildLevelTest:(sd,k)=>buildLevel(sd,k), fpArm:(roll,axis,curl)=>{ FP_ROLL = roll; FP_AXIS = axis; if (curl) Object.assign(FP_CURL, curl); buildFPArm(survSrc); }, VM, collide, k37, h37, d37, nav37, isNight, dayK, aiTick37, collide37, K37, sdShape, floorAt188, vis188, hostElev188, aiTick188, myCar188, elevPress188, ELV, HO, elDisp, update188, inLab, hostLab, labUse, labSensor, labStatus, startHatch, get hatchT(){ return hatchT; }, connected };
+window.__hp = { PERF, setGfx:(o)=>{ Object.assign(SET, o); applyGfx(); applySet(); }, get SET(){ return SET; }, spots, killSurvivor, hostCreaker, hostBS, bsUse, bsObj, bsCold, get CRV(){ return CRV; }, inRoom1, lrCampSpot, FR, frOpen, frClose, frJoin, frRender, frToast, FPH, placeFPHand, get flSrc(){ return flSrc; }, updateLab, hostFun, hostPartygoers, funAction, funObj, funNight, funDoorsToWalls, get PGV(){ return PGV; }, get scarePg(){ return scarePg; }, get FL_DRAIN(){ return FL_DRAIN; }, LS_HUNT, startOpt:(v)=>{ startOpt = v; }, hostTick, nextStep, isDead, killSurvivor, get remotes(){ return remotes; }, setRole:(r)=>{ role = r; }, get MON_WALK(){ return MON_WALK; }, get MONS(){ return MONS; }, get LSJ(){ return LSJ; }, get deathT(){ return deathT; }, get scareLs(){ return scareLs; }, hostListener, lsAlert, get LSV(){ return LSV; }, TD, updateTension, tdFakeSteps, DFL, boT, panelBright, collide, gen52, hostSchool52, hostMonitors52, assign52, tardy52, roomAt52, schoolObj52, schoolTarget52, myRoom52, MV52, get HMJ(){ return HMJ; }, S52_LANES, get radio37(){ return radio37; }, get fig37(){ return fig37; }, get zLevel(){ return zLevel; }, get zK(){ return zK; }, deepDay37, deep37, forceFig37:()=>{ figT = 0; }, duskIn37, wakeLay37, nowS, buildLevel, hotelOpen188, hostOutage188, pipeObj2, pipeTarget2, p2Diag, MQV, hostMannequins852, mqSeen852, floorAt852, laneAt852, MLANES, mallObj852, mallTarget852, mallWayTo852, aiTick852, mallMove852, get mallHold(){ return mallHold; }, get guide(){ return guide; }, hostLurker, opusTweak, fillDevices, get LRK(){ return LRK; }, lrSpot, animLurker, get running(){ return me.running; }, get W(){ return W; }, get N(){ return N; }, get stunCharge(){ return stunCharge; }, losClear, me, H, net, hide, unhide, throwCan, contextAction, useSkin, get mySkin(){ return mySkin; }, set mySkin(v){ mySkin=v; }, inPit, zoneOf, get G(){ return G; }, set G(v){ G=v; }, get mode(){ return mode; }, get role(){ return role; }, get level(){ return level; }, get walls(){ return walls; }, mDisp, doShift, monsterPos, ability, get abCD(){ return abCD; }, disguisedFrom, get fakes(){ return fakes; }, enterVent, nearVent, get ventT(){ return ventT; }, get ventCD(){ return ventCD; }, set ventCD(v){ ventCD=v; }, get abCD2(){ return abCD; }, inPit, get LK(){ return LK; }, get crankK(){ return crankK; }, ability, get curRH(){ return curRH; }, get MON(){ return MON; }, sfx, voice, noiseLevel, get settingsOpen(){ return settingsOpen; }, myPid, monsterVoice, pitchDown, dropDust, get silT(){ return silT; }, set silNext(v){ silNext=v; }, advanceLevel, aiObjectives, poolBlock, aiTick, aiReset, bfsFrom, cellOf, cc, floorY, TU, PG, camera, scene, renderer, applyUse, AI_DIFF, set diffOpt(v){ diffOpt=v; }, get M37(){ return M37; }, buildL37test:(sd)=>build37(sd), ripP, ripWho, makeAvatar, animAvatar, buildLevelTest:(sd,k)=>buildLevel(sd,k), fpArm:(roll,axis,curl)=>{ FP_ROLL = roll; FP_AXIS = axis; if (curl) Object.assign(FP_CURL, curl); buildFPArm(survSrc); }, VM, collide, k37, h37, d37, nav37, isNight, dayK, aiTick37, collide37, K37, sdShape, floorAt188, vis188, hostElev188, aiTick188, myCar188, elevPress188, ELV, HO, elDisp, update188, inLab, hostLab, labUse, labSensor, labStatus, startHatch, get hatchT(){ return hatchT; }, connected };
 </script>
 </body>
 </html>

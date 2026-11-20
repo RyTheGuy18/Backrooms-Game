@@ -6,7 +6,7 @@ First-person co-op Backrooms horror game for 1–4 players, played in the browse
 
 - Live: https://rytheguy18.github.io/Haunted-Pines/ (GitHub Pages, `main` branch, repo root)
 - Owner: Ryan (GitHub `rytheguy18` / `RyTheGuy18`). Plays it with friends and younger brothers, mostly on phones.
-- Current version: **v0.68.1** (shown bottom-right of the menu, `#ver`)
+- Current version: **v0.68.2** (shown bottom-right of the menu, `#ver`)
 
 ## Files
 
@@ -401,3 +401,5 @@ Controls (desktop): WASD, Shift sprint, C crouch, Left click / F flashlight, E h
 
 **v0.68.1 (Ryan: "SOOO laggy on my really good PC" after v0.66–0.68):** measured in headless (no shader recompiles during play — that was ruled out). Fixes: **`shadowGate()`** (top of `renderMain`, runs for the direct path too): `shadow.autoUpdate` only while a flashlight is on (and a teammate's within 22 m) — before, EVERYONE'S re-rendered 4 shadow maps every frame even solo; with EVERYONE'S only as many teammate slots *cast* as there are living teammates (`shTeam`, changes on join/leave/death only, so recompiles are rare; reset in `applyShadows`). `shadowFlags` skips flat horizontal meshes (`userData.flat`: floors, ceilings, decals) — casters 639 → 486 on Level 0. Presets: HIGH = 8 lights, ULTRA = 12 (was 12/16). NATIVE capped at 1440p. Looks: bloom threshold 0.7–1.5 (was 0.42–1.0), `BLOOM_K` low/high/max 0.45/0.8/1.3, a soft highlight shoulder above 0.6 in the composite (flashlight hotspots used to clip to a flat white blob), volumetric beam strength 0.004 (was 0.0065). Test hook: `__hp.setGfx({...})` applies settings without a reload.
 
+
+**v0.68.2 (Ryan: still ~20 FPS "sometimes" on LOW with the flashlight off, wants 40–60 like Minecraft):** profiled every level headless at LOW (CDP CPU profile + per-section timers): the game's own CPU work is ~4–10 ms a frame even on the slow sandbox CPU (AI/logic < 0.5 ms, updates 1–3, submitting ~60–260 draw calls 2–6), no layout/style cost, no shader recompiles during play (only at level start / a death). So a 20 FPS on an RX 9060 XT is almost certainly the browser not using the card (hardware acceleration off → SwiftShader / "Microsoft Basic Render", Chrome on the integrated GPU, monitor cable in the motherboard). Added: **SHOW FPS** now shows FPS + avg/worst frame ms, CPU ms split (logic / update / draw), GPU ms (only where `EXT_disjoint_timer_query_webgl2` exists), draw calls, render size and the **GPU name** the browser uses (`PERF`, `perfFrame`, `gpuQ`, top-left under the objective); a software renderer (`PERF.soft`: swiftshader/llvmpipe/basic render/software) shows a red line there and a one-time message at round start telling you to turn on hardware acceleration. `__hp.PERF` (`PERF.rec = []` records per-frame [me, host, upd, rend, all, LK]; `PERF.spikes` = last frames > 30 ms with their breakdown) for tests. If Ryan's readout shows his real card and still low FPS, the numbers say where to look next.
