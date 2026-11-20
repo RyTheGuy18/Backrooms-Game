@@ -488,7 +488,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.73.0</div>
+<div class="osd" id="ver">v0.73.1</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -3288,9 +3288,9 @@ function buildLevelNZ(seed){
   // ---- lamps: recessed panels in normal cells, hanging lamps on long cords in the tall halls; some too red, some too dim
   const cordM = lam(0x111111);
   for (let i=0;i<N;i++) for (let j=0;j<N;j++){ const a = Z.area[K(i,j)], ch = Z.CH[K(i,j)]; if (i === EC[0] && j === EC[1]) continue; const lobby = a === 2;
-    const tall = a === 3 || a === 10, every = a === 6 || a === 7 || a === 5 || a === 8; if (!lobby && !every && rng() > 0.72) continue;   // v0.73 (Ryan): much brighter, like the photos
-    const red = rng() < 0.03, dim = !red && rng() < 0.05, y = a === 10 ? 3.2 + rng()*4 : tall ? ch - 2.6 - rng()*2.2 : ch - 0.05;
-    const p = { idx:L.panels.length, i, j, t:0, x:cc(i), z:cc(j), y, sx:1.25, sy: tall ? 0.25 : 0.06, sz:0.62, faulty: !lobby && rng() < 0.1, dead: !lobby && !every && rng() < 0.05, red:false, ph:rng()*10, b:1, gk:-1, col: !lobby && red ? 0xff6a4a : !lobby && dim ? 0x9a8458 : undefined, dist:8 };
+    const tall = a === 3 || a === 10, every = a === 6 || a === 7 || a === 5 || a === 8; if (!lobby && !every && rng() > 0.5) continue;
+    const red = rng() < 0.08, dim = !red && rng() < 0.12, y = a === 10 ? 3.2 + rng()*4 : tall ? ch - 2.6 - rng()*2.2 : ch - 0.05;
+    const p = { idx:L.panels.length, i, j, t:0, x:cc(i), z:cc(j), y, sx:1.25, sy: tall ? 0.25 : 0.06, sz:0.62, faulty: !lobby && rng() < 0.2, dead: !lobby && !every && rng() < 0.07, red:false, ph:rng()*10, b:1, gk:-1, col: !lobby && red ? 0xff6a4a : !lobby && dim ? 0x9a8458 : undefined, dist:8 };
     if (tall){ const c = bx(g, 0.02, ch - y, 0.02, p.x, (ch + y)/2, p.z, cordM); }
     L.panelAt[K(i,j)] = p.idx; L.panels.push(p); }
   L.panelMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1), new THREE.MeshBasicMaterial({ color:0xffffff }), Math.max(1, L.panels.length));
@@ -10562,9 +10562,6 @@ function updateZoneEnv(dt){
       amb.color.lerp(lb ? ZSKY[0] : LAB_SKY, k); amb.groundColor.lerp(lb ? ZGND[0] : LAB_GND, k); return; } }
   if (boDark){ _fogT.setHex(0x030303); scene.fog.color.lerp(_fogT, k); scene.background.copy(scene.fog.color);
     scene.fog.density = lerp(scene.fog.density, role === 'monster' ? 0.07 : 0.12, k); amb.intensity = lerp(amb.intensity, role === 'monster' ? 0.22 : 0.02, k); return; }
-  if (LK === 9){   // v0.73 (Ryan): Level -0 is BRIGHT, like the photos: hazy warm yellow, you can see a long way down the halls
-    _fogT.setHex(0x8c7e48); scene.fog.color.lerp(_fogT, k); scene.background.copy(scene.fog.color);
-    scene.fog.density = lerp(scene.fog.density, 0.016, k); amb.intensity = lerp(amb.intensity, role === 'monster' ? 1.2 : 1.0, k); amb.color.lerp(NZ_SKY, k); amb.groundColor.lerp(NZ_GND, k); return; }
   const lit1 = LK === 1 && G.open;   // v0.36 (Ryan): the garage with every generator on is bright all the way down, you can see far
   if (lit1) _fogT.setHex(0x4a4c4e); else { _fogT.copy(ZFOG[z]); if (role==='monster') _fogT.multiplyScalar(LK === 1 ? 1.4 : LK === 2 ? 1 : 0.7); }
   scene.fog.color.lerp(_fogT, k); scene.background.copy(scene.fog.color);
