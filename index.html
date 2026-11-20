@@ -488,7 +488,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.72.3</div>
+<div class="osd" id="ver">v0.72.4</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -3345,6 +3345,7 @@ function nzElevUpdate(dt){
 // Occupant shows the name of the survivor it's copying, so the tag never gives it away.
 const _ntV = new THREE.Vector3(), _ntF = new THREE.Vector3();
 function updateNameTag(){
+  { const ob = $('objBox'), want = mode === 'spect' ? 'none' : ''; if (ob.style.display !== want) ob.style.display = want; }   // v0.72.4: no stale objective while spectating
   const el = $('ntag'); let best = null, bd = 1e9;
   if ((mode === 'play' || mode === 'spect') && G.ph === 'play' && myRound === G.r){
     camera.getWorldDirection(_ntF); const cx = camera.position.x, cy = camera.position.y, cz = camera.position.z;
