@@ -488,7 +488,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.76.4</div>
+<div class="osd" id="ver">v0.76.5</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -5330,8 +5330,8 @@ function collide37(x, z, r, ox, oz, eel, lunge){
   }
   for (const dp of deepsNear37(p.x, p.z)){ const s = sdShape(p.x, p.z, dp) - 0.25;   // the railing stands 0.18 m out from the pool's edge
     if (s < r){ const e = 0.05, gx = sdShape(p.x+e,p.z,dp) - sdShape(p.x-e,p.z,dp), gz = sdShape(p.x,p.z+e,dp) - sdShape(p.x,p.z-e,dp), gl = Math.hypot(gx,gz) || 1; p.x += gx/gl*(r-s); p.z += gz/gl*(r-s); } }
-  for (const c of level.circles){ const dx=p.x-c.x, dz=p.z-c.z, d2=dx*dx+dz*dz, m=r+c.r; if (d2<m*m && d2>1e-8){ const d=Math.sqrt(d2), k=(m-d)/d; p.x+=dx*k; p.z+=dz*k; } }
-  for (const sl of level.slabs) if (p.x>sl[0]-r && p.x<sl[1]+r && p.z>sl[2]-r && p.z<sl[3]+r) pushBox(p, sl[0], sl[1], sl[2], sl[3], r);
+  for (const c of level.circles){ if (colJY > (c.h ?? 9)) continue; const dx=p.x-c.x, dz=p.z-c.z, d2=dx*dx+dz*dz, m=r+c.r; if (d2<m*m && d2>1e-8){ const d=Math.sqrt(d2), k=(m-d)/d; p.x+=dx*k; p.z+=dz*k; } }
+  for (const sl of level.slabs) if (!(colJY > (sl.h ?? 9)) && p.x>sl[0]-r && p.x<sl[1]+r && p.z>sl[2]-r && p.z<sl[3]+r) pushBox(p, sl[0], sl[1], sl[2], sl[3], r);
   for (const dr of level.doors37 || []) if (doorShut37(dr)){ const sl = dr.box; if (p.x>sl[0]-r && p.x<sl[1]+r && p.z>sl[2]-r && p.z<sl[3]+r) pushBox(p, sl[0], sl[1], sl[2], sl[3], r); }
   p.x = clamp(p.x, 1, S37-1); p.z = clamp(p.z, 1, S37-1);
   if (ox !== undefined){
@@ -5622,7 +5622,7 @@ function buildLevel37(seed){
         if (d37(x, z - side*0.6) < 0.3) continue;
         if ([-0.36, 0, 0.36].some(o=>d37(x+o, z + side*0.6) > -0.05) || L37.cors.some(c=>sdCap(x, z, c.a, c.b, c.r) < 0.7)) continue;   // never stand in front of a doorway
         locker(x, z, side > 0 ? Math.PI : 0); }
-      const bw = Math.max(2, r.w-5), bz = r.z + (r.spawn ? 2.6 : 0); bx(g, bw, 0.42, 0.42, r.x, 0.51, bz, lam(0x8a6a44)); L.slabs.push([r.x-bw/2, r.x+bw/2, bz-0.21, bz+0.21]);   // (spawn: off to the side, you wake up looking down the long pool)
+      const bw = Math.max(2, r.w-5), bz = r.z + (r.spawn ? 2.6 : 0); bx(g, bw, 0.42, 0.42, r.x, 0.51, bz, lam(0x8a6a44)); { const sl = [r.x-bw/2, r.x+bw/2, bz-0.21, bz+0.21]; sl.h = 0.72; L.slabs.push(sl); }   // v0.76.5: low enough to jump   // (spawn: off to the side, you wake up looking down the long pool)
       roomLamp(r.x - r.w/4, r.z); roomLamp(r.x + r.w/4, r.z);
       if (!r.spawn) drain(r, r.x + r.w/2 - 1.4, r.z + (rng() < 0.5 ? -1 : 1)*0.9);
     }
@@ -7107,9 +7107,9 @@ function collide(x,z,r,ox,oz,eel,lunge){
       for (const e of [vIdx(i,j), vIdx(i+1,j), hIdx(i,j), hIdx(i,j+1)]) if (walls[e]){ const b=edgeBox(e); pushBox(p,b[0],b[1],b[2],b[3],r); }
     }
     for (let a=ci;a<=ci+1;a++) for (let b=cj;b<=cj+1;b++) if (level.pillarSet.has(a+','+b)){ const ph = level.pilH || 0.35; pushBox(p, a*CS-ph, a*CS+ph, b*CS-ph, b*CS+ph, r); }
-    for (const c of (level.circCell ? level.circCell[ci*N+cj] : level.circles)){ const dx=p.x-c.x, dz=p.z-c.z, d2=dx*dx+dz*dz, m=r+c.r; if (d2<m*m && d2>1e-8){ const d=Math.sqrt(d2), k=(m-d)/d; p.x+=dx*k; p.z+=dz*k; } }
-    if (level.slabCell){ for (let i=ci-1;i<=ci+1;i++) for (let j=cj-1;j<=cj+1;j++){ if (!inGrid(i,j)) continue; for (const sl of level.slabCell[i*N+j]) if (p.x>sl[0]-r && p.x<sl[1]+r && p.z>sl[2]-r && p.z<sl[3]+r) pushBox(p, sl[0], sl[1], sl[2], sl[3], r); } }
-    else for (const sl of level.slabs) if (p.x>sl[0]-r && p.x<sl[1]+r && p.z>sl[2]-r && p.z<sl[3]+r) pushBox(p, sl[0], sl[1], sl[2], sl[3], r);
+    for (const c of (level.circCell ? level.circCell[ci*N+cj] : level.circles)){ if (colJY > (c.h ?? 9)) continue; const dx=p.x-c.x, dz=p.z-c.z, d2=dx*dx+dz*dz, m=r+c.r; if (d2<m*m && d2>1e-8){ const d=Math.sqrt(d2), k=(m-d)/d; p.x+=dx*k; p.z+=dz*k; } }
+    if (level.slabCell){ for (let i=ci-1;i<=ci+1;i++) for (let j=cj-1;j<=cj+1;j++){ if (!inGrid(i,j)) continue; for (const sl of level.slabCell[i*N+j]) if (!(colJY > (sl.h ?? 9)) && p.x>sl[0]-r && p.x<sl[1]+r && p.z>sl[2]-r && p.z<sl[3]+r) pushBox(p, sl[0], sl[1], sl[2], sl[3], r); } }
+    else for (const sl of level.slabs) if (!(colJY > (sl.h ?? 9)) && p.x>sl[0]-r && p.x<sl[1]+r && p.z>sl[2]-r && p.z<sl[3]+r) pushBox(p, sl[0], sl[1], sl[2], sl[3], r);
     if (level.diags && level.diags.length) p2Diag(p, r);
   }
   p.x = clamp(p.x, 0.3, W-0.3); p.z = clamp(p.z, 0.3, W-0.3);
@@ -7247,7 +7247,9 @@ let survSrc = null; const survWait = [];
    the clip itself lifts the body. t0 = takeoff time in the clip, tland = landing. Your own jump is physics (JUMP_V, JUMP_G give the
    clips' 0.5 s in the air, ~0.37 m up) on top of the camera; everyone else sees the clip, started at t0 when your jump counter
    (presence j = count·2 + running) ticks over. You can clear a pit gap in the air (the fall check waits until you land). */
-const JUMP_V = 3.0, JUMP_G = 12, JUMP_COST = 6, JUMPS = {}, AVS = [];
+const JUMP_V = 5.5, JUMP_G = 16, JUMP_COST = 6, JUMPS = {}, AVS = [];   // v0.76.5 (Ryan: high enough to clear a bench): ~0.95 m up, 0.69 s in the air
+const JUMP_TS = 0.5/(2*JUMP_V/JUMP_G);   // the clips are 0.5 s in the air: slow them to match
+let colJY = 0;   // your feet's height above the floor while collide() runs for you: obstacles with an .h lower than that are jumped over
 fetch('models/survivor-jumps.json').then(r=>r.json()).then(list=>{
   for (const c of list) JUMPS[c.name] = { clip:new THREE.AnimationClip(c.name, c.dur, c.tracks.map(([n, k, v]) => new (k === 'q' ? THREE.QuaternionKeyframeTrack : THREE.VectorKeyframeTrack)(n, c.times, v))), t0:c.t0, tland:c.tland, dur:c.dur };
   for (const A of AVS) if (A.ready) jumpActs(A);
@@ -7255,7 +7257,7 @@ fetch('models/survivor-jumps.json').then(r=>r.json()).then(list=>{
 function jumpActs(A){ if (!A.mx || A.act.Jump || !JUMPS.Jump) return;
   for (const n in JUMPS){ const ac = A.mx.clipAction(JUMPS[n].clip); ac.setLoop(THREE.LoopOnce, 1); ac.clampWhenFinished = true; ac.play(); ac.setEffectiveWeight(0); A.act[n] = ac; } }
 // how long a jump's clip stays on the avatar after takeoff (standing: the landing settle; running: straight back into the run)
-const jumpLen = (k, moving) => { const J = JUMPS[k]; if (!J) return 0.6; return (J.tland - J.t0) + (k === 'RunJump' || moving ? 0.18 : 0.55); };
+const jumpLen = (k, moving) => { const J = JUMPS[k]; if (!J) return 0.8; return (J.tland - J.t0)/JUMP_TS + (k === 'RunJump' || moving ? 0.18 : 0.55); };
 function tryJump(){
   if (mode !== 'play' || role !== 'survivor' || !me.alive || me.esc || me.hidden >= 0 || hatchT > 0 || me.jy > 0 || me.jv > 0) return;
   if (me.lowCeil || (LK === 2 && (wadeDepth37(me.x, me.z) > 0.45 || me.sliding)) || me.stam < JUMP_COST || me.winded) return;
@@ -7392,7 +7394,8 @@ function animAvatar(A, dt, mv, crouch, jump){
   if (!A.ready) return;
   let want = crouch ? 'Crouch' : mv === 2 ? 'Run' : mv ? 'Walk' : 'Idle', fast = false;
   if (jump && A.act[jump[0]] && jump[1] < jumpLen(jump[0], mv)){ const ac = A.act[jump[0]];   // v0.76.4: the jump clip, from takeoff
-    if (A.jid !== jump[2]){ A.jid = jump[2]; ac.reset(); ac.play(); ac.time = Math.max(0, JUMPS[jump[0]].t0 - 0.08) + jump[1]; }
+    if (A.jid !== jump[2]){ A.jid = jump[2]; ac.reset(); ac.play(); ac.time = Math.max(0, JUMPS[jump[0]].t0 - 0.08) + jump[1]*JUMP_TS; }
+    ac.timeScale = jump[1]*JUMP_TS < JUMPS[jump[0]].tland - JUMPS[jump[0]].t0 ? JUMP_TS : 1;   // slowed in the air, normal speed for the landing
     want = jump[0]; fast = true; }
   const k = 1 - Math.exp(-(fast ? 28 : 10)*dt);
   for (const n in A.act){ const ac = A.act[n], w = ac.getEffectiveWeight(); ac.setEffectiveWeight(lerp(w, n === want ? 1 : 0, k)); }
@@ -10407,7 +10410,9 @@ function updateMe(dt){
     sp *= 1 - 0.25*zK; }
   const sn = Math.sin(me.yaw), cs = Math.cos(me.yaw);
   const vx = (fx*cs + fz*sn)*sp, vz = (-fx*sn + fz*cs)*sp;
+  colJY = role === 'survivor' ? (me.jy || 0) : 0;
   [me.x, me.z] = collide(me.x + vx*dt, me.z + vz*dt, role==='monster' ? 0.38 : 0.32, me.x, me.z, role==='monster' && LK === 2, false);
+  colJY = 0;
   if (LK === 4 || LK === 6) [me.x, me.z] = mallMove852(me.x, me.z, dt, role==='monster' ? 0.38 : 0.32);
   if (LK === 2){
     // out of the water after a lunge: the eel has to slither back in
@@ -12032,7 +12037,7 @@ function frame(now){
 }
 requestAnimationFrame(frame);
 
-window.__hp = { HIQ, hiSync, get concPTs(){ return concPTs; }, FLD, FL_K, FL_TH, get POST(){ return POST; }, get walls(){ return walls; }, get N(){ return N; }, vIdx, hIdx, collide, SL, slPeople, slOwner, slPack, smSpot, smTargets, lightAtCell, slTurn:()=>{ SL.wrong = 99; }, slNow:()=>{ SL.due = 0; }, nzEnter:()=>{ nzLocal = true; useReq({ k:'nzin' }); }, nzGlitch:()=>{ H.nzForce = true; }, nzWorld, CP, corpseGeo, makeCorpse, corpseWall, updateCorpses, SML, get smSrc(){ return smSrc; }, PERF, tvPower, get TVR(){ return TVR; }, setGfx:(o)=>{ Object.assign(SET, o); applyGfx(); applySet(); }, setLook:(v)=>sxSet('look', v), DRS, tryJump, JUMPS, jumpLen, MATR, matSync, get SET(){ return SET; }, spots, killSurvivor, hostCreaker, hostBS, bsUse, bsObj, bsCold, get CRV(){ return CRV; }, inRoom1, lrCampSpot, FR, frOpen, frClose, frJoin, frRender, frToast, FPH, placeFPHand, get flSrc(){ return flSrc; }, updateLab, hostFun, hostPartygoers, funAction, funObj, funNight, funDoorsToWalls, get PGV(){ return PGV; }, get scarePg(){ return scarePg; }, get FL_DRAIN(){ return FL_DRAIN; }, LS_HUNT, startOpt:(v)=>{ startOpt = v; }, hostTick, nextStep, isDead, killSurvivor, get remotes(){ return remotes; }, setRole:(r)=>{ role = r; }, get MON_WALK(){ return MON_WALK; }, get MONS(){ return MONS; }, get LSJ(){ return LSJ; }, get deathT(){ return deathT; }, get scareLs(){ return scareLs; }, hostListener, lsAlert, get LSV(){ return LSV; }, TD, updateTension, tdFakeSteps, DFL, boT, panelBright, collide, gen52, hostSchool52, hostMonitors52, assign52, tardy52, roomAt52, schoolObj52, schoolTarget52, myRoom52, MV52, get HMJ(){ return HMJ; }, S52_LANES, get radio37(){ return radio37; }, get fig37(){ return fig37; }, get zLevel(){ return zLevel; }, get zK(){ return zK; }, deepDay37, deep37, forceFig37:()=>{ figT = 0; }, duskIn37, wakeLay37, nowS, buildLevel, hotelOpen188, hostOutage188, pipeObj2, pipeTarget2, p2Diag, MQV, hostMannequins852, mqSeen852, floorAt852, laneAt852, MLANES, mallObj852, mallTarget852, mallWayTo852, aiTick852, mallMove852, get mallHold(){ return mallHold; }, get guide(){ return guide; }, hostLurker, opusTweak, fillDevices, get LRK(){ return LRK; }, lrSpot, animLurker, get running(){ return me.running; }, get W(){ return W; }, get N(){ return N; }, get stunCharge(){ return stunCharge; }, losClear, me, H, net, hide, unhide, throwCan, contextAction, useSkin, get mySkin(){ return mySkin; }, set mySkin(v){ mySkin=v; }, inPit, zoneOf, get G(){ return G; }, set G(v){ G=v; }, get mode(){ return mode; }, get role(){ return role; }, get level(){ return level; }, get walls(){ return walls; }, mDisp, doShift, monsterPos, ability, get abCD(){ return abCD; }, disguisedFrom, get fakes(){ return fakes; }, enterVent, nearVent, get ventT(){ return ventT; }, get ventCD(){ return ventCD; }, set ventCD(v){ ventCD=v; }, get abCD2(){ return abCD; }, inPit, get LK(){ return LK; }, get crankK(){ return crankK; }, ability, get curRH(){ return curRH; }, get MON(){ return MON; }, sfx, voice, noiseLevel, get settingsOpen(){ return settingsOpen; }, myPid, monsterVoice, pitchDown, dropDust, get silT(){ return silT; }, set silNext(v){ silNext=v; }, advanceLevel, aiObjectives, poolBlock, aiTick, aiReset, bfsFrom, cellOf, cc, floorY, TU, PG, camera, scene, renderer, applyUse, AI_DIFF, set diffOpt(v){ diffOpt=v; }, get M37(){ return M37; }, buildL37test:(sd)=>build37(sd), ripP, ripWho, makeAvatar, animAvatar, buildLevelTest:(sd,k)=>buildLevel(sd,k), fpArm:(roll,axis,curl)=>{ FP_ROLL = roll; FP_AXIS = axis; if (curl) Object.assign(FP_CURL, curl); buildFPArm(survSrc); }, VM, collide, k37, h37, d37, nav37, isNight, dayK, aiTick37, collide37, K37, sdShape, floorAt188, vis188, hostElev188, aiTick188, myCar188, elevPress188, ELV, HO, elDisp, update188, inLab, hostLab, labUse, labSensor, labStatus, startHatch, get hatchT(){ return hatchT; }, connected };
+window.__hp = { HIQ, hiSync, get concPTs(){ return concPTs; }, FLD, FL_K, FL_TH, get POST(){ return POST; }, get walls(){ return walls; }, get N(){ return N; }, vIdx, hIdx, collide, SL, slPeople, slOwner, slPack, smSpot, smTargets, lightAtCell, slTurn:()=>{ SL.wrong = 99; }, slNow:()=>{ SL.due = 0; }, nzEnter:()=>{ nzLocal = true; useReq({ k:'nzin' }); }, nzGlitch:()=>{ H.nzForce = true; }, nzWorld, CP, corpseGeo, makeCorpse, corpseWall, updateCorpses, SML, get smSrc(){ return smSrc; }, PERF, tvPower, get TVR(){ return TVR; }, setGfx:(o)=>{ Object.assign(SET, o); applyGfx(); applySet(); }, setLook:(v)=>sxSet('look', v), DRS, tryJump, JUMPS, jumpLen, setGrace:(v)=>{ G.grace = v; }, MATR, matSync, get SET(){ return SET; }, spots, killSurvivor, hostCreaker, hostBS, bsUse, bsObj, bsCold, get CRV(){ return CRV; }, inRoom1, lrCampSpot, FR, frOpen, frClose, frJoin, frRender, frToast, FPH, placeFPHand, get flSrc(){ return flSrc; }, updateLab, hostFun, hostPartygoers, funAction, funObj, funNight, funDoorsToWalls, get PGV(){ return PGV; }, get scarePg(){ return scarePg; }, get FL_DRAIN(){ return FL_DRAIN; }, LS_HUNT, startOpt:(v)=>{ startOpt = v; }, hostTick, nextStep, isDead, killSurvivor, get remotes(){ return remotes; }, setRole:(r)=>{ role = r; }, get MON_WALK(){ return MON_WALK; }, get MONS(){ return MONS; }, get LSJ(){ return LSJ; }, get deathT(){ return deathT; }, get scareLs(){ return scareLs; }, hostListener, lsAlert, get LSV(){ return LSV; }, TD, updateTension, tdFakeSteps, DFL, boT, panelBright, collide, gen52, hostSchool52, hostMonitors52, assign52, tardy52, roomAt52, schoolObj52, schoolTarget52, myRoom52, MV52, get HMJ(){ return HMJ; }, S52_LANES, get radio37(){ return radio37; }, get fig37(){ return fig37; }, get zLevel(){ return zLevel; }, get zK(){ return zK; }, deepDay37, deep37, forceFig37:()=>{ figT = 0; }, duskIn37, wakeLay37, nowS, buildLevel, hotelOpen188, hostOutage188, pipeObj2, pipeTarget2, p2Diag, MQV, hostMannequins852, mqSeen852, floorAt852, laneAt852, MLANES, mallObj852, mallTarget852, mallWayTo852, aiTick852, mallMove852, get mallHold(){ return mallHold; }, get guide(){ return guide; }, hostLurker, opusTweak, fillDevices, get LRK(){ return LRK; }, lrSpot, animLurker, get running(){ return me.running; }, get W(){ return W; }, get N(){ return N; }, get stunCharge(){ return stunCharge; }, losClear, me, H, net, hide, unhide, throwCan, contextAction, useSkin, get mySkin(){ return mySkin; }, set mySkin(v){ mySkin=v; }, inPit, zoneOf, get G(){ return G; }, set G(v){ G=v; }, get mode(){ return mode; }, get role(){ return role; }, get level(){ return level; }, get walls(){ return walls; }, mDisp, doShift, monsterPos, ability, get abCD(){ return abCD; }, disguisedFrom, get fakes(){ return fakes; }, enterVent, nearVent, get ventT(){ return ventT; }, get ventCD(){ return ventCD; }, set ventCD(v){ ventCD=v; }, get abCD2(){ return abCD; }, inPit, get LK(){ return LK; }, get crankK(){ return crankK; }, ability, get curRH(){ return curRH; }, get MON(){ return MON; }, sfx, voice, noiseLevel, get settingsOpen(){ return settingsOpen; }, myPid, monsterVoice, pitchDown, dropDust, get silT(){ return silT; }, set silNext(v){ silNext=v; }, advanceLevel, aiObjectives, poolBlock, aiTick, aiReset, bfsFrom, cellOf, cc, floorY, TU, PG, camera, scene, renderer, applyUse, AI_DIFF, set diffOpt(v){ diffOpt=v; }, get M37(){ return M37; }, buildL37test:(sd)=>build37(sd), ripP, ripWho, makeAvatar, animAvatar, buildLevelTest:(sd,k)=>buildLevel(sd,k), fpArm:(roll,axis,curl)=>{ FP_ROLL = roll; FP_AXIS = axis; if (curl) Object.assign(FP_CURL, curl); buildFPArm(survSrc); }, VM, collide, k37, h37, d37, nav37, isNight, dayK, aiTick37, collide37, K37, sdShape, floorAt188, vis188, hostElev188, aiTick188, myCar188, elevPress188, ELV, HO, elDisp, update188, inLab, hostLab, labUse, labSensor, labStatus, startHatch, get hatchT(){ return hatchT; }, connected };
 </script>
 </body>
 </html>
