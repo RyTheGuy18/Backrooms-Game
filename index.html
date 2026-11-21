@@ -488,7 +488,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.77.1</div>
+<div class="osd" id="ver">v0.77.2</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -7350,7 +7350,7 @@ new GLTFLoader().load('models/flashlight.glb', gl=>{
 // models/fp-arm.glb = mesh `arm` (pose baked, no rig) + `flashlight_ref` = the exact flashlight.glb geometry where Ryan put it in his hand.
 // The arm is placed so flashlight_ref lands exactly on the game's flashlight (FP_FL = its old v0.59.6 spot in the VM frame, measured), so
 // the beam / lens / glow code is unchanged. The rigged two-arm version (+ his pose as the clip "Grip") is models/fp-arms-rigged.glb (not loaded).
-const FPH = { roll:-0.4, s:1.12, down:0.07, pitch:0 };   // roll = the arm turned round the flashlight's own axis (radians); s / down / pitch = the arm + flashlight scaled, lowered (VM units) and tipped up round the grip; tune via __hp.FPH + __hp.placeFPHand()
+const FPH = { roll:-0.4, s:1.12, down:0.07, right:0.07, pitch:0 };   // roll = the arm turned round the flashlight's own axis (radians); s / down / pitch = the arm + flashlight scaled, lowered (VM units) and tipped up round the grip; tune via __hp.FPH + __hp.placeFPHand()
 const FP_FL = new THREE.Matrix4().fromArray([-0.098368, 0.024933, -1.296243, 0, 1.178337, 0.543643, -0.078936, 0, 0.540566, -1.180903, -0.063736, 0, -0.061464, 0.084547, -0.044101, 1]);
 let fpArmSrc = null;
 function placeFPHand(){
@@ -7360,7 +7360,7 @@ function placeFPHand(){
   fpArmSrc.updateMatrixWorld(true);
   // A = FP_FL × inverse(where the flashlight sits in the arm file) → the arm's flashlight lands on the game's flashlight
   const Am = FP_FL.clone().multiply(new THREE.Matrix4().makeRotationX(FPH.roll)).multiply(ref.matrixWorld.clone().invert()).multiply(armSrc.matrixWorld);
-  const g = new THREE.Vector3().setFromMatrixPosition(FP_FL), T = new THREE.Matrix4().makeTranslation(g.x, g.y - FPH.down, g.z).multiply(new THREE.Matrix4().makeRotationX(FPH.pitch)).multiply(new THREE.Matrix4().makeScale(FPH.s, FPH.s, FPH.s)).multiply(new THREE.Matrix4().makeTranslation(-g.x, -g.y, -g.z));
+  const g = new THREE.Vector3().setFromMatrixPosition(FP_FL), T = new THREE.Matrix4().makeTranslation(g.x + FPH.right, g.y - FPH.down, g.z).multiply(new THREE.Matrix4().makeRotationX(FPH.pitch)).multiply(new THREE.Matrix4().makeScale(FPH.s, FPH.s, FPH.s)).multiply(new THREE.Matrix4().makeTranslation(-g.x, -g.y, -g.z));
   Am.premultiply(T); const FLm = FP_FL.clone().premultiply(T);
   const A = new THREE.Group(); Am.decompose(A.position, A.quaternion, A.scale);
   // own materials with an emissive copy of the texture: the flashlight's glow spills back onto your hand (updateLights sets how much)
