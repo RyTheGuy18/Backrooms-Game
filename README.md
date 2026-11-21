@@ -196,3 +196,4 @@ v0.76.4: jumping! Space / JUMP button, with real standing + running jump animati
 v0.76.5: jump higher (~1 m) — you can hop over the benches in the Poolrooms
 v0.76.8: hotel courtyard lawns and paving use new rocky-grass and asphalt textures
 v0.77.0: new first-person arm (DJMaesen's "First Person arms", CC BY) posed by Ryan round the flashlight — yellow hazmat sleeve, full black glove; rigged two-arm copy saved as models/fp-arms-rigged.glb
+v0.77.1: first-person arm a bit bigger and lower, and the end of the sleeve is sealed so you can't see inside the arm
