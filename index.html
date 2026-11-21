@@ -488,7 +488,7 @@
 <div class="osd" id="osdTL">▶ PLAY <b>●</b></div>
 <div class="osd" id="osdTR">SP<br><span id="osdTime">0:00:00</span></div>
 <div class="osd" id="osdBL">CH 00 · LVL 0</div>
-<div class="osd" id="ver">v0.77.2</div>
+<div class="osd" id="ver">v0.78.0</div>
 
 <div id="hud">
   <div id="objBox"><div class="lbl" id="objLbl">OBJECTIVE</div><div id="obj"></div><div id="side"></div>
@@ -748,7 +748,7 @@ function vibrate(p){ try{ navigator.vibrate && navigator.vibrate(p); }catch(e){}
 const CS = 4, WH = 2.8, EYE = 1.6;
 // the grid size changes per level (Level 0: 19x19 cells, Level 1: the big garage, 28x28)
 let N = 16, W = N*CS, VN = (N+1)*N, E = 2*VN;
-const GRID_N = k => k === 9 ? NZ_N : k === 8 ? BS_N : k === 7 ? FUN_N : k === 1 ? 28 : k === 3 ? HN : k === 0 ? 19 : k === 4 || k === 6 ? MALL_N : k === 5 ? P2_N : 16;   // v0.28: Level 0 grew from 16 to 19
+const GRID_N = k => k === 10 ? WARD_N : k === 9 ? NZ_N : k === 8 ? BS_N : k === 7 ? FUN_N : k === 1 ? 28 : k === 3 ? HN : k === 0 ? 19 : k === 4 || k === 6 ? MALL_N : k === 5 ? P2_N : 16;   // v0.28: Level 0 grew from 16 to 19
 function setGrid(n){ N = n; W = N*CS; VN = (N+1)*N; E = 2*VN; }
 const FUSES = 3;
 // v0.40 (Ryan, inspired by a Backrooms map): Level 0 gets a big field of + shaped pillars and two long winding hallways.
@@ -967,12 +967,12 @@ function nextStep(fi,fj,ti,tj,blk){
 const ZS = 6;
 let LK = 0, baseSeed = 0;   // LK: 0 = Level 0 (the office), 1 = Level 1 (the parking garage), 2 = Level 37 (the poolrooms), 3 = Level 188 (the hotel)
 const lvSeed = k => k === 9 ? (Math.imul(baseSeed ^ 0x0e60, 2654435761) >>> 0) : k === 7 ? (Math.imul(baseSeed ^ 0xf0f17, 2654435761) >>> 0) : k === 6 ? (Math.imul(baseSeed ^ 0x52c1a5, 2654435761) >>> 0) : k === 5 ? (Math.imul(baseSeed ^ 0x2b1e5, 2246822519) >>> 0) : k === 4 ? (Math.imul(baseSeed ^ 0x852a11, 2654435761) >>> 0) : k === 1 ? (Math.imul(baseSeed ^ 0x51ed, 2654435761) >>> 0) : k === 2 ? (Math.imul(baseSeed ^ 0x37b00, 2246822519) >>> 0) : k === 3 ? (Math.imul(baseSeed ^ 0x188f00d, 3266489917) >>> 0) : baseSeed;
-function zoneOf(i,j){ if (LK === 9) return 9; if (LK === 8) return 8; if (LK === 7) return 7; if (LK === 6) return 6; if (LK === 5) return 5; if (LK === 4) return 4; if (LK === 3) return 0; if (LK === 1) return 1; if (LK === 2) return 3; if (i>=N-ZS && j<ZS) return 1; if (i<ZS && j>=N-ZS) return 2; return 0; }
+function zoneOf(i,j){ if (LK === 10) return 10; if (LK === 9) return 9; if (LK === 8) return 8; if (LK === 7) return 7; if (LK === 6) return 6; if (LK === 5) return 5; if (LK === 4) return 4; if (LK === 3) return 0; if (LK === 1) return 1; if (LK === 2) return 3; if (i>=N-ZS && j<ZS) return 1; if (i<ZS && j>=N-ZS) return 2; return 0; }
 const zoneAt = (x,z) => zoneOf(cellOf(x), cellOf(z));
 function floorY(x,z){ return LK === 2 ? h37(x,z) : LK === 4 || LK === 6 ? floorY852(x,z) : 0; }
 const poolBlock = () => null;
 function edgeCells(e){ if (e < VN){ const i=Math.floor(e/N), j=e%N; return [[i-1,j],[i,j]]; } const k=e-VN, j=Math.floor(k/N), i=k%N; return [[i,j-1],[i,j]]; }
-function edgeZoneOf(e){ if (LK === 9) return 9; if (LK === 8) return 8; if (LK === 7) return 7; if (LK === 6) return 6; if (LK === 5) return 5; if (LK === 4) return 4; if (LK === 2) return 3; const cs = edgeCells(e).filter(([i,j])=>inGrid(i,j)); if (cs.some(([i,j])=>zoneOf(i,j)===2)) return 2; if (cs.some(([i,j])=>zoneOf(i,j)===1)) return 1; return 0; }
+function edgeZoneOf(e){ if (LK === 10) return 10; if (LK === 9) return 9; if (LK === 8) return 8; if (LK === 7) return 7; if (LK === 6) return 6; if (LK === 5) return 5; if (LK === 4) return 4; if (LK === 2) return 3; const cs = edgeCells(e).filter(([i,j])=>inGrid(i,j)); if (cs.some(([i,j])=>zoneOf(i,j)===2)) return 2; if (cs.some(([i,j])=>zoneOf(i,j)===1)) return 1; return 0; }
 const ZH = [WH, WH, 3.8, 4.4, 3.6, 3.0, 3.0];
 const ZFOG = [new THREE.Color(0x15120a), new THREE.Color(0x0a0c0d), new THREE.Color(0x1a170c), new THREE.Color(0x9cb3aa), new THREE.Color(0x0e1014), new THREE.Color(0x110d09), new THREE.Color(0x15130e), new THREE.Color(0x1a150a), new THREE.Color(0x0d0a08)];
 const ZDENS = [0.1, 0.12, 0.07, 0.02, 0.07, 0.085, 0.065, 0.075, 0.09];
@@ -980,6 +980,7 @@ const ZSKY = [new THREE.Color(0x8a7a40), new THREE.Color(0x56626a), new THREE.Co
 const ZGND = [new THREE.Color(0x1a1608), new THREE.Color(0x101214), new THREE.Color(0x221c0c), new THREE.Color(0x9fbdae), new THREE.Color(0x16140f), new THREE.Color(0x1a140c), new THREE.Color(0x1c1a14), new THREE.Color(0x221408), new THREE.Color(0x140e0a)];
 const ZNAME = ['', 'PARKING LEVEL', 'THE PITFALLS', '', '', '', ''];
 ZFOG[9] = new THREE.Color(0x120f07); ZDENS[9] = 0.085; ZSKY[9] = new THREE.Color(0x7a6c3a); ZGND[9] = new THREE.Color(0x161206);   // v0.71 Level -0
+ZFOG[10] = new THREE.Color(0x0a0d0c); ZDENS[10] = 0.06; ZSKY[10] = new THREE.Color(0x8c9c96); ZGND[10] = new THREE.Color(0x151a17);   // v0.78 THE WARD
 /* v0.62.4 (Ryan): his Poly Haven concrete (concrete_floor_worn_001: textures/garage-conc.jpg = the diffuse at 256 px = 2 m,
    garage-conc-nor.png = its normal map) under the garage's yellow/black stripes, P2 sign, seams and parking lines, on the
    walls, pillars, floor and ceiling of the Level 1 garage and Level 0's parking corner. concMat() maps them in WORLD
@@ -4143,6 +4144,583 @@ function hostCreaker(dt, alive){
   put();
 }
 
+/* ===== v0.78 THE WARD (Ryan, Nov 20): LK 10 / G.lv 10, after THE BASEMENT (the last level now). Index 9 is Level -0's world (LK 9).
+   A HOLDOUT, not sneak-and-escape (inspired by the Level 3 Electrical Station pitch + Bodycam's zombie-mode hallway): an asylum isolation
+   ward = ONE long straight hallway (hall column i 1, rows j 2..11) with padded isolation cells on both sides (i 0 / i 2), a lobby across
+   row j 1 and a freight elevator behind it (cell (1,0)). The same map every time (WARD_N 12 grid, most of it solid).
+   You get a REVOLVER that barely does anything (6 shots, slow single-action re-cock, one shell at a time reloads; a hit only staggers an
+   inmate, 3 hits drop a walker) and hold the lobby with your back to the elevator while it crawls down (WARD_T 300 s, floor 8 → 1).
+   WAVES (WARD_WAVES): cell doors bang, then burst open, from the FAR end toward you; reasonable at first, then more and more until the
+   hallway fills. At WARD_ALLDOORS every closed door bangs open at once. Inmates (host hostWard, everyone draws G.wi):
+   walker (shuffles), runner (sprints, under your sprint), crawler (low, drags itself). CONTACT = GRABBED (G.wg[pid] = [inmate id, s left]):
+   you're pinned; shoot the one holding you, or a teammate holds PULL FREE next to you; when the time runs out you're dead ('wi').
+   AMMO: you start with WARD_START loaded + spare; the NURSES' STATION halfway down (cell (2,6)) has endless boxes (hold TAKE AMMO) —
+   someone has to make the run while the others cover them.
+   THE ELEVATOR (G.we 0 coming / 1 open / 2 closing / 3 gone): arrives at WARD_T, doors open; it leaves when every living survivor is inside
+   (or after WARD_OPEN s); doors close over WARD_CLOSE s; inside = escaped, outside = left behind ('wl').
+   NOTHING HERE IS FINAL ART: every texture, sound and model has a swap slot in WARD_ASSETS (below). Leave a slot null to keep the
+   code-made placeholder; put a file path in it and the game uses the file instead. No Occupant here (noOcc). */
+const WARD_ASSETS = {
+  // textures (any image; tiled in WORLD space: wall = 3 m across × WARD_H tall per repeat, floor/ceiling = 2 m per repeat)
+  tex: { wall:null, floor:null, ceil:null, pad:null /* isolation-cell padding */, lobbyWall:null },
+  // normal maps for the same (optional)
+  nor: { wall:null, floor:null, ceil:null, pad:null },
+  // sounds (mp3/wav/ogg). Synthesised placeholders play when null. Gun sounds are played dry; the hallway echo is added on top
+  // (set WARD_ECHO = 0 if your recording already has its own tail).
+  sfx: { shot:null, shotFar:null, cock:null, cylOpen:null, eject:null, shell:null, cylClose:null, dry:null, ammo:null,
+         groan:null, scream:null, grab:null, kill:null, doorBang:null, doorOpen:null, ding:null, elevOpen:null, elevClose:null, ringing:null },
+  // models (.glb). revolver: points down −z, grip down, ~0.3 m long, optional nodes 'hammer' (pivots back on +x) and 'cylinder'.
+  // inmate: feet at 0, faces +z, ~1.8 m; Mixamo-style clips named Walk / Run / Crawl / Stagger / Grab / Die (any missing → code pose).
+  model: { revolver:null, inmate:null, runner:null, crawler:null }
+};
+const WARD_N = 12, WARD_H = 3.0, WARD_T = 300, WARD_OPEN = 20, WARD_CLOSE = 4.2, WARD_ALLDOORS = 270, WARD_ECHO = 1;
+const WARD_START = [6, 12], WARD_SPARE_MAX = 30, WARD_AMMO_GIVE = 12, WARD_AMMO_T = 1.4, WARD_FREE_T = 1.0;
+const WARD_COCK = 0.62, WARD_OPEN_T = 0.5, WARD_SHELL_T = 0.48, WARD_CLOSE_T = 0.4;   // the revolver's slowness
+const WARD_GRAB = [7, 6, 5, 4];   // seconds you last once grabbed, by difficulty
+const WARD_CAP = [32, 38, 44, 48];   // most inmates alive at once
+// inmate types: speed m/s, hp, body height, radius
+const WI_T = [ { n:'walker', sp:1.25, hp:3, h:1.75, r:0.3 }, { n:'runner', sp:4.1, hp:2, h:1.72, r:0.3 }, { n:'crawler', sp:1.75, hp:2, h:0.55, r:0.34 } ];
+const WARD_WAVES = [   // t0..t1 s: rows that can open, seconds between spawns, how many per spawn, chance of a runner / crawler
+  { t0:10,  t1:60,  rows:[9, 11], every:9,   n:[1, 1], run:0,    crawl:0,    msg:'Something is banging at the far end of the hall.' },
+  { t0:60,  t1:150, rows:[7, 11], every:4.6, n:[1, 2], run:0.2,  crawl:0.1,  msg:'More doors are giving way down the hall.' },
+  { t0:150, t1:240, rows:[4, 11], every:2.6, n:[1, 2], run:0.32, crawl:0.15, msg:'The far end just went dark. They\'re coming faster.' },
+  { t0:240, t1:WARD_T + 60, rows:[2, 11], every:1.15, n:[2, 3], run:0.36, crawl:0.15, msg:'The doors right next to you are shaking.' } ];
+const WARD_DF_EVERY = [1.4, 1, 0.85, 0.72], WARD_DF_SP = [0.85, 1, 1.08, 1.15];
+const wardDec = m => { const mt = m.material; mt.polygonOffset = true; mt.polygonOffsetFactor = -2; mt.polygonOffsetUnits = -2; return m; };
+const wardOn = () => LK === 10 && level && level.ward;
+const wardCar = (x, z) => Math.abs(x - 6) < 0.92 && z > 4 - 2.4 && z < 3.95;   // inside the elevator car
+// ---- swap-able textures: a file from WARD_ASSETS or a canvas placeholder
+function wardTex(key, make, nor){ const p = (nor ? WARD_ASSETS.nor : WARD_ASSETS.tex)[key]; if (p){ const t = fileTex(p); if (nor) t.colorSpace = THREE.NoColorSpace; return t; } return make ? make() : null; }
+const wardWallPh = () => canvasTex(256, 256, (g, w, h)=>{   // 3 m × 3 m: pale green paint below 1.2 m, a dark rail, off-white tiles above, grime
+  const yR = h*(1 - 1.2/3); g.fillStyle = '#d8d6c8'; g.fillRect(0, 0, w, yR);
+  for (let y=0; y<yR; y+=12) for (let x=0; x<w; x+=12){ const v = 200 + texR()*30; g.fillStyle = `rgb(${v},${v-2},${v-14})`; g.fillRect(x+1, y+1, 11, 11); }
+  g.fillStyle = 'rgba(90,90,80,.35)'; for (let y=0; y<yR; y+=12) g.fillRect(0, y, w, 1); for (let x=0; x<w; x+=12) g.fillRect(x, 0, 1, yR);
+  g.fillStyle = '#7f9a86'; g.fillRect(0, yR, w, h - yR); g.fillStyle = '#3a4038'; g.fillRect(0, yR - 3, w, 6);
+  for (let i=0;i<500;i++){ g.fillStyle = texR() < 0.5 ? 'rgba(60,64,52,.18)' : 'rgba(210,214,200,.12)'; g.fillRect(texR()*w|0, yR + texR()*(h-yR)|0, 1 + texR()*3|0, 1); }
+  for (let i=0;i<14;i++){ const x = texR()*w, y = yR + texR()*(h-yR); g.fillStyle = 'rgba(220,222,206,.7)'; g.fillRect(x, y, 3 + texR()*8, 2 + texR()*4); }   // chipped paint
+  for (let i=0;i<7;i++){ const x = texR()*w, len = 20 + texR()*90; const gr = g.createLinearGradient(0, 0, 0, len); gr.addColorStop(0, 'rgba(80,66,40,.35)'); gr.addColorStop(1, 'rgba(80,66,40,0)'); g.fillStyle = gr; g.fillRect(x, 0, 2 + texR()*3, len); }   // water streaks
+  for (let i=0;i<6;i++){ const x = texR()*w, y = h - texR()*30, r = 8 + texR()*20, gr = g.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, 'rgba(40,36,26,.35)'); gr.addColorStop(1, 'rgba(40,36,26,0)'); g.fillStyle = gr; g.fillRect(x-r, y-r, r*2, r*2); } });
+const wardFloorPh = () => canvasTex(128, 128, (g, w, h)=>{   // 2 m: 6×6 worn linoleum tiles, two tones
+  const n = 6, s = w/n; for (let i=0;i<n;i++) for (let j=0;j<n;j++){ const a = (i+j)%2, v = a ? 150 + texR()*14 : 98 + texR()*12; g.fillStyle = `rgb(${v},${v+2},${v-6})`; g.fillRect(i*s, j*s, s, s); }
+  g.fillStyle = 'rgba(30,30,24,.45)'; for (let k=0;k<=n;k++){ g.fillRect(k*s, 0, 1, h); g.fillRect(0, k*s, w, 1); }
+  for (let i=0;i<700;i++){ g.fillStyle = texR() < 0.6 ? 'rgba(40,38,30,.15)' : 'rgba(230,230,220,.08)'; g.fillRect(texR()*w|0, texR()*h|0, 1, 1); }
+  for (let i=0;i<3;i++){ const x = texR()*w, y = texR()*h, r = 10 + texR()*22, gr = g.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, 'rgba(60,48,30,.3)'); gr.addColorStop(1, 'rgba(60,48,30,0)'); g.fillStyle = gr; g.fillRect(x-r, y-r, r*2, r*2); } });
+const wardCeilPh = () => canvasTex(128, 128, (g, w, h)=>{ const n = 3, s = w/n; g.fillStyle = '#c4c2b4'; g.fillRect(0, 0, w, h);
+  for (let i=0;i<1400;i++){ g.fillStyle = texR() < 0.5 ? 'rgba(120,118,104,.25)' : 'rgba(230,228,214,.2)'; g.fillRect(texR()*w|0, texR()*h|0, 1, 1); }
+  g.fillStyle = '#6a6a60'; for (let k=0;k<=n;k++){ g.fillRect(k*s - 1, 0, 2, h); g.fillRect(0, k*s - 1, w, 2); }
+  for (let i=0;i<2;i++){ const x = texR()*w, y = texR()*h, r = 12 + texR()*18, gr = g.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, 'rgba(120,90,40,.4)'); gr.addColorStop(0.7, 'rgba(120,90,40,.15)'); gr.addColorStop(1, 'rgba(120,90,40,0)'); g.fillStyle = gr; g.fillRect(x-r, y-r, r*2, r*2); } });
+const wardPadPh = () => canvasTex(128, 128, (g, w, h)=>{   // quilted padding, 3 m: 6×6 cushions with buttons, stained
+  const n = 6, s = w/n; for (let i=0;i<n;i++) for (let j=0;j<n;j++){ const gr = g.createRadialGradient(i*s + s/2, j*s + s/2, 2, i*s + s/2, j*s + s/2, s*0.75); gr.addColorStop(0, '#d6ccb0'); gr.addColorStop(1, '#8a806a'); g.fillStyle = gr; g.fillRect(i*s, j*s, s, s); }
+  g.fillStyle = '#4a4434'; for (let i=0;i<=n;i++) for (let j=0;j<=n;j++){ g.beginPath(); g.arc(i*s, j*s, 1.6, 0, 7); g.fill(); }
+  for (let i=0;i<5;i++){ const x = texR()*w, y = texR()*h, r = 6 + texR()*14, gr = g.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, i < 2 ? 'rgba(90,20,14,.5)' : 'rgba(70,56,30,.35)'); gr.addColorStop(1, 'rgba(70,56,30,0)'); g.fillStyle = gr; g.fillRect(x-r, y-r, r*2, r*2); }
+  for (let i=0;i<4;i++){ g.strokeStyle = 'rgba(60,20,14,.45)'; g.lineWidth = 1; g.beginPath(); const x = texR()*w, y = texR()*h; g.moveTo(x, y); for (let k=0;k<4;k++) g.lineTo(x + (texR()-0.5)*14, y + k*5 + texR()*4); g.stroke(); } });   // scratch marks
+let WARDM = null;
+function wardMats(){
+  if (WARDM) return WARDM;
+  const wall = wardTex('wall', wardWallPh), floor = wardTex('floor', wardFloorPh), ceil = wardTex('ceil', wardCeilPh), pad = wardTex('pad', wardPadPh), lob = WARD_ASSETS.tex.lobbyWall ? wardTex('lobbyWall') : wall;
+  WARDM = { wall:bsMat(wall, wardTex('wall', null, 1), 0xffffff, [3, WARD_H, 2]), lobby:bsMat(lob, wardTex('wall', null, 1), 0xf0ece0, [3, WARD_H, 2]),
+    floor:bsMat(floor, wardTex('floor', null, 1), 0xd8d8cc, [2, 2, 2]), ceil:bsMat(ceil, wardTex('ceil', null, 1), 0xb8b8ac, [2, 2, 2]),
+    pad:bsMat(pad, wardTex('pad', null, 1), 0xffffff, [3, WARD_H, 3]), padFloor:bsMat(pad, null, 0x8a8478, [3, 3, 3]),
+    steel:lam(0x6a6e70), dark:lam(0x0c0c0c), frame:lam(0x3a3e40), wood:lam(0x6a4a30), white:lam(0xd8d8d0), green:lam(0x4a6a52), red:lam(0x7a1a14) };
+  return WARDM; }
+
+function buildLevelWard(seed){
+  const g = new THREE.Group(); scene.add(g);
+  const L = level = { seed, lk:10, group:g, gens:[], slotLeds:[], fuses:[], fuseMeshes:[], breaker:[-99,-99], rooms:[], halls:[], kind:new Uint8Array(N*N), fixed:new Uint8Array(E).fill(1), slabs:[], base:null, shown:new Uint8Array(E), circles:[], pillarSet:new Set(), sounds:[], used:new Set(), wet:[], drips:[], tvs:[], phones:[], lockers:[], cn:[], cnM:[], bt:[], btM:[], aw:[], awM:[], vents:[], holes:[], offhook:[], high:[], panels:[], panelAt:new Int16Array(N*N).fill(-1), edgeZ:new Uint8Array(E), wallMeshes:[], floats:[], lamps:[], cleanDesk:null, roller:null, red:{i0:-1,j0:-1,i1:-1,j1:-1}, clean:null,
+    ward:{ type:new Int8Array(N*N), doors:[], station:null, car:null, holes:[], dust:[], flash:null, ind:null } };
+  const W0 = L.ward, M = wardMats(), K = (i,j) => i*N+j, inG = (i,j) => i>=0 && j>=0 && i<N && j<N;
+  const slab = (x0, x1, z0, z1, nd) => L.slabs.push([Math.min(x0,x1), Math.max(x0,x1), Math.min(z0,z1), Math.max(z0,z1), nd ? 1 : 0]);
+  const grp = (x, z, ry, y=0) => { const r = new THREE.Group(); r.position.set(x, y, z); r.rotation.y = ry; g.add(r); return r; };
+  // cell types: 0 solid, 1 hall, 2 lobby, 3 isolation cell, 4 nurses' station, 5 elevator
+  const T = W0.type, HALL = 1, LOB = 2, CELL = 3, STA = 4, ELV = 5;
+  T[K(1,0)] = ELV; for (let i=0;i<3;i++) T[K(i,1)] = LOB; for (let j=2;j<=11;j++){ T[K(1,j)] = HALL; T[K(0,j)] = CELL; T[K(2,j)] = j === 6 ? STA : CELL; }
+  walls = new Uint8Array(E).fill(1);
+  const open = e => { walls[e] = 0; };
+  for (let j=2;j<=11;j++) open(hIdx(1, j));   // the hall runs north from the lobby
+  open(vIdx(1, 1)); open(vIdx(2, 1)); open(vIdx(2, 6));   // the lobby's sides; the nurses' station is open to the hall
+  // the cell doors (closed): one per isolation cell, numbered from the lobby end
+  for (let j=2;j<=11;j++) for (const i of [0, 2]){ if (T[K(i,j)] !== CELL) continue; const e = i === 0 ? vIdx(1, j) : vIdx(2, j), ex = i === 0 ? 4 : 8;
+    W0.doors.push({ k:W0.doors.length, i, j, e, x:ex, z:cc(j), side:i === 0 ? -1 : 1, row:j, cx:cc(i), cz:cc(j), num:'C-' + String(W0.doors.length + 1).padStart(2, '0') }); }
+  L.base = walls.slice();
+  L.start = [1, 1]; L.spawn = [6, 6.4]; L.spawnYaw = Math.PI;   // in the lobby, backs to the elevator, looking down the hall
+  L.mspawn = [6, cc(11)];
+  // ---- floors + ceilings
+  { const fl = [], cl = [], pf = [], pc = []; for (let i=0;i<N;i++) for (let j=0;j<N;j++){ const t = T[K(i,j)]; if (!t || t === ELV) continue; (t === CELL ? pf : fl).push([cc(i), 0, cc(j)]); (t === CELL ? pc : cl).push([cc(i), WARD_H, cc(j)]); }
+    const inst = (geo, mat, list) => { if (!list.length) return; const m = new THREE.InstancedMesh(geo, mat, list.length); list.forEach((p,k)=>{ tmpM.makeTranslation(p[0], p[1], p[2]); m.setMatrixAt(k, tmpM); }); m.frustumCulled = false; m.userData.flat = true; g.add(m); return m; };
+    inst(cellPlane(1,false), M.floor, fl); inst(cellPlane(1,true), M.ceil, cl); inst(cellPlane(1,false), M.padFloor, pf); inst(cellPlane(1,true), M.pad, pc); }
+  // ---- walls: each side of an edge gets its own 0.1 m skin in that room's material (hall/lobby paint+tile, cells padded)
+  const matOf = t => t === CELL ? M.pad : t === LOB || t === ELV ? M.lobby : M.wall;
+  const DW = 1.25, DH = 2.5;   // cell doorway
+  const doorE = new Map(W0.doors.map(d=>[d.e, d]));
+  for (let e=0;e<E;e++){
+    const [ex, ez] = edgeMid(e), along = e < VN ? 'z' : 'x', [ca, cb] = edgeCells(e), ta = inG(ca[0],ca[1]) ? T[K(ca[0],ca[1])] : 0, tb = inG(cb[0],cb[1]) ? T[K(cb[0],cb[1])] : 0;
+    if (!ta && !tb) continue; if (!walls[e] && !doorE.has(e) && !(e === hIdx(1,1))) continue;
+    if (e === hIdx(1,1)) continue;   // the elevator front is built with the car
+    const D = doorE.get(e);
+    for (const [t, s] of [[ta, -1], [tb, 1]]){ if (!t) continue; const m = matOf(t), off = s*0.05;
+      if (!D){ bx(g, along === 'x' ? CS + 0.2 : 0.1, WARD_H, along === 'x' ? 0.1 : CS + 0.2, ex + (along === 'z' ? off : 0), WARD_H/2, ez + (along === 'x' ? off : 0), m); continue; }
+      // a doorway: two side pieces + a header
+      const half = (CS - DW)/2;
+      for (const q of [-1, 1]) bx(g, 0.1, WARD_H, half + 0.1, ex + off, WARD_H/2, ez + q*(DW/2 + (half + 0.1)/2), m);
+      bx(g, 0.1, WARD_H - DH, DW, ex + off, DH + (WARD_H - DH)/2, ez, m); }
+    if (D){ slab(ex - 0.1, ex + 0.1, ez - CS/2 - 0.1, ez - DW/2); slab(ex - 0.1, ex + 0.1, ez + DW/2, ez + CS/2 + 0.1); }
+  }
+  // ---- the cell doors: steel, a slot window, number plate; the prison door model replaces the box leaf when it loads
+  for (const d of W0.doors){
+    const u = grp(d.x, d.z, d.side < 0 ? -Math.PI/2 : Math.PI/2);   // local +z points INTO the cell (doors swing inward)
+    const piv = new THREE.Group(); piv.position.set(DW/2, 0, 0); u.add(piv); const box = new THREE.Group(); piv.add(box);
+    bx(box, DW - 0.04, DH - 0.02, 0.07, -DW/2, DH/2, 0.04, M.steel); bx(box, 0.32, 0.12, 0.08, -DW/2, 1.6, 0.04, M.dark); bx(box, 0.06, 0.2, 0.09, -DW + 0.16, 1.05, 0.04, M.frame);
+    bx(u, DW + 0.14, 0.08, 0.14, 0, DH + 0.04, 0, M.frame); for (const q of [-1, 1]) bx(u, 0.07, DH, 0.14, q*(DW/2 + 0.035), DH/2, 0, M.frame);
+    const pl = new THREE.Mesh(new THREE.PlaneGeometry(0.34, 0.12), new THREE.MeshBasicMaterial({ map:textTex(d.num, 96, 34, (c,w2,h2,t)=>{ c.fillStyle = '#d8d4c4'; c.fillRect(0,0,w2,h2); c.fillStyle = '#2a2a26'; c.font = 'bold 24px monospace'; c.textAlign = 'center'; c.fillText(t, w2/2, 25); }) }));
+    pl.position.set(0, DH + 0.24, -0.08); pl.rotation.y = Math.PI; u.add(pl); wardDec(pl);
+    d.u = u; d.piv = piv; d.box = box; d.ang = 0; d.leaf = null; d.bangT = 0; d.shake = 0;
+    onDoor('prison', src=>{ const m = doorClone(src, DW, DH); u.add(m.g); box.visible = false; d.leaf = m.leaf; });
+    // inside the cell: a bolted bed frame and a stained mattress against the back wall
+    const bw = grp(d.cx + d.side*1.25, d.cz + 0.9, Math.PI/2); bx(bw, 1.9, 0.32, 0.85, 0, 0.16, 0, M.frame); bx(bw, 1.85, 0.1, 0.8, 0, 0.37, 0, lam(0x9a9078));
+    slab(d.cx + d.side*1.25 - 0.45, d.cx + d.side*1.25 + 0.45, d.cz + 0.9 - 0.97, d.cz + 0.9 + 0.97); }
+  // ---- the nurses' station (2,6): open to the hall, a counter, shelves of ammo boxes, a dead monitor
+  { const x0 = 8, cz = cc(6), st = grp(x0 + 1.3, cz, 0);
+    bx(st, 0.6, 1.05, 2.6, 0, 0.525, 0, M.wood); bx(st, 0.72, 0.05, 2.7, 0, 1.075, 0, lam(0xbab0a0));
+    for (let q=0;q<3;q++){ const b = bx(st, 0.28, 0.16, 0.2, 0.05, 1.18, -0.8 + q*0.45, lam(0x8a6a2a)); b.rotation.y = (q - 1)*0.3; bx(st, 0.29, 0.04, 0.21, 0.05, 1.28, -0.8 + q*0.45, lam(0xb89a40)).rotation.y = (q - 1)*0.3; }
+    const mon = bx(st, 0.12, 0.34, 0.42, 0.1, 1.27, 0.85, lam(0x2a2a28)); mon.rotation.y = -0.4; bx(st, 0.02, 0.26, 0.34, 0.03, 1.29, 0.82, M.dark).rotation.y = -0.4;
+    const sh = grp(x0 + 3.6, cz, -Math.PI/2); for (const sx of [-0.85, 0.85]) bx(sh, 0.05, 2.0, 0.05, sx, 1.0, 0.2, M.steel); for (const y of [0.3, 0.85, 1.4, 1.95]){ bx(sh, 1.8, 0.03, 0.42, 0, y, 0, M.steel); for (let q=0;q<4;q++) if (h01(y*7 + q) < 0.7) bx(sh, 0.26, 0.15, 0.2, -0.6 + q*0.4, y + 0.09, 0, lam(0x8a6a2a)); }
+    const sg = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 0.3), new THREE.MeshBasicMaterial({ map:textTex('NURSES', 160, 40, (c,w2,h2,t)=>{ c.fillStyle = '#e8e4d4'; c.fillRect(0,0,w2,h2); c.fillStyle = '#1a3a2a'; c.font = 'bold 28px monospace'; c.textAlign = 'center'; c.fillText(t, w2/2, 30); }) }));
+    sg.position.set(x0 + 0.06, 2.65, cz); sg.rotation.y = -Math.PI/2; g.add(sg); wardDec(sg);
+    slab(x0 + 0.95, x0 + 1.65, cz - 1.35, cz + 1.35); slab(x0 + 3.35, x0 + 3.9, cz - 0.95, cz + 0.95);
+    W0.station = { x:x0 + 0.55, z:cz, ax:x0 + 0.6, az:cz }; }
+  // ---- the lobby: benches, a wheelchair, an overturned gurney, signs
+  { const bench = (x, z, ry) => { const b = grp(x, z, ry); bx(b, 1.8, 0.06, 0.45, 0, 0.45, 0, M.wood); for (const sx of [-0.8, 0.8]) bx(b, 0.06, 0.45, 0.4, sx, 0.22, 0, M.frame); bx(b, 1.8, 0.4, 0.05, 0, 0.75, -0.2, M.wood); L.circles.push({ x:x - Math.sin(ry)*0, z, r:0.45 }); return b; };
+    bench(1.0, 5.2, Math.PI/2); L.circles.push({ x:1.0, z:4.6, r:0.4 }, { x:1.0, z:5.8, r:0.4 });
+    bench(11.0, 5.2, -Math.PI/2); L.circles.push({ x:11.0, z:4.6, r:0.4 }, { x:11.0, z:5.8, r:0.4 });
+    const wc = grp(2.6, 7.3, 0.6); for (const s of [-1,1]){ const wh = new THREE.Mesh(new THREE.TorusGeometry(0.3, 0.025, 5, 14), M.steel); wh.position.set(s*0.27, 0.32, 0); wh.rotation.y = Math.PI/2; wc.add(wh); } bx(wc, 0.5, 0.05, 0.45, 0, 0.48, 0, lam(0x2a2a30)); bx(wc, 0.5, 0.5, 0.05, 0, 0.75, -0.22, lam(0x2a2a30)); L.circles.push({ x:2.6, z:7.3, r:0.42 });
+    const gu = grp(10.2, 7.2, 0.3); gu.rotation.z = 1.35; gu.position.y = 0.5; bx(gu, 0.7, 0.08, 1.9, 0, 0.0, 0, M.steel); bx(gu, 0.66, 0.1, 1.8, 0, 0.08, 0, lam(0x8a9a90)); for (const s of [-0.85, 0.85]) bx(gu, 0.04, 0.55, 0.04, 0.32, -0.3, s, M.steel); L.circles.push({ x:10.3, z:6.6, r:0.45 }, { x:10.0, z:7.8, r:0.45 });
+    const sign = (txt, x, z, ry, w=1.6, col='#1a2a22', bg='#d8d8c8') => { const s = new THREE.Mesh(new THREE.PlaneGeometry(w, w*0.22), new THREE.MeshBasicMaterial({ map:textTex(txt, 512, 112, (c,w2,h2,t)=>{ c.fillStyle = bg; c.fillRect(0,0,w2,h2); c.fillStyle = col; c.font = `bold ${Math.min(52, Math.floor(880/Math.max(8, t.length)))}px monospace`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(t, w2/2, h2/2 + 2); }) })); s.position.set(x, 2.7, z); s.rotation.y = ry; g.add(s); wardDec(s); return s; };
+    sign('WARD C · ISOLATION', 6, 7.96, Math.PI, 1.4, '#5a1a14').position.y = 2.82;
+    sign('FREIGHT ELEVATOR', 2.4, 4.06, 0, 1.6); sign('NO VISITORS PAST THIS POINT', 6, 8.06, 0, 1.4, '#5a1a14').position.y = 2.82;
+    sign('WARD B', 6, 47.9, Math.PI, 1.0);
+    // the far end: a chained double door that never opens
+    const fd = grp(6, 47.9, Math.PI); for (const s of [-1,1]) bx(fd, 0.9, 2.3, 0.08, s*0.47, 1.15, 0, M.steel); bx(fd, 2.0, 0.1, 0.12, 0, 2.35, 0, M.frame);
+    for (let k=0;k<9;k++){ const lk = new THREE.Mesh(new THREE.TorusGeometry(0.04, 0.012, 4, 8), M.steel); lk.position.set(-0.4 + k*0.1, 1.15 + Math.sin(k/8*Math.PI)*-0.1, 0.07); lk.rotation.y = k%2 ? Math.PI/2 : 0; fd.add(lk); } }
+  // a wheelchair left halfway down the hall, against the wall between two doors (j 8, west side)
+  { const wc = grp(4.55, cc(8) + 1.55, -1.3); for (const s of [-1,1]){ const wh = new THREE.Mesh(new THREE.TorusGeometry(0.3, 0.025, 5, 14), M.steel); wh.position.set(s*0.27, 0.32, 0); wh.rotation.y = Math.PI/2; wc.add(wh); } bx(wc, 0.5, 0.05, 0.45, 0, 0.48, 0, lam(0x2a2a30)); bx(wc, 0.5, 0.5, 0.05, 0, 0.75, -0.22, lam(0x2a2a30)); L.circles.push({ x:4.55, z:cc(8) + 1.55, r:0.38 }); }
+  // blood trails and scuffs on the hall floor (decals)
+  { const bt = bloodTex ? bloodTex('smear', seed % 997) : null; if (bt) for (const [x, z, r, s] of [[5.2, 18.5, 0.4, 1.6], [6.8, 31.0, 2.2, 1.3], [6.0, 42.0, 1.0, 2.0], [4.6, 11.0, 0.2, 1.0]]){ const m = new THREE.Mesh(new THREE.PlaneGeometry(s, s*0.7), new THREE.MeshLambertMaterial({ map:bt, transparent:true, depthWrite:false, polygonOffset:true, polygonOffsetFactor:-2 })); m.rotation.set(-Math.PI/2, 0, r); m.position.set(x, 0.012, z); g.add(m); } }
+  // ---- the freight elevator (cell (1,0)): Ryan's elevator model (models/elevator.glb, shared with Level -0) turned to face the lobby
+  { const S = NZ_EL_S, Dp = NZ_EL_D*S, Wd = NZ_EL_W*S, zc = 4 - Dp/2, u = grp(6, zc, Math.PI); const Ec = { u, d:0 }; nzElevModel(Ec); W0.car = Ec;
+    // the shaft wall round it (lobby side), header above it, collision
+    for (const q of [-1, 1]){ const w = (4 - Wd)/2; bx(g, w, WARD_H, 0.1, 6 + q*(Wd/2 + w/2), WARD_H/2, 4.05, M.lobby); }
+    bx(g, Wd, WARD_H - 2.52, 0.1, 6, 2.52 + (WARD_H - 2.52)/2, 4.05, M.lobby);
+    slab(4, 6 - Wd/2 + 0.02, 0, 4.1); slab(6 + Wd/2 - 0.02, 8, 0, 4.1); slab(4, 8, 0, zc - Dp/2 + 0.08);
+    const O = NZ_EL_O*S; slab(6 - Wd/2, 6 - O, 3.75, 4.1); slab(6 + O, 6 + Wd/2, 3.75, 4.1);
+    // the floor indicator over the doors: ▼ and the floor number
+    const c = document.createElement('canvas'); c.width = 128; c.height = 48; const tx = new THREE.CanvasTexture(c); tx.colorSpace = THREE.SRGBColorSpace; tx.magFilter = THREE.NearestFilter;
+    const ind = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.19), new THREE.MeshBasicMaterial({ map:tx })); ind.position.set(6, 2.74, 4.12); g.add(ind);
+    W0.ind = { c, tx, last:'' };
+    bx(g, 0.62, 0.27, 0.04, 6, 2.74, 4.09, M.frame);
+    // call panel (decor: it's already coming)
+    bx(g, 0.12, 0.26, 0.04, 6 + Wd/2 + 0.25, 1.3, 4.12, M.steel); const cb = new THREE.Mesh(new THREE.CircleGeometry(0.035, 10), new THREE.MeshBasicMaterial({ color:0xffb040 })); cb.position.set(6 + Wd/2 + 0.25, 1.3, 4.145); g.add(cb); }
+  // ---- lights: one tube per hall/lobby cell, the station, nothing in the cells (they're dark)
+  for (let i=0;i<N;i++) for (let j=0;j<N;j++){ const t = T[K(i,j)]; if (t !== HALL && t !== LOB && t !== STA) continue;
+    const p = { idx:L.panels.length, i, j, t:0, x:cc(i), z:cc(j), y:WARD_H - 0.05, sx:1.2, sy:0.06, sz:0.4, faulty: j === 9 || j === 4, dead:false, red:false, ph:h01(i*31 + j)*10, b:1, gk:-1, col:t === STA ? 0xd8ffe8 : 0xeef2ea, dist:8.5, ward:j };
+    L.panelAt[K(i,j)] = p.idx; L.panels.push(p); }
+  L.panelMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1), new THREE.MeshBasicMaterial({ color:0xffffff }), Math.max(1, L.panels.length));
+  L.panels.forEach(p=>{ tmpV.set(p.x, p.y, p.z); tmpS.set(p.sx, p.sy, p.sz); tmpQ.identity(); tmpM.compose(tmpV, tmpQ, tmpS); L.panelMesh.setMatrixAt(p.idx, tmpM); L.panelMesh.setColorAt(p.idx, tmpC.setRGB(1,1,1)); });
+  L.panelMesh.frustumCulled = false; g.add(L.panelMesh);
+  // ---- two batteries in the lobby (the flashlight still works), the generic exit fields (unused: the elevator is the way out)
+  L.bt.push([1.2, 7.2], [10.8, 4.8]);
+  for (const p of L.bt){ const m = new THREE.Group(); const b = new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.08,0.3,8), lam(0xb8a640)); b.rotation.z = Math.PI/2; b.position.y = 0.08; m.add(b); m.position.set(p[0], 0, p[1]); g.add(m); L.btM.push(m); }
+  { const dk = new THREE.Mesh(new THREE.PlaneGeometry(0.1, 0.1), new THREE.MeshBasicMaterial({ color:0 })); dk.visible = false; g.add(dk); L.door = dk; L.doorMatLocked = dk.material; L.doorMatOpen = dk.material; }
+  L.exitPos = [-999, -999]; L.exitCell = [1, 0]; exitLight.intensity = 0;
+  // ---- the muzzle-flash light (one, re-used by every gunshot you can see) + bullet holes + dust
+  { const fl = new THREE.PointLight(0xffd8a0, 0, 14, 1.6); fl.position.set(6, 1.5, 6); g.add(fl); W0.flash = fl; }
+  L.kind = new Uint8Array(N*N);
+  L.slabCell = Array.from({ length:N*N }, ()=>[]);
+  for (const s of L.slabs){ for (let i=Math.max(0, Math.floor((s[0]-0.6)/CS)); i<=Math.min(N-1, Math.floor((s[1]+0.6)/CS)); i++) for (let j=Math.max(0, Math.floor((s[2]-0.6)/CS)); j<=Math.min(N-1, Math.floor((s[3]+0.6)/CS)); j++) L.slabCell[K(i,j)].push(s); }
+  L.circCell = Array.from({ length:N*N }, ()=>[]);
+  for (const c of L.circles){ for (let i=Math.max(0, cellOf(c.x-c.r-1)); i<=Math.min(N-1, cellOf(c.x+c.r+1)); i++) for (let j=Math.max(0, cellOf(c.z-c.r-1)); j<=Math.min(N-1, cellOf(c.z+c.r+1)); j++) L.circCell[K(i,j)].push(c); }
+  bakeStatic852(g, new Set([L.panelMesh, ...L.btM, W0.car.u, W0.flash, ...W0.doors.map(d=>d.u)].filter(Boolean)));
+  WARD.seen = { t:-1, wave:-1, we:-1, floor:-1, all:0 };
+}
+
+/* ======== the revolver (client-side: your own gun, ammo and timing; hits go to the host) ======== */
+let scareWi = false, WIJ = null;
+const WARD = { seen:{}, key:'', gun:null, vm:null, kick:0, roll:0, flashT:0, ringG:null, muff:null, buf:{}, bufTried:false, hum:null, iv:new Map(), holes:[], dust:[], grabSeen:0, groanT:2, freeHold:null };
+function wardGunReset(){ WARD.gun = { loaded:WARD_START[0], spare:WARD_START[1], cocked:true, st:'ready', t:0, wantStop:false, drum:0 }; }
+// the first-person revolver (placeholder, built in code; WARD_ASSETS.model.revolver swaps the body)
+function wardBuildVM(){
+  if (WARD.vm) return WARD.vm;
+  const g = new THREE.Group(), steel = new THREE.MeshLambertMaterial({ color:0x34363a, emissive:0x0a0a0c }), dark = new THREE.MeshLambertMaterial({ color:0x18181a, emissive:0x050505 }), wood = new THREE.MeshLambertMaterial({ color:0x4a2e1a, emissive:0x0a0604 }), glove = new THREE.MeshLambertMaterial({ color:0x141414, emissive:0x040404 });
+  const body = new THREE.Group(); g.add(body);
+  const b = (p, w, h, d, x, y, z, m) => { const q = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); q.position.set(x, y, z); p.add(q); return q; };
+  b(body, 0.03, 0.05, 0.11, 0, 0, 0, steel);   // frame
+  const bar = new THREE.Mesh(new THREE.CylinderGeometry(0.011, 0.012, 0.17, 10), steel); bar.rotation.x = Math.PI/2; bar.position.set(0, 0.012, -0.135); body.add(bar);
+  b(body, 0.016, 0.012, 0.17, 0, -0.004, -0.13, steel);   // ejector rod housing under the barrel
+  b(body, 0.004, 0.012, 0.01, 0, 0.03, -0.215, steel);   // front sight
+  const drumP = new THREE.Group(); drumP.position.set(0, 0.006, -0.02); body.add(drumP);   // swings out to the left for reloads
+  const drum = new THREE.Group(); drumP.add(drum); const dc = new THREE.Mesh(new THREE.CylinderGeometry(0.026, 0.026, 0.055, 12), steel); dc.rotation.x = Math.PI/2; drum.add(dc);
+  for (let k=0;k<6;k++){ const a = k/6*Math.PI*2, h = new THREE.Mesh(new THREE.CylinderGeometry(0.0065, 0.0065, 0.057, 6), dark); h.rotation.x = Math.PI/2; h.position.set(Math.cos(a)*0.016, Math.sin(a)*0.016, 0); drum.add(h); }
+  const shells = []; for (let k=0;k<6;k++){ const a = k/6*Math.PI*2, s = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.006, 6), new THREE.MeshLambertMaterial({ color:0xb89a50, emissive:0x1a1408 })); s.rotation.x = Math.PI/2; s.position.set(Math.cos(a)*0.016, Math.sin(a)*0.016, 0.029); drum.add(s); shells.push(s); }
+  const ham = new THREE.Group(); ham.position.set(0, 0.022, 0.045); body.add(ham); b(ham, 0.008, 0.026, 0.01, 0, 0.011, 0.004, steel);
+  const grip = b(body, 0.026, 0.1, 0.04, 0, -0.055, 0.045, wood); grip.rotation.x = 0.32;
+  const tg = new THREE.Mesh(new THREE.TorusGeometry(0.016, 0.003, 4, 10, Math.PI), steel); tg.position.set(0, -0.028, 0.0); tg.rotation.set(0, Math.PI/2, Math.PI); body.add(tg);
+  const trig = b(body, 0.004, 0.018, 0.005, 0, -0.03, 0.004, steel);
+  // a gloved hand round the grip
+  const hand = new THREE.Group(); body.add(hand); b(hand, 0.05, 0.075, 0.06, 0.004, -0.058, 0.05, glove).rotation.x = 0.32; b(hand, 0.046, 0.022, 0.07, 0.0, -0.028, 0.01, glove);
+  const arm = b(hand, 0.07, 0.07, 0.3, 0.01, -0.1, 0.22, new THREE.MeshLambertMaterial({ color:0xb89a2a, emissive:0x1a1404 })); arm.rotation.x = 0.35;
+  // the muzzle flash: two crossed additive planes at the barrel tip
+  const ft = canvasTex(64, 64, (c,w,h)=>{ const gr = c.createRadialGradient(32,32,0,32,32,32); gr.addColorStop(0,'rgba(255,250,220,1)'); gr.addColorStop(0.25,'rgba(255,200,90,.9)'); gr.addColorStop(1,'rgba(255,120,20,0)'); c.fillStyle = gr; c.fillRect(0,0,w,h); c.fillStyle = 'rgba(255,230,160,.8)'; for (let k=0;k<6;k++){ c.save(); c.translate(32,32); c.rotate(k/6*6.28); c.fillRect(0,-1.5,30,3); c.restore(); } });
+  const fm = new THREE.MeshBasicMaterial({ map:ft, transparent:true, blending:THREE.AdditiveBlending, depthWrite:false, fog:false });
+  const flash = new THREE.Group(); flash.position.set(0, 0.012, -0.24); body.add(flash); for (const r of [0, Math.PI/2]){ const p = new THREE.Mesh(new THREE.PlaneGeometry(0.16, 0.16), fm); p.rotation.y = r; flash.add(p); } const pf = new THREE.Mesh(new THREE.PlaneGeometry(0.12, 0.12), fm); flash.add(pf); flash.visible = false;
+  g.position.set(0.17, -0.17, -0.36); g.visible = false; camera.add(g);
+  WARD.vm = { g, body, drum, drumP, ham, trig, flash, shells, glb:null };
+  if (WARD_ASSETS.model.revolver) new GLTFLoader().load(WARD_ASSETS.model.revolver, gl=>{ const m = gl.scene, V = WARD.vm; const box = new THREE.Box3().setFromObject(m), sz = box.getSize(new THREE.Vector3()); const s = 0.3/Math.max(sz.x, sz.y, sz.z); m.scale.setScalar(s); m.position.sub(box.getCenter(new THREE.Vector3()).multiplyScalar(s));
+    for (const c of V.body.children.slice()) if (c !== hand && c !== flash) c.visible = false; V.body.add(m); V.glb = m; const hm = m.getObjectByName('hammer'), cy = m.getObjectByName('cylinder'); if (hm) V.ham = hm; if (cy){ V.drum = cy; V.drumP = cy; } }, undefined, e=>console.warn('revolver model failed', e));
+  return WARD.vm; }
+function wardFire(){
+  if (!wardOn() || role !== 'survivor' || !me.alive || me.hidden >= 0 || mode !== 'play') return;
+  const G0 = WARD.gun; if (!G0) return;
+  if (G0.st === 'open' || G0.st === 'insert'){ G0.wantStop = true; return; }   // stop reloading: close up first
+  if (G0.st !== 'ready' || !G0.cocked) return;
+  G0.cocked = false; G0.st = 'cock'; G0.t = 0;
+  if (G0.loaded <= 0){ wardSnd('dry'); msg('Empty. R to reload.', 1.4); return; }
+  G0.loaded--; WARD.kick = 1; WARD.roll = (Math.random() - 0.5)*0.05; WARD.flashT = 0.06; me.pitch = Math.min(1.35, me.pitch + 0.035 + Math.random()*0.012); me.yaw += (Math.random() - 0.5)*0.012; me.loudT = Math.max(me.loudT, 1.5);
+  wardSnd('shot'); wardEars(); vibrate(40);
+  safe(()=>useReq({ k:'wshot', x:+me.x.toFixed(1), z:+me.z.toFixed(1) }));
+  // the ray: from the eye along the view, hit the nearest inmate in front of the first wall
+  const o = camera.getWorldPosition(new THREE.Vector3()), d = camera.getWorldDirection(new THREE.Vector3());
+  let best = null, bt = 45;
+  for (const [id, V] of WARD.iv){ if (V.st === 3 || V.gone) continue; const ty = WI_T[V.t] || WI_T[0];
+    // the head (a sphere) first, then the body (an upright cylinder)
+    const hx = V.x + (V.t === 2 ? Math.sin(V.y)*0.55 : 0), hz = V.z + (V.t === 2 ? Math.cos(V.y)*0.55 : 0), hy = V.t === 2 ? 0.42 : 1.6, hr = 0.15;
+    { const ox = o.x - hx, oy = o.y - hy, oz = o.z - hz, bq = ox*d.x + oy*d.y + oz*d.z, c = ox*ox + oy*oy + oz*oz - hr*hr, dis = bq*bq - c; if (dis >= 0){ const t = -bq - Math.sqrt(dis); if (t > 0.1 && t < bt){ bt = t; best = { id, head:true, t }; } } }
+    { const ox = o.x - V.x, oz = o.z - V.z, a = d.x*d.x + d.z*d.z, bq = ox*d.x + oz*d.z, c = ox*ox + oz*oz - ty.r*ty.r, dis = bq*bq - a*c; if (a > 1e-6 && dis >= 0){ const t = (-bq - Math.sqrt(dis))/a; const y = o.y + d.y*t; if (t > 0.1 && t < bt && y > 0 && y < (V.t === 2 ? 0.55 : 1.48)){ bt = t; best = { id, head:false, t }; } } } }
+  // the first wall / floor / ceiling along the ray
+  let wall = null; for (let s = 0.2; s < 45; s += 0.18){ const px = o.x + d.x*s, py = o.y + d.y*s, pz = o.z + d.z*s; if (py < 0.01 || py > WARD_H - 0.01 || !losClear(o.x, o.z, px, pz)){ wall = { s, x:px, y:clamp(py, 0.02, WARD_H - 0.02), z:pz, floor:py < 0.01, ceil:py > WARD_H - 0.01 }; break; } }
+  if (best && (!wall || best.t < wall.s)){ const V = WARD.iv.get(best.id); useReq({ k:'whit', i:best.id, h:best.head ? 1 : 0 }); if (V){ V.hitT = 0.25; wardBlood(o.x + d.x*best.t, o.y + d.y*best.t, o.z + d.z*best.t); } }
+  else if (wall) wardImpact(wall, d);
+}
+function wardReload(){
+  const G0 = WARD.gun; if (!wardOn() || !G0 || !me.alive || role !== 'survivor') return;
+  if (G0.st !== 'ready' && G0.st !== 'cock') return; if (G0.loaded >= 6){ msg('Already full.', 1); return; } if (G0.spare <= 0){ msg('No spare rounds. The nurses\' station has boxes of them.', 2.5); return; }
+  G0.st = 'open'; G0.t = 0; G0.wantStop = false; wardSnd('cylOpen'); }
+function wardGunTick(dt){
+  const G0 = WARD.gun; if (!G0) return; G0.t += dt;
+  if (G0.st === 'cock' && G0.t >= WARD_COCK){ G0.st = 'ready'; G0.cocked = true; G0.drum = (G0.drum + 1) % 6; wardSnd('cock'); }
+  else if (G0.st === 'open' && G0.t >= WARD_OPEN_T){ G0.st = 'insert'; G0.t = 0; wardSnd('eject'); }
+  else if (G0.st === 'insert' && G0.t >= WARD_SHELL_T){ G0.t = 0;
+    if (G0.wantStop || G0.loaded >= 6 || G0.spare <= 0){ G0.st = 'close'; wardSnd('cylClose'); }
+    else { G0.loaded++; G0.spare--; wardSnd('shell'); } }
+  else if (G0.st === 'close' && G0.t >= WARD_CLOSE_T){ G0.st = 'cock'; G0.t = WARD_COCK*0.35; G0.cocked = false; }
+}
+// view model pose: recoil, hammer, the drum swinging out, the shell going in
+function wardVMTick(dt){
+  const V = wardBuildVM(), G0 = WARD.gun, show = wardOn() && mode === 'play' && role === 'survivor' && me.alive && me.hidden < 0 && G0;
+  V.g.visible = !!show; if (!show) return;
+  WARD.kick = Math.max(0, WARD.kick - dt*5.5); const k = WARD.kick*WARD.kick*(3 - 2*WARD.kick);
+  const st = G0.st, t = G0.t, rl = st === 'open' ? Math.min(1, t/WARD_OPEN_T) : st === 'insert' ? 1 : st === 'close' ? 1 - Math.min(1, t/WARD_CLOSE_T) : 0, rs = rl*rl*(3 - 2*rl);
+  const bob = me.bob || 0, run = me.vmRun || 0;
+  V.g.position.set(0.17 - rs*0.1 + Math.sin(bob*0.5)*0.01, -0.17 - rs*0.03 + Math.abs(Math.cos(bob*0.5))*0.01 - run*0.05, -0.36 + k*0.07);
+  V.g.rotation.set(k*0.55 + rs*0.35 - run*0.25, rs*0.25, rs*0.9 + WARD.roll*k*4);
+  V.drumP.rotation.z = rs*1.25; V.drumP.position.x = -rs*0.035;
+  const cockK = st === 'cock' ? clamp((t - 0.22)/(WARD_COCK - 0.22), 0, 1) : G0.cocked ? 1 : 0;   // the hammer: falls on the shot, thumbed back after the recoil
+  V.ham.rotation.x = -0.95*(st === 'cock' ? Math.sin(cockK*Math.PI*0.5) : cockK);
+  V.drum.rotation.z = (G0.drum + (st === 'cock' ? cockK : 0))*Math.PI/3;
+  if (st === 'insert'){ V.g.position.y += Math.max(0, 0.012 - t*0.05); }
+  V.shells.forEach((s, i)=>{ s.visible = i < G0.loaded || (st !== 'insert' && st !== 'open' && st !== 'close' && false); });
+  V.trig.position.z = 0.004 - (WARD.kick > 0.85 ? 0.005 : 0);
+  WARD.flashT -= dt; V.flash.visible = WARD.flashT > 0; if (V.flash.visible) V.flash.rotation.z = Math.random()*6.28;
+  const fl = level.ward && level.ward.flash; if (fl && WARD.flashT > 0){ V.flash.getWorldPosition(fl.position); fl.intensity = 9; }
+}
+// a bullet hitting a wall / the floor: a hole, a puff of plaster dust, a little crack sound
+const _wHoleTex = canvasTex(32, 32, (c,w,h)=>{ const gr = c.createRadialGradient(16,16,0,16,16,16); gr.addColorStop(0,'rgba(10,8,6,1)'); gr.addColorStop(0.3,'rgba(30,26,20,.9)'); gr.addColorStop(0.55,'rgba(80,70,56,.4)'); gr.addColorStop(1,'rgba(80,70,56,0)'); c.fillStyle = gr; c.fillRect(0,0,w,h); });
+function wardImpact(w, d){
+  if (!level || !level.group) return; let h = WARD.holes.find(q=>!q.m.parent || q.m.parent !== level.group); if (!h && WARD.holes.length < 30){ h = { m:new THREE.Mesh(new THREE.PlaneGeometry(0.09, 0.09), new THREE.MeshBasicMaterial({ map:_wHoleTex, transparent:true, depthWrite:false, polygonOffset:true, polygonOffsetFactor:-3 })) }; WARD.holes.push(h); } if (!h) h = WARD.holes.shift(), WARD.holes.push(h);
+  const m = h.m; level.group.add(m); m.position.set(w.x - d.x*0.02, w.y - d.y*0.02, w.z - d.z*0.02);
+  if (w.floor) m.rotation.set(-Math.PI/2, 0, 0); else if (w.ceil) m.rotation.set(Math.PI/2, 0, 0); else { const ax = Math.abs(d.x) > Math.abs(d.z); m.rotation.set(0, ax ? (d.x > 0 ? -Math.PI/2 : Math.PI/2) : (d.z > 0 ? Math.PI : 0), Math.random()*6); }
+  for (let k=0;k<3;k++) bsPuff(w.x - d.x*0.1 + (Math.random()-0.5)*0.15, w.z - d.z*0.1 + (Math.random()-0.5)*0.15);
+  if (sfx.ctx){ const o = sfx.panner(w.x, w.y, w.z, 2); sfx.noise(o,{ dur:0.06, type:'highpass', freq:2500, gain:0.25 }); sfx.noise(o,{ dur:0.12, type:'lowpass', freq:600, gain:0.2, at:0.01 }); }
+}
+function wardBlood(x, y, z){ for (let k=0;k<2;k++) bsPuff(x + (Math.random()-0.5)*0.2, z + (Math.random()-0.5)*0.2); if (sfx.ctx){ const o = sfx.panner(x, y, z, 2); sfx.noise(o,{ dur:0.08, type:'lowpass', freq:420, gain:0.6 }); sfx.noise(o,{ dur:0.05, type:'bandpass', freq:1400, q:2, gain:0.25, at:0.02 }); } }
+// your ears after a shot in a tiled corridor: everything muffles, then a ring fades
+function wardEars(){
+  if (!sfx.ctx) return; const c = sfx.ctx, t = c.currentTime;
+  if (!WARD.muff){ try { const f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 20000; f.Q.value = 0.4; sfx.master.disconnect(sfx.outG); sfx.master.connect(f); f.connect(sfx.outG); WARD.muff = f; } catch(e){ WARD.muff = null; } }
+  if (WARD.muff){ const F = WARD.muff.frequency; F.cancelScheduledValues(t); F.setValueAtTime(Math.min(F.value, 20000), t); F.linearRampToValueAtTime(700, t + 0.03); F.exponentialRampToValueAtTime(20000, t + 1.9); }
+  if (WARD.buf.ringing){ wardBufPlay('ringing', null, 0.35); return; }
+  const o = c.createOscillator(), gn = c.createGain(); o.type = 'sine'; o.frequency.value = 3900 + Math.random()*500; gn.gain.setValueAtTime(0.0001, t); gn.gain.linearRampToValueAtTime(0.03, t + 0.05); gn.gain.exponentialRampToValueAtTime(0.0001, t + 2.6); o.connect(gn).connect(sfx.outG); o.start(t); o.stop(t + 2.7);
+}
+// ---- sounds: a file from WARD_ASSETS.sfx if set, else a code-made placeholder
+function wardLoadSounds(){ if (WARD.bufTried || !sfx.ctx) return; WARD.bufTried = true; const c = sfx.ctx;
+  for (const [k, url] of Object.entries(WARD_ASSETS.sfx)) if (url) fetch(url).then(r=>r.arrayBuffer()).then(ab=>new Promise((res, rej)=>c.decodeAudioData(ab, res, rej))).then(b=>{ WARD.buf[k] = b; }).catch(e=>console.warn('ward sound failed', url, e)); }
+function wardBufPlay(k, pos, gain=1, ref=4, rate=1){ const c = sfx.ctx, b = WARD.buf[k]; if (!c || !b) return false; const s = c.createBufferSource(); s.buffer = b; s.playbackRate.value = rate; const gn = c.createGain(); gn.gain.value = gain; s.connect(gn).connect(pos ? sfx.panner(pos.x, pos.y ?? 1.2, pos.z, ref) : sfx.master); s.start(); return gn; }
+function wardEcho(src, amt){ if (!WARD_ECHO || !sfx.ctx || !sfx.verb) return; const w = sfx.ctx.createGain(); w.gain.value = amt; src.connect(w); w.connect(sfx.verb); }
+function wardSnd(k, x, z, v=1){
+  if (!sfx.ctx) return; const pos = x != null ? { x, y:1.3, z } : null, P = () => pos ? sfx.panner(pos.x, pos.y, pos.z, k === 'shotFar' ? 7 : 3) : sfx.master;
+  if (k === 'shot' || k === 'shotFar'){
+    const g1 = WARD.buf[k] ? wardBufPlay(k, pos, v, 7) : WARD.buf.shot ? wardBufPlay('shot', pos, v*0.8, 7) : null;
+    const bus = sfx.ctx.createGain(); bus.gain.value = v; bus.connect(P()); wardEcho(bus, 0.9);
+    if (g1){ g1.connect(bus); }
+    else {   // layered: hammer fall, the crack, the blast, a low thump, then the hallway slapping it back
+      sfx.noise(bus,{ dur:0.012, type:'bandpass', freq:3200, q:3, gain:0.25 });
+      sfx.noise(bus,{ dur:0.05, type:'highpass', freq:2200, gain:1.1, attack:0.001, at:0.004 });
+      sfx.noise(bus,{ dur:0.22, type:'lowpass', freq:1400, gain:1.5, attack:0.001, at:0.004 });
+      sfx.noise(bus,{ dur:0.6, type:'lowpass', freq:240, gain:1.6, attack:0.002, at:0.004, buf:sfx.brown });
+      sfx.tone(bus,{ f:95, to:32, dur:0.32, gain:1.0, at:0.004 });
+      for (const [at, gn, f] of [[0.09, 0.32, 900], [0.17, 0.2, 760], [0.27, 0.13, 640], [0.41, 0.08, 520], [0.6, 0.045, 420]]) sfx.noise(bus,{ dur:0.18, type:'bandpass', freq:f, q:0.9, gain:gn*(k === 'shotFar' ? 1.3 : 1), at }); }
+    return; }
+  if (WARD.buf[k]){ const g1 = wardBufPlay(k, pos, v, 3); return; }
+  const o = P();
+  if (k === 'cock'){ sfx.noise(o,{ dur:0.03, type:'bandpass', freq:2600, q:4, gain:0.22 }); sfx.noise(o,{ dur:0.025, type:'bandpass', freq:3800, q:5, gain:0.28, at:0.11 }); sfx.tone(o,{ f:1800, to:1500, dur:0.03, gain:0.03, at:0.11 }); return; }
+  if (k === 'dry'){ sfx.noise(o,{ dur:0.02, type:'bandpass', freq:3000, q:5, gain:0.3 }); return; }
+  if (k === 'cylOpen'){ sfx.noise(o,{ dur:0.04, type:'bandpass', freq:2000, q:3, gain:0.25 }); for (let q=0;q<4;q++) sfx.noise(o,{ dur:0.015, type:'bandpass', freq:4200, q:6, gain:0.12, at:0.06 + q*0.03 }); return; }
+  if (k === 'eject'){ for (let q=0;q<6;q++){ const at = 0.05 + Math.random()*0.35; sfx.tone(o,{ f:3600 + Math.random()*1800, dur:0.05, gain:0.03, at }); sfx.tone(o,{ f:4800 + Math.random()*1500, dur:0.03, gain:0.02, at:at + 0.06 + Math.random()*0.05 }); } return; }   // casings dropping on the tiles
+  if (k === 'shell'){ sfx.noise(o,{ dur:0.03, type:'bandpass', freq:2400, q:4, gain:0.18 }); sfx.tone(o,{ f:2100, to:1900, dur:0.03, gain:0.025, at:0.02 }); return; }
+  if (k === 'cylClose'){ sfx.noise(o,{ dur:0.05, type:'bandpass', freq:1600, q:2, gain:0.35 }); sfx.noise(o,{ dur:0.02, type:'bandpass', freq:3600, q:5, gain:0.2, at:0.03 }); return; }
+  if (k === 'ammo'){ for (let q=0;q<5;q++) sfx.tone(o,{ f:2600 + Math.random()*900, dur:0.04, gain:0.02, at:q*0.05 }); sfx.noise(o,{ dur:0.15, type:'bandpass', freq:900, q:1, gain:0.2 }); return; }
+  if (k === 'groan'){ const f0 = 70 + Math.random()*60; sfx.tone(o,{ f:f0, to:f0*(0.7 + Math.random()*0.3), type:'sawtooth', dur:0.9 + Math.random()*0.7, gain:0.06*v, attack:0.15 }); sfx.noise(o,{ dur:1.0, type:'bandpass', freq:380 + Math.random()*300, q:4, gain:0.18*v, attack:0.2 }); return; }
+  if (k === 'scream'){ const f = sfx.noise(o,{ dur:1.0, type:'bandpass', freq:900, q:5, gain:0.6*v, attack:0.04 }); try { f.frequency.exponentialRampToValueAtTime(2100, sfx.ctx.currentTime + 0.5); } catch(e){} sfx.tone(o,{ f:520, to:880, type:'sawtooth', dur:0.8, gain:0.05*v }); return; }
+  if (k === 'grab'){ sfx.noise(o,{ dur:0.4, type:'lowpass', freq:500, gain:0.6 }); sfx.tone(o,{ f:180, to:90, type:'sawtooth', dur:0.5, gain:0.08 }); sfx.noise(o,{ dur:0.6, type:'bandpass', freq:700, q:3, gain:0.3, at:0.1 }); return; }
+  if (k === 'kill'){ sfx.noise(o,{ dur:0.6, type:'lowpass', freq:420, gain:1.0 }); sfx.tone(o,{ f:600, to:200, type:'sawtooth', dur:0.9, gain:0.12 }); return; }
+  if (k === 'doorBang'){ sfx.noise(o,{ dur:0.18, type:'lowpass', freq:380, gain:0.9*v, attack:0.002 }); sfx.tone(o,{ f:82, to:55, dur:0.25, gain:0.4*v }); sfx.noise(o,{ dur:0.5, type:'bandpass', freq:620 + Math.random()*120, q:9, gain:0.16*v, at:0.01 }); return; }   // a body thrown against a steel door
+  if (k === 'doorOpen'){ sfx.noise(o,{ dur:0.3, type:'lowpass', freq:500, gain:1.0 }); sfx.noise(o,{ dur:1.0, type:'bandpass', freq:540, q:10, gain:0.22, at:0.02 }); sfx.tone(o,{ f:300, to:160, type:'sawtooth', dur:0.6, gain:0.05, at:0.05 }); return; }   // the door bursting off its latch and slamming the wall
+  if (k === 'ding'){ for (const [f, at] of [[1318.5, 0], [1046.5, 0.32]]){ sfx.tone(o,{ f, dur:1.4, gain:0.12, at }); sfx.tone(o,{ f:f*2.01, dur:0.6, gain:0.03, at }); } return; }
+  if (k === 'elevOpen' || k === 'elevClose'){ sfx.noise(o,{ dur:1.6, type:'bandpass', freq:240, q:2, gain:0.4 }); sfx.tone(o,{ f:k === 'elevOpen' ? 90 : 110, to:k === 'elevOpen' ? 120 : 70, type:'sawtooth', dur:1.6, gain:0.03 }); sfx.noise(o,{ dur:0.12, type:'lowpass', freq:300, gain:0.7, at:1.5 }); return; }
+}
+
+/* ======== inmates (placeholder bodies built in code; WARD_ASSETS.model.inmate/runner/crawler swap them) ======== */
+const WI_SRC = {}, WI_WAIT = [];
+for (const [k, url] of Object.entries(WARD_ASSETS.model)) if (url && k !== 'revolver') new GLTFLoader().load(url, gl=>{ gl.scene.traverse(o=>{ if (o.isMesh){ o.frustumCulled = false; const mp = o.material && o.material.map; if (mp){ mp.magFilter = THREE.NearestFilter; mp.colorSpace = THREE.SRGBColorSpace; } } }); WI_SRC[k] = { scene:gl.scene, clips:gl.animations }; }, undefined, e=>console.warn('inmate model failed', url, e));
+const WI_MAT = { skin:lam(0x9a9284), skin2:lam(0x7e786c), gown:lam(0x8c9a92), gown2:lam(0x6c7a72), blood:lam(0x4a0e0a), dark:new THREE.MeshBasicMaterial({ color:0x050403 }), eye:new THREE.MeshBasicMaterial({ color:0xc8c4a8 }) };
+const WI_GEO = {};
+function wiBox(w, h, d){ const k = w + ',' + h + ',' + d; return WI_GEO[k] || (WI_GEO[k] = new THREE.BoxGeometry(w, h, d)); }
+function makeInmate(t, seed){
+  const src = WI_SRC[['inmate', 'runner', 'crawler'][t]] || WI_SRC.inmate;
+  if (src){ const s = cloneSkinned(src.scene), box = new THREE.Box3().setFromObject(src.scene), h = box.getSize(new THREE.Vector3()).y || 1.8; s.scale.setScalar((t === 2 ? 1.75 : 1.78)/h);
+    const g = new THREE.Group(); g.add(s); const mixer = new THREE.AnimationMixer(s), acts = {}; for (const c of src.clips){ const n = c.name.toLowerCase(); for (const key of ['walk','run','crawl','stagger','grab','die']) if (n.includes(key) && !acts[key]) acts[key] = mixer.clipAction(c); }
+    let head = null; s.traverse(o=>{ if (o.isBone && /head/i.test(o.name) && !head) head = o; });
+    return { g, P:{ head:head || s }, rig:{ mixer, acts, cur:null }, t }; }
+  const g = new THREE.Group(), P = {}, r = h01(seed*13.7), skin = r < 0.5 ? WI_MAT.skin : WI_MAT.skin2, gown = r < 0.6 ? WI_MAT.gown : WI_MAT.gown2;
+  const b = (p, w, h, d, x, y, z, m) => { const q = new THREE.Mesh(wiBox(w, h, d), m); q.position.set(x, y, z); p.add(q); return q; };
+  P.hip = new THREE.Group(); P.hip.position.y = 0.92; g.add(P.hip);
+  for (const [k, s] of [['legL', -1], ['legR', 1]]){ const L0 = new THREE.Group(); L0.position.set(s*0.1, 0, 0); P.hip.add(L0); P[k] = L0; b(L0, 0.11, 0.86, 0.12, 0, -0.43, 0, skin); b(L0, 0.12, 0.06, 0.24, 0, -0.89, 0.05, skin); }
+  P.torso = new THREE.Group(); P.hip.add(P.torso); b(P.torso, 0.4, 0.72, 0.24, 0, 0.3, 0, gown); b(P.torso, 0.44, 0.3, 0.26, 0, -0.08, 0, gown);   // the gown hangs past the hips
+  if (r > 0.3) b(P.torso, 0.18, 0.2, 0.01, (r - 0.6)*0.3, 0.25, 0.125, WI_MAT.blood);
+  for (const [k, s] of [['armL', -1], ['armR', 1]]){ const A = new THREE.Group(); A.position.set(s*0.24, 0.62, 0); P.torso.add(A); P[k] = A; b(A, 0.08, 0.7, 0.08, 0, -0.35, 0, skin); b(A, 0.07, 0.14, 0.04, 0, -0.75, 0.01, skin); }
+  P.head = new THREE.Group(); P.head.position.set(0, 0.72, 0.02); P.torso.add(P.head); b(P.head, 0.19, 0.24, 0.21, 0, 0.13, 0, skin);
+  for (const s of [-1, 1]) b(P.head, 0.05, 0.035, 0.01, s*0.045, 0.16, 0.106, WI_MAT.dark); b(P.head, 0.08, 0.06, 0.01, 0, 0.05, 0.106, WI_MAT.dark);   // hollow eyes, open mouth
+  if (t === 1) for (const s of [-1, 1]) b(P.head, 0.012, 0.012, 0.005, s*0.045, 0.16, 0.112, WI_MAT.eye);
+  return { g, P, t };
+}
+// st: 0 moving, 1 staggered, 2 grabbing, 3 dead (falling); sp = m/s; ph = gait phase
+function animInmate(V, dt, t){
+  const m = V.m, st = V.st, sp = V.sp || 0, ty = V.t;
+  if (m.rig){ const R = m.rig, want = st === 3 ? 'die' : st === 1 ? 'stagger' : st === 2 ? 'grab' : ty === 2 ? 'crawl' : ty === 1 && sp > 2 ? 'run' : 'walk'; const a = R.acts[want] || R.acts.walk;
+    if (a && R.cur !== a){ if (R.cur) R.cur.fadeOut(0.2); a.reset().fadeIn(0.2).play(); if (want === 'die' || want === 'stagger'){ a.setLoop(THREE.LoopOnce); a.clampWhenFinished = true; } R.cur = a; }
+    if (a && (want === 'walk' || want === 'run' || want === 'crawl')) a.timeScale = clamp(sp/(want === 'run' ? 4 : want === 'crawl' ? 1.6 : 1.2), 0.3, 2);
+    R.mixer.update(dt); if (st === 3 && !R.acts.die){ V.fall = Math.min(1, (V.fall || 0) + dt*2.2); m.g.rotation.x = -V.fall*1.45; } return; }
+  const P = m.P; V.ph = (V.ph || 0) + dt*(ty === 1 ? 2.4 : ty === 2 ? 3.2 : 4.2)*Math.max(0.15, sp);
+  const ph = V.ph, s = Math.sin(ph), c = Math.cos(ph), jitter = Math.sin(t*31 + V.id)*0.04;
+  if (st === 3){ V.fall = Math.min(1, (V.fall || 0) + dt*2.4); const f = V.fall; m.g.rotation.x = ty === 2 ? 0 : -f*1.5; P.hip.position.y = ty === 2 ? 0.2 : 0.92; P.armL.rotation.set(-0.6 - f*1.8, 0, -0.5*f); P.armR.rotation.set(-0.4 - f*2.0, 0, 0.6*f); P.head.rotation.x = -0.5*f; return; }
+  m.g.rotation.x = 0;
+  if (ty === 2){   // crawler: face down, dragging itself on its arms, legs trailing
+    P.hip.position.y = 0.22; P.torso.rotation.set(1.42, 0, Math.sin(ph*0.5)*0.12); P.legL.rotation.set(1.5 + s*0.08, 0, -0.12); P.legR.rotation.set(1.55 - s*0.08, 0, 0.12);
+    P.armL.rotation.set(-2.6 + s*0.7, 0, -0.2); P.armR.rotation.set(-2.6 - s*0.7, 0, 0.2); P.head.rotation.set(-1.15 + jitter, 0, Math.sin(t*3)*0.2);
+    if (st === 1){ P.torso.rotation.x = 1.2; P.head.rotation.x = -0.8; } if (st === 2){ P.armL.rotation.x = -2.9; P.armR.rotation.x = -2.9; } return; }
+  P.hip.position.y = 0.92 - Math.abs(c)*0.03*Math.min(1, sp);
+  if (ty === 1 && sp > 2){   // runner: bent forward, arms flailing
+    P.legL.rotation.x = s*0.95; P.legR.rotation.x = -s*0.95; P.torso.rotation.set(0.45, s*0.15, 0); P.armL.rotation.set(-1.0 - s*0.9, 0, -0.25); P.armR.rotation.set(-1.0 + s*0.9, 0, 0.25); P.head.rotation.set(-0.35 + jitter, 0, jitter*2); }
+  else {   // walker: a limp (one leg swings, the other drags), arms reaching, head lolling
+    P.legL.rotation.x = s*0.55*Math.min(1, sp + 0.1); P.legR.rotation.x = -s*0.25*Math.min(1, sp + 0.1); P.torso.rotation.set(0.12 + Math.abs(s)*0.06, 0, Math.sin(ph*0.5)*0.12); P.armL.rotation.set(-1.25 + s*0.12, 0, -0.08); P.armR.rotation.set(-1.15 - s*0.12, 0, 0.1); P.head.rotation.set(0.1 + jitter, 0, 0.32 + Math.sin(ph*0.5)*0.1); }
+  if (st === 1){ P.torso.rotation.x = -0.45; P.head.rotation.x = -0.5; P.armL.rotation.set(-0.3, 0, -0.9); P.armR.rotation.set(-0.5, 0, 0.9); }
+  if (st === 2){ P.torso.rotation.x = 0.35; P.armL.rotation.set(-1.55 + jitter, 0.35, 0); P.armR.rotation.set(-1.55 - jitter, -0.35, 0); P.head.rotation.set(0.25, 0, Math.sin(t*20)*0.2); }
+}
+
+/* ======== every client, every frame: doors, inmates, the elevator, sounds, HUD bits ======== */
+function updateWard(dt){
+  const on = wardOn() && G.ph === 'play' && mode !== 'menu' && mode !== 'lobby';
+  if (!on){ for (const V of WARD.iv.values()) V.m.g.parent && V.m.g.parent.remove(V.m.g); WARD.iv.clear(); if (WARD.vm) WARD.vm.g.visible = false; $('wardGrab') && ($('wardGrab').style.display = 'none'); if (WARD.hum){ try { WARD.hum.s.stop(); WARD.hum.o.stop(); } catch(e){} WARD.hum = null; } return; }
+  const L = level, W0 = L.ward, t = nowS(), wt = G.wt || 0, S = WARD.seen;
+  wardLoadSounds();
+  const key = G.r + '.' + G.lv; if (WARD.key !== key){ WARD.key = key; wardGunReset(); for (const V of WARD.iv.values()) V.m.g.parent && V.m.g.parent.remove(V.m.g); WARD.iv.clear(); }
+  // the doors: shut / banging (shaking on its hinges) / burst open into the cell
+  const wd = G.wd || []; for (const d of W0.doors){ const s0 = wd[d.k] | 0, P0 = d.leaf || d.piv; walls[d.e] = s0 === 2 ? 0 : 1;
+    if (s0 === 1){ d.bangT -= dt; if (d.bangT <= 0){ d.bangT = 0.32 + Math.random()*0.5; d.shake = 1; const dist = Math.hypot(d.x - me.x, d.z - me.z); if (dist < 40) wardSnd('doorBang', d.x, d.z, Math.random() < 0.3 ? 1.3 : 1); if (dist < 5) vibrate(20); } }
+    d.shake = Math.max(0, d.shake - dt*6); const target = s0 === 2 ? 1.75 : 0; const was = d.ang; d.ang = s0 === 2 ? Math.min(target, d.ang + dt*7) : lerp(d.ang, target, 1 - Math.exp(-6*dt));
+    if (s0 === 2 && was === 0 && d.ang > 0){ wardSnd('doorOpen', d.x, d.z); }
+    P0.rotation.y = d.ang + (s0 === 1 ? Math.sin(t*60)*0.025*d.shake : 0); }
+  // inmates: smooth the host's positions, animate, remove the ones it dropped
+  const wi = G.wi || [], live = new Set();
+  for (const q of wi){ const [id, x, z, y, ty, st, sp] = q; live.add(id); let V = WARD.iv.get(id);
+    if (!V){ const m = makeInmate(ty, id); m.g.position.set(x, 0, z); m.g.rotation.y = y; L.group.add(m.g); V = { id, m, x, z, y, t:ty, st, sp:0, ph:Math.random()*6, born:t, groanT:1 + Math.random()*5 }; WARD.iv.set(id, V); }
+    const k = 1 - Math.exp(-12*dt); V.x = lerp(V.x, x, k); V.z = lerp(V.z, z, k); let dy = y - V.y; while (dy > Math.PI) dy -= Math.PI*2; while (dy < -Math.PI) dy += Math.PI*2; V.y += dy*k;
+    if (V.st !== st && st === 1 && V.st !== 3) V.fall = 0; if (V.st !== 3 && st === 3) V.fall = 0; V.st = st; V.sp = lerp(V.sp, sp/10, 1 - Math.exp(-8*dt));
+    if (Math.hypot(x - V.x, z - V.z) > 4){ V.x = x; V.z = z; }
+    V.m.g.position.set(V.x, 0, V.z); V.m.g.rotation.y = V.y; animInmate(V, dt, t);
+    // groans from the nearest few; runners scream when they start running
+    const d = Math.hypot(V.x - me.x, V.z - me.z); V.groanT -= dt; if (st === 0 && V.groanT <= 0){ V.groanT = 3 + Math.random()*6; if (d < 22) wardSnd('groan', V.x, V.z, d < 8 ? 1.2 : 0.8); }
+    if (ty === 1 && st === 0 && sp > 25 && !V.screamed && d < 35){ V.screamed = true; wardSnd('scream', V.x, V.z); } }
+  for (const [id, V] of WARD.iv) if (!live.has(id)){ V.m.g.parent && V.m.g.parent.remove(V.m.g); WARD.iv.delete(id); }
+  // the elevator: floor indicator, dings, the doors, a whine getting closer
+  const we = G.we | 0, floor = we >= 1 ? 0 : Math.max(1, Math.ceil(8*(1 - wt/WARD_T))), car = W0.car;
+  if (S.floor !== floor){ if (S.floor > 0 && floor < S.floor) wardSnd('ding', 6, 3.6, 0.8); S.floor = floor; }
+  { const txt = we >= 1 ? '● ' + (we === 3 ? '▲' : 'G') : '▼ ' + floor; if (W0.ind.last !== txt){ W0.ind.last = txt; const c = W0.ind.c.getContext('2d'); c.fillStyle = '#100604'; c.fillRect(0, 0, 128, 48); c.fillStyle = we >= 1 ? '#7aff8a' : '#ff6a2a'; c.font = 'bold 34px monospace'; c.textAlign = 'center'; c.fillText(txt, 64, 36); W0.ind.tx.needsUpdate = true; } }
+  if (S.we !== we){ if (S.we >= 0){ if (we === 1){ wardSnd('ding', 6, 3.6, 1.2); wardSnd('elevOpen', 6, 3.4); msg('THE ELEVATOR IS HERE. GET IN.', 4); } if (we === 2){ wardSnd('elevClose', 6, 3.4); if (!wardCar(me.x, me.z) && me.alive) msg('THE DOORS ARE CLOSING. GET IN NOW.', 3); } } S.we = we; }
+  car.d = lerp(car.d, we === 1 ? 1 : we === 2 ? Math.max(0, 1 - (G.wc || 0)/WARD_CLOSE) : 0, 1 - Math.exp(-(we === 2 ? 20 : 3)*dt));
+  if (car.doorL){ car.doorL.position.x = NZ_EL_SH*(1 - car.d); car.doorR.position.x = -NZ_EL_SH*(1 - car.d); }
+  walls[hIdx(1,1)] = we === 1 || (we === 2 && car.d > 0.35) ? 0 : 1;   // the car's doorway (also lets the inmates in)
+  if (sfx.ctx && !WARD.hum){ const c = sfx.ctx, o = c.createOscillator(); o.type = 'sawtooth'; o.frequency.value = 55; const f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 220; const s = c.createBufferSource(); s.buffer = sfx.brown; s.loop = true; const sf = c.createBiquadFilter(); sf.type = 'bandpass'; sf.frequency.value = 900; sf.Q.value = 3; const gn = c.createGain(); gn.gain.value = 0;
+    o.connect(f).connect(gn); s.connect(sf).connect(gn); gn.connect(sfx.panner(6, 2.0, 2.4, 3)); o.start(); s.start(); WARD.hum = { o, s, gn }; L.sounds.push(o, s); }
+  if (WARD.hum){ const k2 = we === 0 ? Math.pow(clamp(wt/WARD_T, 0, 1), 2) : 0; WARD.hum.gn.gain.value = 0.01 + 0.09*k2; WARD.hum.o.frequency.value = 45 + 30*k2; }
+  // wave messages + the big one
+  if (wt > 0){ const wv = WARD_WAVES.findIndex(w=>wt >= w.t0 && wt < w.t1); if (wv !== S.wave){ if (wv > S.wave && wv >= 0 && S.t >= 0) msg(WARD_WAVES[wv].msg, 4); S.wave = wv; }
+    if (wt >= WARD_ALLDOORS && !S.all){ S.all = 1; if (S.t >= 0) msg('EVERY DOOR IS COMING OPEN. HOLD ON.', 4); } }
+  S.t = wt;
+  // the muzzle flash light fades; other players' shots flash it too (wardRemoteShot)
+  if (W0.flash) W0.flash.intensity = Math.max(0, W0.flash.intensity - dt*140);
+  wardVMTick(dt);
+  for (const p of bsDust){ p.t += dt; p.s.position.y += dt*0.35; p.s.material.opacity = Math.max(0, 0.45*(1 - p.t/1.2)); p.s.scale.setScalar(0.25 + p.t*0.5); p.s.visible = p.t < 1.2; }
+  wardHUD();
+  // grabbed: a red vignette, the timer, your view dragged toward it
+  const gr = G.wg && G.wg[myPid], el = $('wardGrab'); if (el){ const show = !!gr && me.alive && mode === 'play'; el.style.display = show ? 'flex' : 'none';
+    if (show){ const tot = WARD_GRAB[G.df|0], f = clamp(gr[1]/tot, 0, 1); $('wardGrabBar').style.width = (f*100).toFixed(1) + '%'; el.style.opacity = 0.75 + Math.sin(t*12)*0.15;
+      const V = WARD.iv.get(gr[0]); if (V){ const yw = Math.atan2(-(V.x - me.x), -(V.z - me.z)); let dy = yw - me.yaw; while (dy > Math.PI) dy -= Math.PI*2; while (dy < -Math.PI) dy += Math.PI*2; me.yaw += dy*(1 - Math.exp(-2.5*dt)); }
+      if (!WARD.grabSeen){ WARD.grabSeen = 1; wardSnd('grab', me.x, me.z); vibrate([120, 60, 120]); } }
+    else WARD.grabSeen = 0; }
+}
+function wardRemoteShot(x, z){ wardSnd('shotFar', x, z, 0.9); const fl = level && level.ward && level.ward.flash; if (fl){ fl.position.set(x, 1.45, z); fl.intensity = 7; } }
+// camera kick + roll on top of the normal camera (called from placeCamera)
+function wardCamFx(dt){ if (!wardOn() || role !== 'survivor') return; const k = WARD.kick; if (k > 0){ camera.rotation.x += k*k*0.05; camera.rotation.z += WARD.roll*k; }
+  const gr = G.wg && G.wg[myPid]; if (gr && me.alive){ const t = nowS(); camera.rotation.z += Math.sin(t*23)*0.02; camera.position.y -= 0.08; } }
+
+/* ======== survivors: ammo run, pulling a teammate free, getting out ======== */
+function wardSurvivor(dt){
+  const L = level, W0 = L.ward; if (!W0) return;
+  wardGunTick(dt);
+  // you can't walk through them: push yourself out of every inmate
+  for (const V of WARD.iv.values()){ if (V.st === 3) continue; const r = (WI_T[V.t] || WI_T[0]).r + 0.3, dx = me.x - V.x, dz = me.z - V.z, d = Math.hypot(dx, dz); if (d < r && d > 1e-3){ [me.x, me.z] = collide(me.x + dx/d*(r - d), me.z + dz/d*(r - d), 0.32, me.x, me.z); } }
+  // holds: TAKE AMMO, PULL FREE
+  if (mallHold && (mallHold.k === 'wammo' || mallHold.k === 'wfree')){ const H0 = mallHold;
+    if (Math.hypot(H0.x - me.x, H0.z - me.z) > 1.6 || !me.alive || (G.wg && G.wg[myPid]) || (H0.k === 'wfree' && !(G.wg && G.wg[H0.p]))){ mallHold = null; return; }
+    H0.t += dt; H0.s -= dt; if (H0.s <= 0){ H0.s = 0.3; if (H0.k === 'wammo') wardSnd('ammo', W0.station.x, W0.station.z); vibrate(8); }
+    if (H0.t >= H0.T){ mallHold = null; if (H0.k === 'wammo'){ const g0 = WARD.gun; const add = Math.min(WARD_AMMO_GIVE, WARD_SPARE_MAX - g0.spare); g0.spare += add; msg(add > 0 ? `+${add} rounds. ${g0.spare} spare.` : 'Your pockets are full.', 2); } else useReq({ k:'wfree', p:H0.p }); } }
+  // the elevator left: inside = out (the host already put you in G.esc), outside = it left you
+  if ((G.esc || []).includes(myPid) && !me.esc && me.alive){ me.esc = true; mode = 'escAnim'; escT = 0; sfx.escape(); $('white').style.opacity = 1; }
+}
+function wardAction(){
+  if (!wardOn() || role !== 'survivor') return null;
+  if (mallHold && (mallHold.k === 'wammo' || mallHold.k === 'wfree')) return { label:'STOP', key:'E', fn:()=>{ mallHold = null; } };
+  if (G.wg && G.wg[myPid]) return { label:'SHOOT IT', key:'CLICK', fn:()=>wardFire() };
+  for (const p of allPlayers()){ if (p.pid === myPid || !(G.wg && G.wg[p.pid]) || isDead(p.pid)) continue; if (Math.hypot(p.x - me.x, p.z - me.z) < 1.6) return { label:'PULL FREE', key:'E', fn:()=>{ mallHold = { k:'wfree', p:p.pid, t:0, T:WARD_FREE_T, x:me.x, z:me.z, s:0 }; } }; }
+  const S0 = level.ward.station; if (S0 && Math.hypot(S0.ax - me.x, S0.az - me.z) < 1.5){ const g0 = WARD.gun; if (g0 && g0.spare >= WARD_SPARE_MAX) return { label:'POCKETS FULL', key:'E', fn:()=>msg('You can\'t carry any more rounds.', 2) };
+    return { label:'TAKE AMMO', key:'E', fn:()=>{ mallHold = { k:'wammo', t:0, T:WARD_AMMO_T, x:me.x, z:me.z, s:0 }; } }; }
+  if (wardCar(me.x, me.z) && (G.we|0) === 1) return { label:'WAITING FOR EVERYONE', key:'E', fn:()=>msg('The doors close once everyone alive is in here.', 2.5) };
+  return null;
+}
+function wardObj(){
+  const we = G.we|0, left = Math.max(0, WARD_T - (G.wt || 0)), mm = Math.floor(left/60), ss = String(Math.floor(left%60)).padStart(2, '0');
+  if (we === 1) return wardCar(me.x, me.z) ? 'You\'re in · waiting for everyone · it leaves without them soon' : 'THE ELEVATOR IS HERE · GET IN';
+  if (we >= 2) return wardCar(me.x, me.z) ? 'Doors closing' : 'THE DOORS ARE CLOSING · GET IN';
+  return `Hold the hall · elevator in ${mm}:${ss} · floor ${Math.max(1, Math.ceil(8*(1 - (G.wt || 0)/WARD_T)))}`;
+}
+function wardSide(){ const g0 = WARD.gun; if (!g0) return ''; const ch = '●'.repeat(g0.loaded) + '○'.repeat(6 - g0.loaded), st = g0.st === 'open' || g0.st === 'insert' ? ' · RELOADING' : g0.st === 'close' ? ' · CLOSING' : g0.loaded === 0 ? ' · R RELOAD' : '';
+  return `${ch}  ${g0.spare} SPARE${st}` + (G.wg && G.wg[myPid] ? ' · GRABBED: SHOOT IT' : ''); }
+
+/* ======== host: the clock, the waves, the doors, the inmates, grabs, the elevator ======== */
+function wardUse(pid, m){
+  if (!wardOn()) return; const H0 = H.wd; if (!H0) return;
+  if (m.k === 'wshot'){ if (pid !== myPid) wardRemoteShot(+m.x || 0, +m.z || 0); safe(()=>net.room && net.room.emit('snd', { k:'wShot', x:+m.x || 0, z:+m.z || 0, pid })); return; }
+  if (isDead(pid)) return;
+  if (m.k === 'whit'){ const q = H0.list.find(r=>r.id === (m.i|0)); if (!q || q.st === 3) return; const P = allPlayers().find(p=>p.pid === pid);
+    q.hp -= m.h ? 2 : 1;
+    if (q.hp <= 0){ q.st = 3; q.sT = 0; wardRelease(q); return; }
+    wardRelease(q); q.st = 1; q.sT = q.t === 1 ? 0.6 : 0.9;
+    if (P){ const dx = q.x - P.x, dz = q.z - P.z, d = Math.hypot(dx, dz) || 1; [q.x, q.z] = collide(q.x + dx/d*0.55, q.z + dz/d*0.55, 0.3, q.x, q.z); } return; }
+  if (m.k === 'wfree'){ const g = G.wg && G.wg[m.p]; if (!g) return; const q = H0.list.find(r=>r.id === g[0]); if (q){ wardRelease(q); q.st = 1; q.sT = 1.4; const P = allPlayers().find(p=>p.pid === m.p); if (P){ const dx = q.x - P.x, dz = q.z - P.z, d = Math.hypot(dx, dz) || 1; [q.x, q.z] = collide(q.x + dx/d*1.1, q.z + dz/d*1.1, 0.3, q.x, q.z); } } else { delete G.wg[m.p]; H0.imm[m.p] = 1.5; } }
+}
+function wardRelease(q){ const H0 = H.wd; for (const pid of Object.keys(G.wg || {})) if (G.wg[pid][0] === q.id){ delete G.wg[pid]; if (H0) H0.imm[pid] = 1.5; } }
+function wardBlock(we){ const b = new Uint8Array(N*N); for (let i=0;i<N;i++) for (let j=0;j<N;j++) if (!level.ward.type[i*N+j]) b[i*N+j] = 1; if (we !== 1) b[1*N+0] = 1; return b; }
+function wardMoveTo(q, tx, tz, sp, dt, blk){
+  const ci = cellOf(q.x), cj = cellOf(q.z), ti = cellOf(tx), tj = cellOf(tz); let gx = tx, gz = tz;
+  if (ci !== ti || cj !== tj){ if (q.lc !== ci*N+cj || q.tc !== ti*N+tj || (q.rp -= dt) <= 0){ q.lc = ci*N+cj; q.tc = ti*N+tj; q.rp = 0.5 + Math.random()*0.3; q.nx = nextStep(ci, cj, ti, tj, blk); }
+    if (!q.nx) return; gx = cc(q.nx[0]); gz = cc(q.nx[1]);
+    if (q.nx[0] === 1 && ci === 1) gx += q.off;   // spread out across the hall instead of a single file
+    if (q.nx[1] === cj && q.nx[0] !== ci){ gz = cc(cj) + clamp(q.off*0.3, -0.4, 0.4); } }   // through a doorway: stay near its middle
+  const dx = gx - q.x, dz = gz - q.z, d = Math.hypot(dx, dz); if (d < 0.03) return;
+  const s = Math.min(d, sp*dt), ox = q.x, oz = q.z; [q.x, q.z] = collide(q.x + dx/d*s, q.z + dz/d*s, (WI_T[q.t] || WI_T[0]).r, ox, oz);
+  q.y = Math.atan2(dx, dz); q.vel = Math.min(sp, Math.hypot(q.x - ox, q.z - oz)/Math.max(dt, 1e-3));
+}
+function hostWard(dt, alive, ex){
+  if (!wardOn()) return;
+  const key = G.r + '.' + (G.lv|0), df = G.df|0, W0 = level.ward;
+  if (!H.wd || H.wd.key !== key) H.wd = { key, list:[], nid:1, next:WARD_WAVES[0].t0, imm:{}, all:false, open:0 };
+  const H0 = H.wd;
+  for (const d of W0.doors) walls[d.e] = (G.wd[d.k]|0) === 2 ? 0 : 1;   // (every client does this too, in updateWard)
+  walls[hIdx(1,1)] = (G.we|0) === 1 || ((G.we|0) === 2 && (G.wc || 0) < WARD_CLOSE*0.65) ? 0 : 1;
+  G.wt = +((G.wt || 0) + dt).toFixed(2); const wt = G.wt;
+  for (const p of Object.keys(H0.imm)){ H0.imm[p] -= dt; if (H0.imm[p] <= 0) delete H0.imm[p]; }
+  // ---- the elevator
+  const tArrive = ex ? 90 : WARD_T;
+  if ((G.we|0) === 0 && wt >= tArrive){ G.we = 1; H0.open = 0; }
+  if ((G.we|0) === 1){ H0.open += dt; const inn = alive.filter(p=>!isDead(p.pid)), allIn = inn.length && inn.every(p=>wardCar(p.x, p.z) && !(G.wg && G.wg[p.pid]));
+    if (allIn || H0.open >= WARD_OPEN){ G.we = 2; G.wc = 0; } }
+  if ((G.we|0) === 2){ G.wc = +((G.wc || 0) + dt).toFixed(2);
+    for (const q of H0.list) if (q.st !== 3 && wardCar(q.x, q.z)){ q.x = 6 + (Math.random()-0.5)*2; q.z = 5.2; }   // the closing doors shove them back out
+    if (G.wc >= WARD_CLOSE){ G.we = 3; for (const p of alive){ if (isDead(p.pid) || isEsc(p.pid)) continue; if (wardCar(p.x, p.z) && !(G.wg && G.wg[p.pid])) G.esc.push(p.pid); else { killSurvivor(p, 'wl'); } } } }
+  const we = G.we|0;
+  if (ex || we === 3){ G.wi = H0.list.filter(q=>q.st === 3).map(wardPack); return; }
+  // ---- spawning: pick a door in the current wave's rows; a shut one bangs first, then bursts open
+  const wave = WARD_WAVES.find(w=>wt >= w.t0 && wt < w.t1), aliveN = H0.list.filter(q=>q.st !== 3).length;
+  for (const d of W0.doors){ if (d.openAt != null && wt >= d.openAt && (G.wd[d.k]|0) === 1){ G.wd[d.k] = 2; d.openAt = null; for (let n=0; n<(d.burst || 1); n++) wardSpawn(d, d.ty != null ? d.ty : 0); } }
+  if (!H0.all && wt >= WARD_ALLDOORS){ H0.all = true; for (const d of W0.doors) if ((G.wd[d.k]|0) === 0){ G.wd[d.k] = 1; d.openAt = wt + 1.5 + Math.random()*2.5; d.burst = 1; d.ty = wardType(WARD_WAVES[3]); } }
+  if (wave && we < 3 && wt >= H0.next){
+    H0.next = wt + wave.every*WARD_DF_EVERY[df]*(0.75 + Math.random()*0.5);
+    if (aliveN < WARD_CAP[df]){ const n = wave.n[0] + Math.floor(Math.random()*(wave.n[1] - wave.n[0] + 1));
+      const pool = W0.doors.filter(d=>d.row >= wave.rows[0] && d.row <= wave.rows[1]);
+      // prefer doors that are already open half the time; otherwise the farthest shut one in range goes next
+      const opened = pool.filter(d=>(G.wd[d.k]|0) === 2), shut = pool.filter(d=>(G.wd[d.k]|0) === 0).sort((a,b)=>b.row - a.row);
+      let d = null; if (opened.length && (Math.random() < 0.55 || !shut.length)) d = opened[Math.floor(Math.random()*opened.length)]; else if (shut.length) d = shut[Math.floor(Math.random()*Math.min(3, shut.length))];
+      if (d){ if ((G.wd[d.k]|0) === 2) for (let q=0;q<n;q++) wardSpawn(d, wardType(wave)); else if ((G.wd[d.k]|0) === 0){ G.wd[d.k] = 1; d.openAt = wt + 2.2 + Math.random()*1.8; d.burst = n; d.ty = wardType(wave); } } } }
+  // ---- the inmates
+  const blk = wardBlock(we), targets = alive.filter(p=>!isDead(p.pid) && !isEsc(p.pid));
+  for (const q of H0.list){
+    if (q.st === 3){ q.sT += dt; continue; }
+    if (q.st === 1){ q.sT -= dt; if (q.sT <= 0) q.st = 0; q.vel = 0; continue; }
+    const tg = q.st === 2 ? targets.find(p=>G.wg && G.wg[p.pid] && G.wg[p.pid][0] === q.id) : null;
+    if (q.st === 2){ if (!tg){ q.st = 0; continue; } q.y = Math.atan2(tg.x - q.x, tg.z - q.z); q.vel = 0; continue; }
+    // nearest living survivor (they always know where you are: it's a holdout)
+    let best = null, bd = 1e9; for (const p of targets){ const dd = Math.hypot(p.x - q.x, p.z - q.z) + (G.wg && G.wg[p.pid] ? 4 : 0); if (dd < bd){ bd = dd; best = p; } }
+    if (!best){ q.vel = 0; continue; }
+    const T0 = WI_T[q.t] || WI_T[0], sp = T0.sp*q.spk*WARD_DF_SP[df]*(q.t === 0 ? 0.8 + 0.4*Math.abs(Math.sin(wt*1.7 + q.id)) : 1);
+    const reach = q.t === 2 ? 0.75 : 0.72, d = Math.hypot(best.x - q.x, best.z - q.z);
+    if (d < reach && !(G.wg && G.wg[best.pid]) && !H0.imm[best.pid] && !best.hd){ q.st = 2; (G.wg = G.wg || {})[best.pid] = [q.id, WARD_GRAB[df]]; lrSnd('wGrab', best.x, best.z); continue; }
+    if (d > reach*0.85) wardMoveTo(q, best.x, best.z, sp, dt, blk); else { q.vel = 0; q.y = Math.atan2(best.x - q.x, best.z - q.z); }
+  }
+  // crowding: push apart
+  const lv = H0.list.filter(q=>q.st !== 3); for (let a=0;a<lv.length;a++) for (let b=a+1;b<lv.length;b++){ const A = lv[a], B = lv[b], dx = B.x - A.x, dz = B.z - A.z, dd = Math.hypot(dx, dz), m = 0.56; if (dd < m && dd > 1e-4){ const k = (m - dd)/dd*0.5; A.x -= dx*k; A.z -= dz*k; B.x += dx*k; B.z += dz*k; } }
+  for (const q of lv){ const r0 = (WI_T[q.t] || WI_T[0]).r; [q.x, q.z] = collide(q.x, q.z, r0, q.x, q.z); }   // never shoved through a wall
+  // ---- grabs: the clock runs down (faster with more of them on you), then it's over
+  for (const pid of Object.keys(G.wg || {})){ const g = G.wg[pid], p = targets.find(q=>q.pid === pid); if (!p){ delete G.wg[pid]; continue; }
+    const more = lv.filter(q=>Math.hypot(q.x - p.x, q.z - p.z) < 1.1).length - 1; g[1] = +(g[1] - dt*(1 + 0.5*Math.max(0, more))).toFixed(2);
+    if (g[1] <= 0){ delete G.wg[pid]; const q = H0.list.find(r=>r.id === g[0]); if (q) q.st = 0; killSurvivor(p, 'wi'); lrSnd('wKill', p.x, p.z); } }
+  H0.list = H0.list.filter(q=>!(q.st === 3 && q.sT > 14));
+  G.wi = H0.list.map(wardPack);
+}
+function wardType(w){ const r = Math.random(); return r < w.run ? 1 : r < w.run + w.crawl ? 2 : 0; }
+function wardSpawn(d, ty){ const H0 = H.wd; if (!H0) return; const q = { id:H0.nid++, t:ty, x:d.cx - d.side*(0.3 + Math.random()*0.9), z:d.cz + (Math.random()-0.5)*2, y:d.side < 0 ? Math.PI/2 : -Math.PI/2, st:0, sT:0, hp:(WI_T[ty] || WI_T[0]).hp, off:(Math.random()-0.5)*2.4, spk:0.9 + Math.random()*0.2, rp:0, vel:0 }; H0.list.push(q); }
+function wardPack(q){ return [q.id, +q.x.toFixed(2), +q.z.toFixed(2), +q.y.toFixed(2), q.t, q.st, q.st === 0 ? Math.min(99, Math.round((q.vel || 0)*10)) : 0]; }
+// the grabbed overlay (made on first use, lives in the HUD)
+function wardHUD(){ if ($('wardGrab')) return; const d = document.createElement('div'); d.id = 'wardGrab';
+  d.style.cssText = 'position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:22vh;pointer-events:none;background:radial-gradient(ellipse at center,rgba(0,0,0,0) 35%,rgba(120,0,0,.55) 100%);z-index:3';
+  d.innerHTML = '<div style="font:bold 15px monospace;color:#ffd8d0;letter-spacing:2px;text-shadow:0 0 6px #000">IT\'S GOT YOU · SHOOT IT</div><div style="margin-top:8px;width:180px;height:5px;background:rgba(0,0,0,.6);border:1px solid rgba(255,200,190,.5)"><div id="wardGrabBar" style="height:100%;width:100%;background:#ff3a2a"></div></div><div style="margin-top:6px;font:11px monospace;color:#ffcfc8;text-shadow:0 0 4px #000">a teammate can pull you free</div>';
+  ($('hud') || document.body).appendChild(d); }
+function wardPanelB(p, t){
+  if (!wardOn() || G.ph !== 'play' || p.ward == null) return null; const wt = G.wt || 0, j = p.ward;
+  if ((G.we|0) >= 1) return j <= 2 ? 1 : 0;   // the car's here: only the lobby end stays lit
+  if (j >= 8 && wt >= 140){ if (wt >= 150) return 0; return h01(p.idx*5 + Math.floor(t*12)) < 0.5 ? 0.9 : 0; }   // the far end dies
+  if (j >= 3 && wt >= 240) return h01(p.idx*7 + Math.floor(t*(6 + j))) < 0.62 ? 1 : 0.08;   // the last minute: everything stutters
+  if (p.faulty) return h01(p.idx*3 + Math.floor(t*9)) < 0.85 ? 1 : 0.15;
+  return null; }
+
 /* ===== v0.57 Level Fun (Ryan): party rooms with doors, the Partygoers, presents.
    Grid level (FUN_N×FUN_N cells of 4 m), LK 7 / G.lv 7, after School Halls. Every cell belongs to a little room (1–3 cells a side); neighbouring
    rooms are joined by ONE doorway with a door (a spanning tree + some loops). A door is an edge in `walls`: shut = 1 on every client (updateFun),
@@ -4649,6 +5227,7 @@ function buildLevelRaw(seed, kind=0){
   if (kind === 7){ M37 = null; setPoolVisible(false); buildLevelFun(seed); return; }
   if (kind === 8){ M37 = null; setPoolVisible(false); buildLevelBS(seed); return; }
   if (kind === 9){ M37 = null; setPoolVisible(false); buildLevelNZ(seed); return; }   // v0.71 Level -0
+  if (kind === 10){ M37 = null; setPoolVisible(false); buildLevelWard(seed); return; }   // v0.78 THE WARD
   if (kind === 2){ walls = new Uint8Array(E); setPoolVisible(true); buildLevel37(seed); return; }
   M37 = null;
   const rng = rngFrom(seed);
@@ -7176,6 +7755,7 @@ function losClear(ax,az,bx,bz){
 // which recorded footstep plays where (v0.26.6): carpet on Level 0, concrete on Level 1, tile on the dry Poolrooms floor (water uses the wading loops)
 const STEP_SLOT = 0.42, STEP_GAIN = { stepC:0.28, stepK:0.45, stepT:0.3, stepW:0.28, stepHW:0.3, stepHR:0.32 }, STEP_LEN = 0.24;   // v0.29: quieter (Ryan), and only the first 0.24 s of each slot
 function stepSurf(x, z){
+  if (LK === 10) return 'stepT';   // v0.78 THE WARD: linoleum, with the tile echo
   if (LK === 0) return inLab(x, z) ? 'stepK' : 'stepC';
   if (LK === 5) return 'stepK';   // Level 2: concrete
   if (LK === 7) return 'stepC';   // Level Fun: carpet
@@ -7899,8 +8479,9 @@ function updateSprintPings(dt){
 
 /* ================= shared state ================= */
 let monVoiceOpt = 0; try { monVoiceOpt = +(localStorage.getItem('lvl0_monvoice')||0) ? 1 : 0; } catch(e){}
-let startOpt = 0; try { startOpt = clamp(+(localStorage.getItem('lvl0_start')||0)|0, 0, 8); } catch(e){}
-const LV_NAMES = ['LEVEL 0', 'LEVEL 1', 'LEVEL 37', 'LEVEL 188', 'LEVEL 852', 'LEVEL 2', 'LEVEL 52', 'LEVEL FUN', 'THE BASEMENT'];
+let startOpt = 0; try { startOpt = clamp(+(localStorage.getItem('lvl0_start')||0)|0, 0, 10); if (startOpt === 9) startOpt = 0; } catch(e){}
+const LV_NAMES = ['LEVEL 0', 'LEVEL 1', 'LEVEL 37', 'LEVEL 188', 'LEVEL 852', 'LEVEL 2', 'LEVEL 52', 'LEVEL FUN', 'THE BASEMENT', 'LEVEL -0', 'THE WARD'];   // v0.78: 9 = Level -0 (secret, never picked), 10 = THE WARD
+const LV_PICK = [0, 1, 2, 3, 4, 5, 6, 7, 8, 10];   // the levels you can START AT
 let exOpt = 0; try { exOpt = +(localStorage.getItem('lvl0_explore')||0) ? 1 : 0; } catch(e){}   // v0.41: exploration mode = no monster at all
 /* v0.62 (Ryan): game modes. NORMAL = everyone is a survivor, the Occupant is always the computer, every level.
    HUNTER = one player is the Occupant, only on Level 0 or the Hotel (HUNTER_LVS), and the game ends when that map does.
@@ -7996,7 +8577,7 @@ function hostStartRound(){
   aiReset();
   H.shiftT = 26; H.ringT = 30; H.ringEnd = 0;
   // the host can start the round on a later level
-  const sl = clamp(G.sl ?? startOpt, 0, 8); if (sl > 0){ const gr = G.grace; setupLevel(sl); G.grace = sl === 6 || sl === 1 || sl === 8 || (sl === 7 && G.mo === 'AI') ? 0 : gr; }
+  let sl = clamp(G.sl ?? startOpt, 0, 10); if (sl === 9) sl = 0; if (sl > 0){ const gr = G.grace; setupLevel(sl); G.grace = sl === 6 || sl === 1 || sl === 8 || sl === 10 || (sl === 7 && G.mo === 'AI') ? 0 : gr; }
   if (noOcc(sl)){ G.ax = G.az = -999; }
   broadcastState(); afterState();
 }
@@ -8039,6 +8620,7 @@ function applyUse(pid, m){
   else if (m.k === 'ldoor') labUse(pid);
   else if (m.k === 'fdoor' || m.k === 'gift' || m.k === 'fk' || m.k === 'fkuse') funUse(pid, m);
   else if (m.k === 'coal' || m.k === 'feed' || m.k === 'crate' || m.k === 'bk' || m.k === 'bkuse') bsUse(pid, m);
+  else if (m.k === 'wshot' || m.k === 'whit' || m.k === 'wfree') wardUse(pid, m);
   else if (m.k === 'esc'){ if (G.open && !isDead(pid) && !isEsc(pid)) G.esc.push(pid); }
   else if (m.k === 'cn'){ G.cn[m.i|0] = 1; }
   else if (m.k === 'stun'){
@@ -8073,10 +8655,11 @@ function killSurvivor(p, byLurker){
   if (isDead(p.pid)) return;
   // v0.52 (Ryan): their flashlight stays where they were caught, still on (G.fl = [x, z, yaw])
   (G.fl = G.fl || []).push([+p.x.toFixed(2), +p.z.toFixed(2), +((p.yaw || 0) + (Math.random()-0.5)*1.2).toFixed(2)]);
-  G.dead.push(p.pid); if (byLurker === 'ls') (G.lsk = G.lsk || []).push(p.pid); else if (byLurker === 'hm') (G.hmk = G.hmk || []).push(p.pid); else if (byLurker === 'mq') (G.mqk = G.mqk || []).push(p.pid); else if (byLurker === 'pg') (G.pgk = G.pgk || []).push(p.pid); else if (byLurker === 'cr') (G.crk = G.crk || []).push(p.pid); else if (byLurker) (G.lkd = G.lkd || []).push(p.pid); else G.kl.push(p.pid);
+  G.dead.push(p.pid); if (byLurker === 'ls') (G.lsk = G.lsk || []).push(p.pid); else if (byLurker === 'hm') (G.hmk = G.hmk || []).push(p.pid); else if (byLurker === 'mq') (G.mqk = G.mqk || []).push(p.pid); else if (byLurker === 'pg') (G.pgk = G.pgk || []).push(p.pid); else if (byLurker === 'cr') (G.crk = G.crk || []).push(p.pid); else if (byLurker === 'wi') (G.wik = G.wik || []).push(p.pid); else if (byLurker === 'wl') (G.wlk = G.wlk || []).push(p.pid); else if (byLurker) (G.lkd = G.lkd || []).push(p.pid); else G.kl.push(p.pid);
   if (G.fk && G.fk[0] === 1 && G.fk[3] === p.pid){ G.fk = [0, +p.x.toFixed(2), +p.z.toFixed(2), '']; }
   if (G.bkey && G.bkey[0] === 1 && G.bkey[3] === p.pid){ G.bkey = [0, +p.x.toFixed(2), +p.z.toFixed(2), '']; }   // the basement: the cellar key falls
-  if (G.cc8) delete G.cc8[p.pid];   // Level Fun: the key falls where they were caught
+  if (G.cc8) delete G.cc8[p.pid];
+  if (G.wg) delete G.wg[p.pid];   // v0.78 the ward: no longer held   // Level Fun: the key falls where they were caught
   if (G.kc && G.kc[0] === 1 && G.kc[3] === p.pid){ G.kc[0] = 0; G.kc[1] = +p.x.toFixed(2); G.kc[2] = +p.z.toFixed(2); G.kc[3] = ''; }   // the keycard falls where they were caught
   for (const f of G.fz) if (f[0]===1 && f[3]===p.pid){ f[0]=0; f[1]=+p.x.toFixed(2); f[2]=+p.z.toFixed(2); f[3]=''; }
   for (const a of [G.mk, G.td, G.bc]) if (a && a[0] === 1 && a[3] === p.pid){ a[0] = 0; a[1] = +p.x.toFixed(2); a[2] = +p.z.toFixed(2); a[3] = ''; }   // the mall: keys / teddy fall where they were caught
@@ -8267,10 +8850,10 @@ function aiTick(dt, alive){
     A.boT = 45+Math.random()*30; G.bo.push([ax,az,15]); }
 }
 // v0.62: levels with no Occupant at all (exploration mode; the garage, the school, Level Fun)
-function noOcc(lk = LK){ return !!G.ex || lk === 1 || lk === 6 || lk === 7 || lk === 8 || lk === 9; }
+function noOcc(lk = LK){ return !!G.ex || lk === 1 || lk === 6 || lk === 7 || lk === 8 || lk === 9 || lk === 10; }
 function setupLevel(k){
-  if ((k === 6 || k === 1 || k === 8) && G.mo !== 'AI'){ H.moKeep = G.mo; G.mo = 'AI'; }   // v0.57.1 (Ryan): no Occupant in the school (v0.62: or the garage); a player Occupant runs it as a survivor
-  else if (k !== 6 && k !== 1 && k !== 8 && H.moKeep){ if (allPlayers().some(p=>p.pid === H.moKeep)) G.mo = H.moKeep; H.moKeep = null; }
+  if ((k === 6 || k === 1 || k === 8 || k === 10) && G.mo !== 'AI'){ H.moKeep = G.mo; G.mo = 'AI'; }   // v0.57.1 (Ryan): no Occupant in the school (v0.62: or the garage); a player Occupant runs it as a survivor
+  else if (k !== 6 && k !== 1 && k !== 8 && k !== 10 && H.moKeep){ if (allPlayers().some(p=>p.pid === H.moKeep)) G.mo = H.moKeep; H.moKeep = null; }
   buildLevel(lvSeed(k), k); sfx.bindLevel();
   walls = level.base.slice(); G.w = wallsHex(); G.wv++;
   G.lv = k; G.esc = []; G.dead = []; G.nz = []; G.slk = []; G.stl = 0;   // everyone caught on the last level wakes up here too
@@ -8294,12 +8877,15 @@ function setupLevel(k){
   if (k === 8){ G.w = ''; G.fh8 = 70; G.cc8 = {}; G.cp8 = BS_NEAR_COAL; G.sr8 = 0; G.bk8 = Math.floor(Math.random()*level.bs.crates.length); G.bkey = null; G.cr8 = null; H.cr = null; }   // v0.63 the basement
   else { G.fh8 = null; G.cc8 = null; G.cp8 = 0; G.sr8 = 0; G.bk8 = -1; G.bkey = null; G.cr8 = null; H.cr = null; }
   G.crk = [];
+  if (k === 10){ G.w = ''; G.wt = 0; G.we = 0; G.wc = 0; G.wd = level.ward.doors.map(()=>0); G.wi = []; G.wg = {}; H.wd = null; }   // v0.78 THE WARD
+  else { G.wt = 0; G.we = 0; G.wc = 0; G.wd = null; G.wi = []; G.wg = {}; H.wd = null; }
+  G.wik = []; G.wlk = [];
   G.gd = k === 1 && level.groom ? level.groom.map(()=>0) : null;   // v0.62.2: garage room doors, 0 open / 1 shut
   G.hb = 0; H.hbT = null;   // v0.36: Level 188 power outages
 }
 function advanceLevel(){
-  setupLevel(Math.min(8, (G.lv|0) + 1));
-  G.grace = G.ex || G.lv === 6 || G.lv === 1 || G.lv === 8 || (G.lv === 7 && G.mo === 'AI') ? 0 : G.mo === 'AI' ? 12 : 15; if (noOcc(G.lv)){ G.ax = G.az = -999; }
+  setupLevel((G.lv|0) >= 8 ? 10 : (G.lv|0) + 1);   // v0.78: the basement → THE WARD (9 is Level -0's world, never next)
+  G.grace = G.ex || G.lv === 6 || G.lv === 1 || G.lv === 8 || G.lv === 10 || (G.lv === 7 && G.mo === 'AI') ? 0 : G.mo === 'AI' ? 12 : 15; if (noOcc(G.lv)){ G.ax = G.az = -999; }
   broadcastState(); afterState();
 }
 function hostTick(dt){
@@ -8313,7 +8899,7 @@ function hostTick(dt){
   if (!surv.length){ G.ph = 'end'; return; }
   if (!alive.length){
     // everyone left alive got out of Level 0: a few seconds later, the whole room drops into Level 1
-    if ((G.lv|0) < 8 && G.esc.length && !G.hn){ if (H.advT == null) H.advT = 3.5; H.advT -= dt; if (H.advT <= 0){ H.advT = null; advanceLevel(); } return; }
+    if ((G.lv|0) < 10 && G.esc.length && !G.hn){ if (H.advT == null) H.advT = 3.5; H.advT -= dt; if (H.advT <= 0){ H.advT = null; advanceLevel(); } return; }
     G.ph = 'end'; return;
   }
   nzHost(dt, ps);   // v0.71 Level -0: the random glitch, who's down there
@@ -8326,6 +8912,7 @@ function hostTick(dt){
   if (LK === 6) hostSchool52(dt, alive, !!G.ex);
   if (LK === 7) hostFun(dt, alive, !!G.ex);
   if (LK === 8) hostBS(dt, alive, !!G.ex);
+  if (LK === 10) hostWard(dt, alive, !!G.ex);
   if (LK === 3) hostOutage188(dt);
   if (LK === 0) hostLab(dt);
   if (noOcc()){   // exploration mode (and the school v0.57.1, Level Fun v0.57.2, the garage v0.62): no Occupant, no mannequins
@@ -9361,7 +9948,7 @@ function renderLobby(){
   $('bMon').style.display = host && hn ? '' : 'none'; $('bMonVoice').style.display = hn ? '' : 'none';
   $('bMonVoice').textContent = 'OCCUPANT VOICE: ' + (G.ov ? 'MONSTER' : 'OFF') + (host ? '' : ' (host picks)'); $('bMonVoice').disabled = !host;
   $('bMon').textContent = 'THE OCCUPANT: ' + monLabel();
-  $('bLv').textContent = 'START AT: ' + LV_NAMES[clamp(G.sl ?? startOpt, 0, 8)] + (host ? '' : ' (host picks)'); $('bLv').disabled = !host;
+  $('bLv').textContent = 'START AT: ' + LV_NAMES[clamp(G.sl ?? startOpt, 0, 10)] + (host ? '' : ' (host picks)'); $('bLv').disabled = !host;
   $('bDiff').textContent = 'COMPUTER: ' + AI_DIFF[clamp(G.df ?? diffOpt, 0, 3)].name + (host ? '' : ' (host picks)'); $('bDiff').disabled = !host;
   $('bEx').textContent = 'MODE: ' + modeName(G.ex, G.hn) + (host ? '' : ' (host picks)'); $('bEx').disabled = !host;
   $('monText').textContent = G.ex ? 'No monster. Just look around.' : !hn ? 'Everyone is a survivor. The computer is the Occupant.' : !remotes.size ? 'Hunter needs at least 2 players (alone, the computer hunts you).' : host ? 'Tap THE OCCUPANT to choose who hunts. Hunter is Level 0 or the Hotel only.' : 'The host picks who becomes the Occupant. Level 0 or the Hotel only.';
@@ -9444,7 +10031,7 @@ function startRoundLocal(){
     $('blacktext').textContent = LK === 7 ? 'YOU ARE A PARTYGOER' : 'YOU ARE THE OCCUPANT'; $('blacksub').textContent = (G.lv|0) === 0 && level.lab ? 'They start in a lab behind a portal at the edge of the halls. Its blast door shuts, but its power never lasts. Listen for them, and don\'t let them reach the exit.' : 'They wake up in the halls. You walk slowly, but you can run for a while (hold SHIFT / RUN). Listen for them, and don\'t let them reach the exit.';
     $('black').style.transition='none'; $('black').style.opacity = 1; setTimeout(()=>{ $('black').style.transition=''; }, 50);
   } else if (G.ex) msg('EXPLORATION MODE. Nothing is hunting you. Take your time.', 5);
-  else msg((G.lv|0) === 7 ? 'LEVEL FUN. Open the presents: one of them has the key to the EXIT. The rest are LOUD. Shut doors behind you: the Partygoers can\'t open them.' : (G.lv|0) === 6 ? 'LEVEL 52. When the bell rings, get to the classroom on your schedule before the tardy bell. Never be in the halls during class.' : (G.lv|0) === 0 && level.lab ? 'ASYNC LAB 4. The portal is open. Find 3 fuses out there. Something else is awake.' : (G.lv|0) === 5 ? 'Vent the 4 red pressure valves and find bolt cutters. The EXIT door is chained shut somewhere in these tunnels.' : (G.lv|0) === 4 ? 'Find the 4 receipts. Each one has a number of the security code. Three floors. Nobody is shopping.' : (G.lv|0) === 3 ? 'Find the keycard. The elevators work. Something else uses them too.' : (G.lv|0) === 2 ? 'Find the staircase. Something is in the water.' : (G.lv|0) === 1 ? 'Start the 5 generators. They are LOUD. Something else is awake.' : 'Find 3 fuses. Something else is awake.', 5);
+  else msg((G.lv|0) === 10 ? 'THE WARD. Hold the hall until the elevator gets here. Click to fire, R to reload. Spare rounds at the NURSES station halfway down.' : (G.lv|0) === 7 ? 'LEVEL FUN. Open the presents: one of them has the key to the EXIT. The rest are LOUD. Shut doors behind you: the Partygoers can\'t open them.' : (G.lv|0) === 6 ? 'LEVEL 52. When the bell rings, get to the classroom on your schedule before the tardy bell. Never be in the halls during class.' : (G.lv|0) === 0 && level.lab ? 'ASYNC LAB 4. The portal is open. Find 3 fuses out there. Something else is awake.' : (G.lv|0) === 5 ? 'Vent the 4 red pressure valves and find bolt cutters. The EXIT door is chained shut somewhere in these tunnels.' : (G.lv|0) === 4 ? 'Find the 4 receipts. Each one has a number of the security code. Three floors. Nobody is shopping.' : (G.lv|0) === 3 ? 'Find the keycard. The elevators work. Something else uses them too.' : (G.lv|0) === 2 ? 'Find the staircase. Something is in the water.' : (G.lv|0) === 1 ? 'Start the 5 generators. They are LOUD. Something else is awake.' : 'Find 3 fuses. Something else is awake.', 5);
   if ((G.lv|0) > 0){ seenZones.add(1); seenZones.add(2); }
 }
 function monFilter(){ return role==='monster' ? `sepia(.85) saturate(2.6) hue-rotate(-38deg) contrast(1.1) brightness(${LK === 1 ? .86 : LK === 2 ? 1.0 : LK === 3 || LK === 4 || LK === 6 ? .82 : .64})` : ''; }
@@ -9455,7 +10042,8 @@ function enterLevel(){
   $('locker').style.display='none'; me.hidden = -1; $('white').style.transition='none'; $('white').style.opacity = 0; $('flash').style.opacity = 0; $('spec').style.display = 'none';
   setTimeout(()=>{ $('white').style.transition=''; }, 50);
   const b = $('black'); b.style.transition = 'none'; b.style.opacity = 1;
-  if ((G.lv|0) === 8){ $('blacktext').textContent = 'THE BASEMENT'; $('blacksub').textContent = 'BELOW THE PARTY · the old furnace runs the lights: keep it fed with coal. The cellar key is in one of the crates. Keep moving: something lives under the floorboards.'; }
+  if ((G.lv|0) === 10){ $('blacktext').textContent = 'THE WARD'; $('blacksub').textContent = 'ISOLATION WARD C · the freight elevator is on its way down. Five minutes. Hold the lobby with your back to it. The cell doors won\'t hold that long.'; }
+  else if ((G.lv|0) === 8){ $('blacktext').textContent = 'THE BASEMENT'; $('blacksub').textContent = 'BELOW THE PARTY · the old furnace runs the lights: keep it fed with coal. The cellar key is in one of the crates. Keep moving: something lives under the floorboards.'; }
   else if ((G.lv|0) === 7){ $('blacktext').textContent = 'LEVEL FUN'; $('blacksub').textContent = 'THE PARTY · =) Somebody here has the key to the EXIT, wrapped up in a present. Close the doors behind you. Don\'t let the lights go out.'; }
   else if ((G.lv|0) === 6){ $('blacktext').textContent = 'LEVEL 52'; $('blacksub').textContent = 'SCHOOL HALLS · two floors round a courtyard. Follow the bell schedule: be in your classroom before the tardy bell, every period. The hall monitors are strict.'; }
   else if ((G.lv|0) === 5){ $('blacktext').textContent = 'LEVEL 2'; $('blacksub').textContent = 'PIPE DREAMS · maintenance tunnels. The pipes are hot and the machines never stop. Vent the pressure valves, cut the chain on the EXIT door.'; }
@@ -9465,6 +10053,7 @@ function enterLevel(){
   else { $('blacktext').textContent = 'LEVEL 1'; $('blacksub').textContent = 'THE PARKING GARAGE · four Lurkers in the dark · start all 5 generators, then find the exit'; }
   { const nr = G.mo === myPid ? 'monster' : 'survivor'; if (nr !== role){ role = nr; me.bat = 100; me.light = false; me.hidden = -1; canvas.style.filter = monFilter(); $('bat').style.display = role === 'survivor' ? '' : 'none'; $('abil').style.display = role === 'monster' && !isTouch ? 'flex' : 'none'; amb.intensity = role === 'monster' ? 0.42 : 0.16;
     if (role === 'survivor') msg('No Occupant in the school. Just the hall monitors. You\'re a student today: get to class.', 5); } }
+  if ((G.lv|0) === 10 && role === 'survivor') setTimeout(()=>{ if (LK === 10) msg('Keep your back to the elevator. Don\'t get grabbed.', 5); }, 5200);
   if ((G.lv|0) === 8 && role === 'survivor') setTimeout(()=>{ if (LK === 8) msg('Don\'t stand still too long down here.', 5); }, 4200);   // v0.57.1: the school has no Occupant
   if (role === 'monster'){ me.x = level.mspawn[0]; me.z = level.mspawn[1]; me.yaw = Math.random()*6; abCD.dash = Math.max(abCD.dash, 6); mode = 'play'; }
   else { const k = hashStr(myPid)%4, sp0 = level.spawn || [cc(1), cc(1)]; me.x = sp0[0] + [-0.8,0.8,-0.8,0.8][k]; me.z = sp0[1] + [-0.8,-0.8,0.8,0.8][k]; me.yaw = level.spawnYaw ?? Math.PI*0.75; me.pitch = 0;
@@ -9483,7 +10072,8 @@ function triggerDeath(){
   $('white').style.transition = 'none';
   if (me.hidden >= 0){ me.hidden = -1; $('locker').style.display='none'; }
   me.alive = false; mode = 'deadAnim'; deathT = 0; PHANTOM.g.visible = false; VM.visible = false;
-  scareLurk = !!LRK && (G.lkd || []).includes(myPid); scareMq = (G.mqk || []).includes(myPid); scareHm = (G.hmk || []).includes(myPid); scareLs = (G.lsk || []).includes(myPid); scarePg = (G.pgk || []).includes(myPid); scareCr = (G.crk || []).includes(myPid);
+  scareLurk = !!LRK && (G.lkd || []).includes(myPid); scareMq = (G.mqk || []).includes(myPid); scareHm = (G.hmk || []).includes(myPid); scareLs = (G.lsk || []).includes(myPid); scarePg = (G.pgk || []).includes(myPid); scareCr = (G.crk || []).includes(myPid); scareWi = (G.wik || []).includes(myPid) || (G.wlk || []).includes(myPid);
+  if (scareWi){ sfx.screech(); wardSnd('kill', me.x, me.z); }
   if (scareSl){ sfx.screech(); sfx.sample('atk2', null, 1.4); vibrate([300,60,400]); return; }   // v0.71: the Still-Life
   if (scareCr){ sfx.screech(); bsSound('crBurst', me.x, me.z); }
   if (scarePg){ sfx.screech(); funSound('pgKill', me.x, me.z); }
@@ -9868,6 +10458,7 @@ function lureBehind(){
 function playEventSound(k, x, z, m){
   if (!sfx.ctx) return;
   if (k === 'crCreak' || k === 'crWarn' || k === 'crBurst' || k === 'crKill' || k === 'bsFeed' || k === 'bsCrate' || k === 'bsKey'){ bsSound(k, x, z); return; }
+  if (k === 'wShot'){ if (!(m && m.pid === myPid)) wardRemoteShot(x, z); return; } if (k === 'wGrab'){ wardSnd('grab', x, z); return; } if (k === 'wKill'){ wardSnd('kill', x, z); return; }   // v0.78 THE WARD
   if (k === 'giftHorn' || k === 'giftKey' || k === 'pgKnock' || k === 'pgKill' || k === 'pgSpot' || k === 'fdoorBang'){ funSound(k, x, z); return; }
   if (k === 'gdoorS'){ const o = sfx.panner(x, 1.1, z, 5); sfx.noise(o,{ dur:0.18, type:'lowpass', freq:520, gain:0.8 }); sfx.tone(o,{ f:110, to:55, dur:0.22, gain:0.18 }); sfx.noise(o,{ dur:0.05, type:'bandpass', freq:2400, q:4, gain:0.25, at:0.03 }); return; }   // steel door shut + latch
   if (k === 'gdoorO'){ const o = sfx.panner(x, 1.1, z, 4); sfx.noise(o,{ dur:0.05, type:'bandpass', freq:2200, q:4, gain:0.25 }); sfx.tone(o,{ f:340, to:260, type:'sawtooth', dur:0.55, gain:0.025, at:0.05 }); return; }   // latch + a hinge creak
@@ -9903,6 +10494,7 @@ addEventListener('keydown', e=>{
   if (mode==='play' && LK === 3 && /^Digit[1-5]$/.test(e.code) && myCar188() >= 0){ elevPress188(+e.code.slice(5)); return; }   // the elevator panel
   if (mode==='play' && role==='survivor'){
     if (e.code==='KeyF' && me.hidden<0){ me.light=!me.light; sfx.click(); }
+    if (e.code==='KeyR' && LK === 10) wardReload();   // v0.78 the revolver
     if (e.code==='KeyC' || e.code==='ControlLeft'){ me.crouch = me.lowCeil ? true : !me.crouch; }
     if (e.code==='Space' && !e.repeat){ e.preventDefault(); tryJump(); }
   }
@@ -9923,7 +10515,7 @@ canvas.addEventListener('mousedown', e=>{
   if (mode !== 'play' && mode !== 'spect') return;   // v0.68.3 (Ryan): clicking the menu room never grabs the mouse
   if (document.pointerLockElement !== canvas){ try { const r = canvas.requestPointerLock && canvas.requestPointerLock(); if (r && r.catch) r.catch(()=>{}); } catch(err){} return; }
   if (mode==='play' && role==='survivor' && me.alive){
-    if (e.button === 0 && me.hidden < 0){ me.light = !me.light; sfx.click(); }
+    if (e.button === 0 && me.hidden < 0){ if (LK === 10) wardFire(); else { me.light = !me.light; sfx.click(); } }   // v0.78: the revolver on THE WARD
     if (e.button === 2) zoomIn = true;
   }
 });
@@ -9989,6 +10581,8 @@ for (const id of Object.keys(BTN)){
   b.addEventListener('mousedown', down); b.addEventListener('mouseup', up);
 }
 const ICON = {
+  fire:'<svg viewBox="0 0 24 24"><path d="M3 9h13l2-2h3v4h-5v2l-2 1-1 5H9l1-5H7V11H3z"/></svg>',
+  reload:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="8" r="1.4"/><circle cx="15.5" cy="10" r="1.4"/><circle cx="15.5" cy="14" r="1.4"/><circle cx="12" cy="16" r="1.4"/><circle cx="8.5" cy="14" r="1.4"/><circle cx="8.5" cy="10" r="1.4"/></svg>',
   light:'<svg viewBox="0 0 24 24"><path d="M8 3h8l-1 6H9z"/><path d="M9 9h6v12H9z"/><path d="M12 13v3"/></svg>',
   run:'<svg viewBox="0 0 24 24"><circle cx="14" cy="4" r="2"/><path d="M6 21l4-6 3 2 1 5M10 15l2-6 4 3 3-1M12 9l-4 1-2 3"/></svg>',
   crouch:'<svg viewBox="0 0 24 24"><circle cx="12" cy="6" r="2"/><path d="M8 20l2-5h5l2 5M10 15l-1-5h6l-1 5"/></svg>',
@@ -10005,7 +10599,10 @@ const ICON = {
 function setButtons(){
   const run = { label:'RUN', icon:'run', down:()=>{ runHeld=true; }, up:()=>{ runHeld=false; }, on:()=>runHeld };
   let cfg;
-  if (role==='survivor') cfg = [
+  if (role==='survivor' && LK === 10) cfg = [ { label:'FIRE', icon:'fire', down:()=>wardFire() }, { label:'RELOAD', icon:'reload', down:()=>wardReload() },
+    { label:'LIGHT', icon:'light', down:()=>{ if(mode==='play' && me.hidden<0){ me.light=!me.light; sfx.click(); } }, on:()=>lightOn() }, run,
+    { label:'CROUCH', icon:'crouch', down:()=>{ me.crouch = me.lowCeil ? true : !me.crouch; }, on:()=>me.crouch }, { label:'JUMP', icon:'jump', down:()=>tryJump(), on:()=>me.jy > 0 } ];   // v0.78 THE WARD
+  else if (role==='survivor') cfg = [
     { label:'LIGHT', icon:'light', down:()=>{ if(mode==='play' && me.hidden<0){ me.light=!me.light; sfx.click(); } }, on:()=>lightOn() }, run,
     { label:'CROUCH', icon:'crouch', down:()=>{ me.crouch = me.lowCeil ? true : !me.crouch; }, on:()=>me.crouch },
     { label:'JUMP', icon:'jump', down:()=>tryJump(), on:()=>me.jy > 0 } ];
@@ -10099,9 +10696,11 @@ const LV_INFO = [['LEVEL 0','THE OFFICE','Endless yellow rooms, something round 
   ['LEVEL 2','PIPE DREAMS','Hot, cramped maintenance tunnels full of pipes, steam and dying lights.'],
   ['LEVEL 52','SCHOOL HALLS','Get to class before the tardy bell: the hall monitors don\'t give second chances.'],
   ['LEVEL FUN','THE PARTY','Balloons, cake and presents. The Partygoers only watch you while the lights are on.'],
-  ['THE BASEMENT','BELOW THE PARTY','Keep the old furnace fed or the lights die. Don\'t stand still: something lives under the floorboards.']];
+  ['THE BASEMENT','BELOW THE PARTY','Keep the old furnace fed or the lights die. Don\'t stand still: something lives under the floorboards.'],
+  null,   // 9 = Level -0 (secret: you fall into it from Level 0, never picked)
+  ['THE WARD','ISOLATION WARD C','One long hallway of padded cells, a revolver that barely helps, and five minutes until the elevator comes.']];
 function menuSub(id){ for (const k of ['pLevels','pJoin','pInfo']) $(k).classList.toggle('show', k === id); $('menu').classList.toggle('sub', !!id); }
-$('lvgrid').innerHTML = LV_INFO.map((v,k)=>`<button class="tile" data-lv="${k}"><div class="th" style="background-image:url(menu/lv${k}.jpg)"></div><div class="tt"><b>${v[0]}</b><em>${v[1]}</em><p>${v[2]}</p></div></button>`).join('');
+$('lvgrid').innerHTML = LV_INFO.map((v,k)=>!v ? '' : `<button class="tile" data-lv="${k}"><div class="th" style="background-image:url(menu/lv${k}.jpg)"></div><div class="tt"><b>${v[0]}</b><em>${v[1]}</em><p>${v[2]}</p></div></button>`).join('');
 for (const t of document.querySelectorAll('#lvgrid .tile')) t.onclick = ()=>{ startOpt = +t.dataset.lv; try { localStorage.setItem('lvl0_start', startOpt); } catch(e){} lvLabel(); $('bSolo').click(); };
 $('mPlay').onclick = ()=>{ sfx.init(); menuSub('pLevels'); };
 $('mJoin').onclick = ()=>{ sfx.init(); menuSub('pJoin'); setTimeout(()=>$('joincode').focus(), 50); };
@@ -10306,7 +10905,7 @@ function updateCRT(dt){ updateTVfx(dt);
   const e = Math.floor(performance.now()/1000); $('tvtime').textContent = `${Math.floor(e/3600)}:${String(Math.floor(e/60)%60).padStart(2,'0')}:${String(e%60).padStart(2,'0')}`; }
 function lvLabel(){ $('bLv1').textContent = 'START AT: ' + LV_NAMES[startOpt]; }
 lvLabel();
-$('bLv1').onclick = ()=>{ startOpt = (startOpt + 1) % 9; try { localStorage.setItem('lvl0_start', startOpt); } catch(e){} lvLabel(); };
+$('bLv1').onclick = ()=>{ startOpt = LV_PICK[(LV_PICK.indexOf(startOpt) + 1) % LV_PICK.length]; try { localStorage.setItem('lvl0_start', startOpt); } catch(e){} lvLabel(); };
 $('bDiff1').onclick = ()=>{ diffOpt = (diffOpt + 1) % 4; try { localStorage.setItem('lvl0_diff', diffOpt); } catch(e){} diffLabel(); };
 $('bSolo').onclick = ()=>{
   readName(); sfx.init(); if (isTouch) goFull();
@@ -10391,6 +10990,7 @@ function updateMe(dt){
   if (role === 'monster' && dashT > 0){ dashT -= dt; const [fx,,fz] = lookDir(dashYaw, 0); [me.x, me.z] = collide(me.x + fx*DASH_SPEED*dt, me.z + fz*DASH_SPEED*dt, 0.38, me.x, me.z, LK === 2, true); if (LK === 4 || LK === 6) [me.x, me.z] = mallMove852(me.x, me.z, dt, 0.38); me.moving = true; me.running = false; return; }
   if (role === 'survivor' && me.hidden >= 0){ updateHidden(dt); return; }
   if (role === 'survivor' && hatchT > 0){ me.moving = false; me.running = false; updateHatch(dt); return; }
+  if (role === 'survivor' && LK === 10 && G.wg && G.wg[myPid]){ me.moving = false; me.running = false; me.crouch = false; return; }   // v0.78: grabbed, pinned
   if (runReq && me.crouch) me.crouch = false;
   const md = Math.hypot(mDisp.x-me.x, mDisp.z-me.z);
   me.adren = role==='survivor' && G.grace <= 0 && md < 10 && !disguisedFrom(me.x, me.z);
@@ -10459,6 +11059,7 @@ function updateMe(dt){
   if (LK === 5) pipeSurvivor2(dt);
   if (LK === 7) funSurvivor(dt);
   if (LK === 8) bsSurvivor(dt);
+  if (LK === 10) wardSurvivor(dt);
   const carrying = G.fz.filter(f=>f[0]===1 && f[3]===myPid).length;
   if (carrying && Math.hypot(level.breaker[0]-me.x, level.breaker[1]-me.z) < 1.8){
     if (amHost()) applyUse(myPid,{k:'place'});
@@ -10480,6 +11081,7 @@ function contextAction(){
     { const c = labAction(); if (c) return c; }
     { const c = funAction(); if (c) return c; }
     { const c = bsAction(); if (c) return c; }
+    { const c = wardAction(); if (c) return c; }
     { const c = gdoorAction(); if (c) return c; }
     { const c = doorAction37(); if (c) return c; }
     { const c = nzElevAction(); if (c) return c; }
@@ -10649,7 +11251,7 @@ function updateMonsterDisplay(dt){
   if (noOcc()){ mDisp.x = -999; mDisp.z = -999; mDisp.mv = 0; }
   { const jd = Math.hypot(mDisp.x - (mDisp.px ?? mDisp.x), mDisp.z - (mDisp.pz ?? mDisp.z)), v = jd > 3 || dt <= 0 ? (mDisp.sp||0) : Math.min(8, jd/Math.max(dt, 1e-3));   // v0.55: how fast it's really going (for the walk/run clips)
     mDisp.sp = (mDisp.sp||0) + (v - (mDisp.sp||0))*(1 - Math.exp(-5*dt)); mDisp.px = mDisp.x; mDisp.pz = mDisp.z; }
-  const showMon = !G.ex && LK !== 6 && LK !== 7 && LK !== 8 && G.mo !== myPid && myRound===G.r && (mode==='play'||mode==='spect'||mode==='deadAnim') && G.ph==='play';
+  const showMon = !G.ex && LK !== 6 && LK !== 7 && LK !== 8 && LK !== 10 && G.mo !== myPid && myRound===G.r && (mode==='play'||mode==='spect'||mode==='deadAnim') && G.ph==='play';
   const fooled = showMon && mode !== 'deadAnim' && disguisedFrom(camera.position.x, camera.position.z);
   MON.g.visible = showMon && !fooled;
   for (const [pid, f] of fakes) if (!fooled || pid !== G.dgp) f.g.visible = false;
@@ -10664,6 +11266,7 @@ function panelBright(p, t, mx, mz){
   if (LK === 3 && G.hb > 0) return G.hb < 1.6 && h01(p.idx*5+Math.floor(t*14)) < (1 - G.hb/1.6)*0.9 ? 0.9 : 0;   // hotel outage: everything, elevator cars too; stutters back on at the end
   if (p.car != null){ const el = G.el && G.el[p.car]; return el && el.a === p.L ? 1 : 0; }   // Level 188: the light in an elevator car
   if (p.dead) return 0;
+  if (LK === 10){ const wb = wardPanelB(p, t); if (wb != null) return wb; }   // v0.78 THE WARD
   if (LK === 7 && funNight()) return 0;   // Level Fun: lights out
   if (LK === 8 && G.ph === 'play' && G.fh8 != null){ const h = G.fh8; if (h <= 0) return 0; if (h < 25 && h01(p.idx*7 + Math.floor(t*(5 + (25-h)*0.5))) < (25-h)/45) return 0.12; }   // v0.63 the basement: the furnace runs the lights
   if (p.circ != null && G.po && G.po.some(q=>q[0] === p.circ)) return 0;   // Level 2: a whole series circuit is out
@@ -11357,7 +11960,7 @@ function updateTension(dt){
   TD.quiet += dt; if (TD.quiet < TD.next) return;
   TD.quiet = 0; TD.next = 40 + Math.random()*45;
   const r = Math.random(); let kind = '';
-  if (r < 0.42 && LK !== 2 && LK !== 8 && md > 35 && tdFakeSteps()) kind = 'steps';
+  if (r < 0.42 && LK !== 2 && LK !== 8 && LK !== 10 && md > 35 && tdFakeSteps()) kind = 'steps';
   else if (r < 0.66 && LK !== 2){ const sp = tdSpot(2.5, 7, false); if (sp){ TD.flk = { x:sp.x, z:sp.z, t:2.2 + Math.random()*1.5 }; kind = 'flicker'; } }
   if (false && !kind && r < 0.86){ const sp = tdSpot(6, 10, true);   // v0.70.2: close knocks/slams removed (Ryan)
     if (sp){ const pos = { x:sp.x, y:1.2, z:sp.z }, k = Math.floor(Math.random()*5);
@@ -11447,7 +12050,8 @@ function updateHUD(dt){
     $('objLbl').textContent = me.hidden >= 0 ? 'HIDING' : 'OBJECTIVE';
     const gOn = (G.gen||[]).filter(Boolean).length;
     if (G.lv === 7) obj.textContent = funObj();
-    if (G.lv === 8 && LK === 8) obj.textContent = bsObj();
+    if (G.lv === 10 && LK === 10) obj.textContent = wardObj();
+    else if (G.lv === 8 && LK === 8) obj.textContent = bsObj();
     else if (G.lv === 6) obj.textContent = schoolObj52();
     else if (G.lv === 5) obj.textContent = pipeObj2();
     else if (G.lv === 4) obj.textContent = mallObj852();
@@ -11456,7 +12060,7 @@ function updateHUD(dt){
     else obj.textContent = G.lv === 2 ? `Reach the stairs (the green EXIT sign) · ${isNight() ? 'NIGHT' : duskIn37() < WARN37 ? 'the pool is closing' : 'DAY'}` : G.open ? 'The exit is open. Find the door.' : G.lv === 1 ? `Start the generators · ${gOn}/${G.gen.length}` : found >= FUSES ? `Bring the fuses to the breaker · ${G.pl}/${FUSES}` : `Find the fuses · ${found}/${FUSES}` + (mine ? ` · carrying ${mine}` : '');
     if (LK === 9) obj.textContent = nzObj();
     $('kit').style.display = '';
-    { const sd = $('side'), want = LK === 8 && G.lv === 8 ? bsSide() : LK === 7 && G.lv === 7 ? funSide() : LK === 6 && G.lv === 6 ? schoolSide52() : LK === 4 && G.lv === 4 ? mallSide852() : LK === 0 && inLab(me.x, me.z) ? labStatus() : ''; if (sd.textContent !== want) sd.textContent = want; sd.style.display = want ? 'block' : 'none'; }
+    { const sd = $('side'), want = LK === 10 && G.lv === 10 ? wardSide() : LK === 8 && G.lv === 8 ? bsSide() : LK === 7 && G.lv === 7 ? funSide() : LK === 6 && G.lv === 6 ? schoolSide52() : LK === 4 && G.lv === 4 ? mallSide852() : LK === 0 && inLab(me.x, me.z) ? labStatus() : ''; if (sd.textContent !== want) sd.textContent = want; sd.style.display = want ? 'block' : 'none'; }
     $('batfill').style.width = me.bat+'%'; $('batfill').style.background = me.bat < 20 ? '#e25a44' : '#e8de9e';
     const st = $('stam'); st.style.opacity = me.stam < 99 && me.hidden < 0 ? 1 : 0; $('stamf').style.width = me.stam+'%'; st.classList.toggle('adr', !!me.adren); st.classList.toggle('winded', !!me.winded);
     const cranking = crankK >= 0 || !!mallHold, showStun = stunCharge > 0.05 || cranking; $('stun').style.display = showStun ? 'block' : 'none'; $('stunTxt').style.display = showStun ? 'block' : 'none';
@@ -11498,13 +12102,14 @@ function placeCamera(dt){
     if (me.landDip > 0) me.landDip = Math.max(0, me.landDip - dt*4.5);
     const jumpY = role === 'survivor' ? (me.jy || 0) - 0.09*Math.sin(Math.PI*(me.landDip || 0)) : 0;   // v0.76.4
     camera.position.set(me.x, eye + jumpY + Math.sin(me.bob)*(role==='monster'?0.07:0.045) + (role === 'monster' && LK === 2 ? Math.max(floorY(me.x, me.z), -0.12) : floorY(me.x, me.z)), me.z);
-    VM.visible = role==='survivor' && me.hidden < 0;
+    VM.visible = role==='survivor' && me.hidden < 0 && LK !== 10;   // v0.78: the revolver replaces the flashlight arm on THE WARD
     if (me.hidden >= 0){ const lk = level.lockers[me.hidden]; camera.position.set(lk.x + Math.sin(lk.ry)*0.18, 1.55 + Math.sin(nowS()*1.3)*0.008, lk.z + Math.cos(lk.ry)*0.18); }
     me.vmRun = lerp(me.vmRun||0, me.running ? 1 : 0, 1 - Math.exp(-8*dt));
     VM.position.set(0.28 + Math.sin(me.bob*0.5)*0.012, -0.3 + Math.abs(Math.cos(me.bob*0.5))*0.012 - me.vmRun*0.03, -0.5);
     VM.userData.lens.material.color.setHex(lightOn() ? 0xfff6d8 : 0x333333);
     camera.rotation.set(me.pitch, me.yaw, Math.sin(me.bob*0.5)*(role==='monster'?0.02:0.006));
     if (SET.cmo !== 'steady' && me.hidden < 0) bodyCam(dt);
+    if (LK === 10) wardCamFx(dt);
     { const fv = lerp(camera.fov, dashT > 0 ? SET.fov + 16 : lerp(SET.fov, ZOOM_FOV, zK), 1-Math.exp(-14*dt)); if (Math.abs(fv-camera.fov) > 0.01){ camera.fov = fv; camera.updateProjectionMatrix(); } }
   } else if (mode==='deadAnim'){
     // JUMPSCARE: it snaps into your face, the camera zooms and shakes, the light strobes, then a hard cut to black
@@ -11517,6 +12122,10 @@ function placeCamera(dt){
       if (SL.bones){ for (const d of SL_TW){ const b = SL.bones[d[0]]; if (b){ b.rotation.x += d[2]; b.rotation.y += d[3]; b.rotation.z += d[4]; } } if (SL.bones.Head) SL.bones.Head.rotation.z += Math.sin(deathT*38)*0.3; }   // v0.73: fully mangled, neck snapped
       J.g.position.set(me.x, fy, me.z); J.g.rotation.y = Math.atan2(lx, lz) + Math.PI + R()*0.08; J.g.updateMatrixWorld(true); const hp = ((SL.bones && SL.bones.Head) || J.g).getWorldPosition(_jv);
       J.g.position.x += me.x + lx*(0.5+lunge) - hp.x; J.g.position.y += fy + EYE - 0.05 + R()*0.04 - hp.y; J.g.position.z += me.z + lz*(0.5+lunge) - hp.z; }
+    else if (scareWi){ MON.g.visible = false; if (!WIJ){ WIJ = makeInmate(0, 7); scene.add(WIJ.g); } const J = WIJ; J.g.visible = face; const V0 = { m:J, st:2, sp:0, t:0, id:7, ph:deathT*8 }; animInmate(V0, 0.016, nowS());   // v0.78 THE WARD
+      J.P.head.rotation.z = Math.sin(deathT*40)*0.35;
+      J.g.position.set(me.x, fy, me.z); J.g.rotation.y = Math.atan2(-lx, -lz) + R()*0.08; J.g.updateMatrixWorld(true); const hp = J.P.head.getWorldPosition(_jv);
+      J.g.position.x += me.x + lx*(0.5+lunge) - hp.x; J.g.position.y += fy + EYE - 0.1 + R()*0.04 - hp.y; J.g.position.z += me.z + lz*(0.5+lunge) - hp.z; }
     else if (scareCr){ MON.g.visible = false; if (!CRJ){ CRJ = makeCreaker(); scene.add(CRJ.g); } if (CRV) CRV.g.visible = false; const J = CRJ; J.g.visible = face; animCreaker(J, nowS(), 3);
       J.P.head.rotation.z = Math.sin(deathT*40)*0.35;
       J.g.position.set(me.x, fy, me.z); J.g.rotation.y = Math.atan2(-lx, -lz) + R()*0.08; J.g.updateMatrixWorld(true); const hp = J.P.head.getWorldPosition(_jv);
@@ -11562,7 +12171,7 @@ function placeCamera(dt){
     $('flash').style.opacity = face ? (Math.random() < 0.35 ? 0.6 : 0.12) : 0;
     $('scare').style.opacity = face ? (0.55 + Math.random()*0.45) : deathT < 1.6 ? 1 : 0;
     if (!face){ $('blacktext').textContent = ''; $('blacksub').textContent = ''; $('black').style.transition = 'none'; $('black').style.opacity = 1;
-      tapeEnd(deathT - 1.35, 'YOU WERE FOUND', scareSl ? 'IT WAS NEVER ONE OF YOU' : scareCr ? 'IT CAME UP THROUGH THE FLOOR' : scarePg ? 'A PARTYGOER GOT YOU' : scareLs ? 'THE LISTENER HEARD YOU' : scareHm ? 'THE HALL MONITOR CAUGHT YOU' : scareMq ? 'A MANNEQUIN GOT YOU' : scareLurk ? 'THE LURKER GOT YOU' : 'THE OCCUPANT FOUND YOU'); }
+      tapeEnd(deathT - 1.35, 'YOU WERE FOUND', scareWi ? ((G.wlk || []).includes(myPid) ? 'THE DOORS CLOSED WITHOUT YOU' : 'THE INMATES GOT YOU') : scareSl ? 'IT WAS NEVER ONE OF YOU' : scareCr ? 'IT CAME UP THROUGH THE FLOOR' : scarePg ? 'A PARTYGOER GOT YOU' : scareLs ? 'THE LISTENER HEARD YOU' : scareHm ? 'THE HALL MONITOR CAUGHT YOU' : scareMq ? 'A MANNEQUIN GOT YOU' : scareLurk ? 'THE LURKER GOT YOU' : 'THE OCCUPANT FOUND YOU'); }
     if (deathT > 4.1) toSpectate();
   } else if (mode==='fallAnim'){
     fallT += dt; fallV += 13*dt; fallY -= fallV*dt;
@@ -11622,7 +12231,7 @@ function tapeSnd(ph){ if (!sfx.ctx) return; const o = sfx.outG;
   else { sfx.noise(o,{ dur:0.1, type:'lowpass', freq:600, gain:0.55 }); sfx.noise(o,{ dur:0.18, type:'bandpass', freq:1800, q:3, gain:0.25, at:0.12 }); sfx.tone(o,{ f:70, to:30, dur:0.3, gain:0.25, at:0.05 }); } }   // eject
 function toSpectate(){
   tapeEndOff();
-  $('white').style.transition = ''; $('black').style.transition = ''; $('scare').style.opacity = 0; camera.fov = SET.fov; camera.updateProjectionMatrix(); scareLurk = false; scareMq = false; scareHm = false; scareLs = false; scareSl = false; scarePg = false; scareCr = false; if (CRJ) CRJ.g.visible = false; if (LSJ) LSJ.g.visible = false; if (PGJ) PGJ.g.visible = false;
+  $('white').style.transition = ''; $('black').style.transition = ''; $('scare').style.opacity = 0; camera.fov = SET.fov; camera.updateProjectionMatrix(); scareLurk = false; scareMq = false; scareHm = false; scareLs = false; scareSl = false; scarePg = false; scareCr = false; scareWi = false; if (WIJ) WIJ.g.visible = false; if (CRJ) CRJ.g.visible = false; if (LSJ) LSJ.g.visible = false; if (PGJ) PGJ.g.visible = false;
   $('locker').style.display='none'; $('stun').style.display='none'; $('stunTxt').style.display='none'; $('prompt').style.display='none'; $('stam').style.opacity=0;
   vhsK = 0; $('vhs').style.opacity = 0;
   VM.visible = false; $('flash').style.opacity = 0; canvas.style.filter=''; canvas.style.transform=''; $('elev').style.display = 'none';
@@ -12036,7 +12645,7 @@ function frame(now){
     if (sees) lastSeen = t;
     updateVHS(dt);
     updateZoom(dt); updateLowRes(dt, sees);
-    updateCans(dt); updateVent(dt); update37(dt); updateRadio37(dt); update188(dt); updateLab(dt); updateMall(dt); updateMallMap(dt); updateMannequins852(dt); update2p(dt); updateSchool52(dt); updateFun(dt); updateBS(dt); updateGarageDoors(dt); updateExitDoor(dt);
+    updateCans(dt); updateVent(dt); update37(dt); updateRadio37(dt); update188(dt); updateLab(dt); updateMall(dt); updateMallMap(dt); updateMannequins852(dt); update2p(dt); updateSchool52(dt); updateFun(dt); updateBS(dt); updateWard(dt); updateGarageDoors(dt); updateExitDoor(dt);
     updateCamFx(dt);
     updateMonsterSenses(dt);
     updateAmbience(dt);
@@ -12059,7 +12668,7 @@ function frame(now){
 }
 requestAnimationFrame(frame);
 
-window.__hp = { HIQ, hiSync, get concPTs(){ return concPTs; }, FLD, FL_K, FL_TH, get POST(){ return POST; }, get walls(){ return walls; }, get N(){ return N; }, vIdx, hIdx, collide, SL, slPeople, slOwner, slPack, smSpot, smTargets, lightAtCell, slTurn:()=>{ SL.wrong = 99; }, slNow:()=>{ SL.due = 0; }, nzEnter:()=>{ nzLocal = true; useReq({ k:'nzin' }); }, nzGlitch:()=>{ H.nzForce = true; }, nzWorld, CP, corpseGeo, makeCorpse, corpseWall, updateCorpses, SML, get smSrc(){ return smSrc; }, PERF, tvPower, get TVR(){ return TVR; }, setGfx:(o)=>{ Object.assign(SET, o); applyGfx(); applySet(); }, setLook:(v)=>sxSet('look', v), DRS, tryJump, JUMPS, jumpLen, setGrace:(v)=>{ G.grace = v; }, MATR, matSync, get SET(){ return SET; }, spots, killSurvivor, hostCreaker, hostBS, bsUse, bsObj, bsCold, get CRV(){ return CRV; }, inRoom1, lrCampSpot, FR, frOpen, frClose, frJoin, frRender, frToast, FPH, placeFPHand, get flSrc(){ return flSrc; }, updateLab, hostFun, hostPartygoers, funAction, funObj, funNight, funDoorsToWalls, get PGV(){ return PGV; }, get scarePg(){ return scarePg; }, get FL_DRAIN(){ return FL_DRAIN; }, LS_HUNT, startOpt:(v)=>{ startOpt = v; }, hostTick, nextStep, isDead, killSurvivor, get remotes(){ return remotes; }, setRole:(r)=>{ role = r; }, get MON_WALK(){ return MON_WALK; }, get MONS(){ return MONS; }, get LSJ(){ return LSJ; }, get deathT(){ return deathT; }, get scareLs(){ return scareLs; }, hostListener, lsAlert, get LSV(){ return LSV; }, TD, updateTension, tdFakeSteps, DFL, boT, panelBright, collide, gen52, hostSchool52, hostMonitors52, assign52, tardy52, roomAt52, schoolObj52, schoolTarget52, myRoom52, MV52, get HMJ(){ return HMJ; }, S52_LANES, get radio37(){ return radio37; }, get fig37(){ return fig37; }, get zLevel(){ return zLevel; }, get zK(){ return zK; }, deepDay37, deep37, forceFig37:()=>{ figT = 0; }, duskIn37, wakeLay37, nowS, buildLevel, hotelOpen188, hostOutage188, pipeObj2, pipeTarget2, p2Diag, MQV, hostMannequins852, mqSeen852, floorAt852, laneAt852, MLANES, mallObj852, mallTarget852, mallWayTo852, aiTick852, mallMove852, get mallHold(){ return mallHold; }, get guide(){ return guide; }, hostLurker, opusTweak, fillDevices, get LRK(){ return LRK; }, lrSpot, animLurker, get running(){ return me.running; }, get W(){ return W; }, get N(){ return N; }, get stunCharge(){ return stunCharge; }, losClear, me, H, net, hide, unhide, throwCan, contextAction, useSkin, get mySkin(){ return mySkin; }, set mySkin(v){ mySkin=v; }, inPit, zoneOf, get G(){ return G; }, set G(v){ G=v; }, get mode(){ return mode; }, get role(){ return role; }, get level(){ return level; }, get walls(){ return walls; }, mDisp, doShift, monsterPos, ability, get abCD(){ return abCD; }, disguisedFrom, get fakes(){ return fakes; }, enterVent, nearVent, get ventT(){ return ventT; }, get ventCD(){ return ventCD; }, set ventCD(v){ ventCD=v; }, get abCD2(){ return abCD; }, inPit, get LK(){ return LK; }, get crankK(){ return crankK; }, ability, get curRH(){ return curRH; }, get MON(){ return MON; }, sfx, voice, noiseLevel, get settingsOpen(){ return settingsOpen; }, myPid, monsterVoice, pitchDown, dropDust, get silT(){ return silT; }, set silNext(v){ silNext=v; }, advanceLevel, aiObjectives, poolBlock, aiTick, aiReset, bfsFrom, cellOf, cc, floorY, TU, PG, camera, scene, renderer, applyUse, AI_DIFF, set diffOpt(v){ diffOpt=v; }, get M37(){ return M37; }, buildL37test:(sd)=>build37(sd), ripP, ripWho, makeAvatar, animAvatar, buildLevelTest:(sd,k)=>buildLevel(sd,k), fpArm:(roll,axis,curl)=>{ FP_ROLL = roll; FP_AXIS = axis; if (curl) Object.assign(FP_CURL, curl); buildFPArm(survSrc); }, VM, collide, k37, h37, d37, nav37, isNight, dayK, aiTick37, collide37, K37, sdShape, floorAt188, vis188, hostElev188, aiTick188, myCar188, elevPress188, ELV, HO, elDisp, update188, inLab, hostLab, labUse, labSensor, labStatus, startHatch, get hatchT(){ return hatchT; }, connected };
+window.__hp = { WARD, WARD_ASSETS, hostWard, wardUse, wardFire, wardReload, wardAction, wardObj, wardSide, wardCar, makeInmate, get scareWi(){ return scareWi; }, HIQ, hiSync, get concPTs(){ return concPTs; }, FLD, FL_K, FL_TH, get POST(){ return POST; }, get walls(){ return walls; }, get N(){ return N; }, vIdx, hIdx, collide, SL, slPeople, slOwner, slPack, smSpot, smTargets, lightAtCell, slTurn:()=>{ SL.wrong = 99; }, slNow:()=>{ SL.due = 0; }, nzEnter:()=>{ nzLocal = true; useReq({ k:'nzin' }); }, nzGlitch:()=>{ H.nzForce = true; }, nzWorld, CP, corpseGeo, makeCorpse, corpseWall, updateCorpses, SML, get smSrc(){ return smSrc; }, PERF, tvPower, get TVR(){ return TVR; }, setGfx:(o)=>{ Object.assign(SET, o); applyGfx(); applySet(); }, setLook:(v)=>sxSet('look', v), DRS, tryJump, JUMPS, jumpLen, setGrace:(v)=>{ G.grace = v; }, MATR, matSync, get SET(){ return SET; }, spots, killSurvivor, hostCreaker, hostBS, bsUse, bsObj, bsCold, get CRV(){ return CRV; }, inRoom1, lrCampSpot, FR, frOpen, frClose, frJoin, frRender, frToast, FPH, placeFPHand, get flSrc(){ return flSrc; }, updateLab, hostFun, hostPartygoers, funAction, funObj, funNight, funDoorsToWalls, get PGV(){ return PGV; }, get scarePg(){ return scarePg; }, get FL_DRAIN(){ return FL_DRAIN; }, LS_HUNT, startOpt:(v)=>{ startOpt = v; }, hostTick, nextStep, isDead, killSurvivor, get remotes(){ return remotes; }, setRole:(r)=>{ role = r; }, get MON_WALK(){ return MON_WALK; }, get MONS(){ return MONS; }, get LSJ(){ return LSJ; }, get deathT(){ return deathT; }, get scareLs(){ return scareLs; }, hostListener, lsAlert, get LSV(){ return LSV; }, TD, updateTension, tdFakeSteps, DFL, boT, panelBright, collide, gen52, hostSchool52, hostMonitors52, assign52, tardy52, roomAt52, schoolObj52, schoolTarget52, myRoom52, MV52, get HMJ(){ return HMJ; }, S52_LANES, get radio37(){ return radio37; }, get fig37(){ return fig37; }, get zLevel(){ return zLevel; }, get zK(){ return zK; }, deepDay37, deep37, forceFig37:()=>{ figT = 0; }, duskIn37, wakeLay37, nowS, buildLevel, hotelOpen188, hostOutage188, pipeObj2, pipeTarget2, p2Diag, MQV, hostMannequins852, mqSeen852, floorAt852, laneAt852, MLANES, mallObj852, mallTarget852, mallWayTo852, aiTick852, mallMove852, get mallHold(){ return mallHold; }, get guide(){ return guide; }, hostLurker, opusTweak, fillDevices, get LRK(){ return LRK; }, lrSpot, animLurker, get running(){ return me.running; }, get W(){ return W; }, get N(){ return N; }, get stunCharge(){ return stunCharge; }, losClear, me, H, net, hide, unhide, throwCan, contextAction, useSkin, get mySkin(){ return mySkin; }, set mySkin(v){ mySkin=v; }, inPit, zoneOf, get G(){ return G; }, set G(v){ G=v; }, get mode(){ return mode; }, get role(){ return role; }, get level(){ return level; }, get walls(){ return walls; }, mDisp, doShift, monsterPos, ability, get abCD(){ return abCD; }, disguisedFrom, get fakes(){ return fakes; }, enterVent, nearVent, get ventT(){ return ventT; }, get ventCD(){ return ventCD; }, set ventCD(v){ ventCD=v; }, get abCD2(){ return abCD; }, inPit, get LK(){ return LK; }, get crankK(){ return crankK; }, ability, get curRH(){ return curRH; }, get MON(){ return MON; }, sfx, voice, noiseLevel, get settingsOpen(){ return settingsOpen; }, myPid, monsterVoice, pitchDown, dropDust, get silT(){ return silT; }, set silNext(v){ silNext=v; }, advanceLevel, aiObjectives, poolBlock, aiTick, aiReset, bfsFrom, cellOf, cc, floorY, TU, PG, camera, scene, renderer, applyUse, AI_DIFF, set diffOpt(v){ diffOpt=v; }, get M37(){ return M37; }, buildL37test:(sd)=>build37(sd), ripP, ripWho, makeAvatar, animAvatar, buildLevelTest:(sd,k)=>buildLevel(sd,k), fpArm:(roll,axis,curl)=>{ FP_ROLL = roll; FP_AXIS = axis; if (curl) Object.assign(FP_CURL, curl); buildFPArm(survSrc); }, VM, collide, k37, h37, d37, nav37, isNight, dayK, aiTick37, collide37, K37, sdShape, floorAt188, vis188, hostElev188, aiTick188, myCar188, elevPress188, ELV, HO, elDisp, update188, inLab, hostLab, labUse, labSensor, labStatus, startHatch, get hatchT(){ return hatchT; }, connected };
 </script>
 </body>
 </html>
